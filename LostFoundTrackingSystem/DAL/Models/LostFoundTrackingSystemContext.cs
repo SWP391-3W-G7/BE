@@ -213,7 +213,6 @@ public partial class LostFoundTrackingSystemContext : DbContext
             entity.HasIndex(e => e.Email, "UQ__User__A9D105347BDC93EF").IsUnique();
 
             entity.Property(e => e.UserId).HasColumnName("UserID");
-            entity.Property(e => e.CampusId).HasColumnName("CampusID");
             entity.Property(e => e.Email)
                 .IsRequired()
                 .HasMaxLength(255)
@@ -223,11 +222,6 @@ public partial class LostFoundTrackingSystemContext : DbContext
                 .HasMaxLength(255)
                 .IsUnicode(false);
             entity.Property(e => e.RoleId).HasColumnName("RoleID");
-
-            entity.HasOne(d => d.Campus).WithMany(p => p.Users)
-                .HasForeignKey(d => d.CampusId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_User_Campus");
 
             entity.HasOne(d => d.Role).WithMany(p => p.Users)
                 .HasForeignKey(d => d.RoleId)

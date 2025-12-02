@@ -17,5 +17,4 @@ public partial class Campus
 
     public virtual ICollection<LostItem> LostItems { get; set; } = new List<LostItem>();
 
-    public virtual ICollection<User> Users { get; set; } = new List<User>();
 }

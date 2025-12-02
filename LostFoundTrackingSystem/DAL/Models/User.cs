@@ -15,9 +15,6 @@ public partial class User
 
     public int RoleId { get; set; }
 
-    public int CampusId { get; set; }
-
-    public virtual Campus Campus { get; set; }
 
     public virtual ICollection<Claim> Claims { get; set; } = new List<Claim>();
 
