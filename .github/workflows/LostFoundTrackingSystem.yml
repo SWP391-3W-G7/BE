@@ -17,10 +17,10 @@ env:
   CONFIGURATION: Release
   DOTNET_CORE_VERSION: 8.0.x
 
-  WORKING_DIRECTORY: BE/LostFoundTrackingSystem/LostFoundApi
-  AZURE_WEBAPP_PACKAGE_PATH: BE/LostFoundTrackingSystem/LostFoundApi/publish
-  API_IMPORT_SPECIFICATION_PATH: BE/LostFoundTrackingSystem/LostFoundApi/publish/swagger.json
-  API_IMPORT_DLL: BE/LostFoundTrackingSystem/LostFoundApi/bin/Release/net8.0/LostFoundApi.dll
+  WORKING_DIRECTORY: LostFoundTrackingSystem/LostFoundApi
+  AZURE_WEBAPP_PACKAGE_PATH: LostFoundTrackingSystem/LostFoundApi/publish
+  API_IMPORT_SPECIFICATION_PATH: LostFoundTrackingSystem/LostFoundApi/publish/swagger.json
+  API_IMPORT_DLL: LostFoundTrackingSystem/LostFoundApi/bin/Release/net8.0/LostFoundApi.dll
   API_IMPORT_VERSION: v1
 
 jobs:
