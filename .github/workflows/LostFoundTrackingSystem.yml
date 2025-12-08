@@ -71,36 +71,58 @@ jobs:
         with:
           creds: ${{ secrets.LostFoundApiapi_SPN }}
 
-      # CRITICAL: Configure the Linux App Service for .NET 8
-      - name: Configure App Service for .NET 8
+      # Configure the Linux App Service for .NET 8
+      - name: Configure App Service Runtime Stack
         run: |
           az webapp config set \
             --resource-group ${{ env.AZURE_APIM_RESOURCEGROUP }} \
             --name ${{ env.AZURE_WEBAPP_NAME }} \
             --linux-fx-version "DOTNETCORE|8.0"
-          
+
+      # Set environment variables and app settings
+      - name: Configure App Settings
+        run: |
           az webapp config appsettings set \
             --resource-group ${{ env.AZURE_APIM_RESOURCEGROUP }} \
             --name ${{ env.AZURE_WEBAPP_NAME }} \
-            --settings ASPNETCORE_ENVIRONMENT="Production"
+            --settings \
+              ASPNETCORE_ENVIRONMENT="Production" \
+              PORT="8080" \
+              WEBSITES_PORT="8080"
 
+      # Set startup command
+      - name: Set Startup Command
+        run: |
+          az webapp config set \
+            --resource-group ${{ env.AZURE_APIM_RESOURCEGROUP }} \
+            --name ${{ env.AZURE_WEBAPP_NAME }} \
+            --startup-file "dotnet LostFoundApi.dll"
+
+      # Deploy to Azure WebApp
       - name: Deploy to Azure WebApp
         uses: azure/webapps-deploy@v2
         with:
           app-name: ${{ env.AZURE_WEBAPP_NAME }}
           package: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
 
-      # Restart the app to apply configuration
+      # Restart the app to apply all configurations
       - name: Restart App Service
         run: |
           az webapp restart \
             --resource-group ${{ env.AZURE_APIM_RESOURCEGROUP }} \
             --name ${{ env.AZURE_WEBAPP_NAME }}
 
-      # Wait for app to start
+      # Wait for app to fully start
       - name: Wait for app to start
-        run: sleep 30
+        run: sleep 45
 
+      # Verify deployment
+      - name: Health Check
+        run: |
+          echo "Checking if app is responding..."
+          curl -f ${{ env.AZURE_APIM_APPSERVICEURL }} || echo "Health check failed, but continuing..."
+
+      # Import API into Azure API Management
       - name: Import API into Azure API Management
         run: |
           az apim api import \

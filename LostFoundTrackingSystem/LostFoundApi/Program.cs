@@ -10,6 +10,13 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Configure Kestrel to use the PORT environment variable (Azure App Service requirement)
+var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.ListenAnyIP(int.Parse(port));
+});
+
 // Add services to the container.
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -55,10 +62,13 @@ app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "LostFound API V1");
-    c.RoutePrefix = string.Empty; // Serve at root
+    c.RoutePrefix = string.Empty; // Serve Swagger at root
 });
 
-// Don't redirect to HTTPS in production on Linux App Service (handled by front-end)
+// Redirect root to swagger if not already there
+app.MapGet("/", () => Results.Redirect("/index.html"));
+
+// Don't use HTTPS redirection on Azure (handled by the front-end proxy)
 if (app.Environment.IsDevelopment())
 {
     app.UseHttpsRedirection();
