@@ -1,0 +1,6 @@
+@LostFoundApi_HostAddress = http://localhost:5250
+
+GET {{LostFoundApi_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
