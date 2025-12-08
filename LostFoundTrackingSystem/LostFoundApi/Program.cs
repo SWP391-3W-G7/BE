@@ -59,12 +59,16 @@ app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "LostFound API V1");
-    c.RoutePrefix = "swagger"; // makes it available at /swagger
+    c.RoutePrefix = "swagger"; // UI available at /swagger
 });
 
 
 
-app.UseHttpsRedirection();
+
+if (!app.Environment.IsProduction())
+{
+    app.UseHttpsRedirection();
+}
 
 app.UseStaticFiles();
 
