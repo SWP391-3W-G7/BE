@@ -56,8 +56,9 @@ jobs:
       working-directory: ${{ env.WORKING_DIRECTORY }}
 
     - name: Generate Open API Specification Document
-      run: dotnet tool run swagger tofile --output "${{ env.API_IMPORT_SPECIFICATION_PATH }}" "${{ env.WORKING_DIRECTORY }}/LostFoundApi.csproj" "${{ env.API_IMPORT_VERSION }}"
+      run: dotnet tool run swagger tofile --output "${{ env.API_IMPORT_SPECIFICATION_PATH }}" "LostFoundApi.csproj" "${{ env.API_IMPORT_VERSION }}"
       working-directory: ${{ env.WORKING_DIRECTORY }}
+
 
 
 
