@@ -51,13 +51,13 @@ jobs:
     - name: Publish
       run: dotnet publish "${{ env.WORKING_DIRECTORY }}" --configuration ${{ env.CONFIGURATION }} --no-build --output "${{ env.AZURE_WEBAPP_PACKAGE_PATH }}"
 
-  - name: Restore local tools
-    run: dotnet tool restore
-    working-directory: ${{ env.WORKING_DIRECTORY }}
+    - name: Restore local tools
+      run: dotnet tool restore
+      working-directory: ${{ env.WORKING_DIRECTORY }}
 
-  - name: Generate Open API Specification Document
-    run: dotnet tool run swagger tofile --output "${{ env.API_IMPORT_SPECIFICATION_PATH }}" "${{ env.WORKING_DIRECTORY }}/LostFoundApi.csproj" "${{ env.API_IMPORT_VERSION }}"
-    working-directory: ${{ env.WORKING_DIRECTORY }}
+    - name: Generate Open API Specification Document
+      run: dotnet tool run swagger tofile --output "${{ env.API_IMPORT_SPECIFICATION_PATH }}" "${{ env.WORKING_DIRECTORY }}/LostFoundApi.csproj" "${{ env.API_IMPORT_VERSION }}"
+      working-directory: ${{ env.WORKING_DIRECTORY }}
 
 
 
