@@ -56,9 +56,8 @@ jobs:
 
 
     - name: Generate Open API Specification Document
-    run: |
-      # Remove the export line and update the swagger command
-      swagger tofile --output "${{ env.API_IMPORT_SPECIFICATION_PATH }}" "${{ env.API_IMPORT_DLL }}" "${{ env.API_IMPORT_VERSION }}" --hosting Microsoft.AspNetCore.Builder.WebApplication
+      run: |
+        swagger tofile --output "${{ env.API_IMPORT_SPECIFICATION_PATH }}" "${{ env.API_IMPORT_DLL }}" "${{ env.API_IMPORT_VERSION }}"
 
 
     - name: Publish Artifacts
