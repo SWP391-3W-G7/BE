@@ -12,7 +12,7 @@ env:
   AZURE_APIM_SERVICENAME: LostFoundApiapi
   AZURE_APIM_API_ID: LostFoundApi
   AZURE_APIM_APPSERVICEURL: https://lostfoundtrackingsystem-edg8cxgddjdqh6fj.southeastasia-01.azurewebsites.net
-  SWASHBUCLE_ASPNET_CORE_CLI_PACKAGE_VERSION: 5.6.3
+  SWASHBUCLE_ASPNET_CORE_CLI_PACKAGE_VERSION: 6.6.2
   SWASHBUCKLE_DOTNET_CORE_VERSION: 3.1.x
   CONFIGURATION: Release
   DOTNET_CORE_VERSION: 8.0.x
@@ -52,12 +52,14 @@ jobs:
       run: dotnet publish "${{ env.WORKING_DIRECTORY }}" --configuration ${{ env.CONFIGURATION }} --no-build --output "${{ env.AZURE_WEBAPP_PACKAGE_PATH }}"
 
     - name: Install Swashbuckle CLI .NET Global Tool
-      run: dotnet tool install --global Swashbuckle.AspNetCore.Cli --version ${{ env.SWASHBUCLE_ASPNET_CORE_CLI_PACKAGE_VERSION }}
+      run: dotnet tool install --global Swashbuckle.AspNetCore.Cli --version 6.6.2
+
 
     - name: Generate Open API Specification Document
       run: |
         export ASPNETCORE_HOSTINGSTARTUPASSEMBLIES=LostFoundApi
         swagger tofile --output "${{ env.API_IMPORT_SPECIFICATION_PATH }}" "${{ env.API_IMPORT_DLL }}" "${{ env.API_IMPORT_VERSION }}"
+
 
     - name: Publish Artifacts
       uses: actions/upload-artifact@v4
