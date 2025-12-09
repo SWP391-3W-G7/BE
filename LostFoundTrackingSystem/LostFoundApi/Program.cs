@@ -64,13 +64,6 @@ builder.Services.AddAuthentication(options =>
 
 var app = builder.Build();
 
-// IMPORTANT: Only bind port when running normally, NOT during Swagger CLI execution.
-if (!app.Configuration.GetValue<bool>("GenerateSwagger"))
-{
-    var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
-    app.Urls.Add($"http://0.0.0.0:{port}");
-}
-
 // Configure Swagger for all environments
 app.UseSwagger();
 app.UseSwaggerUI(c =>
