@@ -10,11 +10,6 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Explicitly listen on the port specified by the PORT environment variable.
-// If PORT is not set, fall back to port 8081 to avoid conflict with 8080.
-var port = Environment.GetEnvironmentVariable("PORT") ?? "8081";
-builder.WebHost.UseUrls($"http://*:{port}");
-
 // Add services to the container.
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -27,6 +22,19 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ICampusRepository, CampusRepository>();
 builder.Services.AddScoped<ICampusService, CampusService>();
+
+// Add a permissive CORS policy for development purposes.
+// For production, you should restrict this to specific origins.
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(name: "AllowAll",
+                      policy =>
+                      {
+                          policy.AllowAnyOrigin()
+                                .AllowAnyMethod()
+                                .AllowAnyHeader();
+                      });
+});
 
 var jwtKey = builder.Configuration["Jwt:Key"];
 if (string.IsNullOrEmpty(jwtKey))
@@ -68,6 +76,9 @@ if (app.Environment.IsDevelopment())
 {
     app.UseHttpsRedirection();
 }
+
+// Apply the permissive CORS policy.
+app.UseCors("AllowAll");
 
 app.UseStaticFiles();
 app.UseAuthentication();
