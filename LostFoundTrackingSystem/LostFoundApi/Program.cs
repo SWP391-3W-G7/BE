@@ -10,6 +10,14 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Explicitly listen on the port specified by the PORT environment variable
+// for compatibility with Azure App Service and other hosting environments.
+var port = Environment.GetEnvironmentVariable("PORT");
+if (!string.IsNullOrEmpty(port))
+{
+    builder.WebHost.UseUrls($"http://*:{port}");
+}
+
 // Add services to the container.
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
