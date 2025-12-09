@@ -93,7 +93,14 @@ jobs:
             --name ${{ env.AZURE_WEBAPP_NAME }} \
             --setting-names PORT WEBSITES_PORT ASPNETCORE_URLS || true
 
-      # Remove startup command - let Azure use default
+      # Stop the app before configuration changes
+      - name: Stop App Service
+        run: |
+          az webapp stop \
+            --resource-group ${{ env.AZURE_APIM_RESOURCEGROUP }} \
+            --name ${{ env.AZURE_WEBAPP_NAME }}
+      
+      # Remove startup command - let Azure use default Oryx detection
       - name: Clear Startup Command
         run: |
           az webapp config set \
@@ -108,9 +115,15 @@ jobs:
           app-name: ${{ env.AZURE_WEBAPP_NAME }}
           package: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
 
-      # Restart the app to apply all configurations
-      - name: Restart App Service
+      # Start and restart the app to apply all configurations
+      - name: Start and Restart App Service
         run: |
+          az webapp start \
+            --resource-group ${{ env.AZURE_APIM_RESOURCEGROUP }} \
+            --name ${{ env.AZURE_WEBAPP_NAME }}
+          
+          sleep 5
+          
           az webapp restart \
             --resource-group ${{ env.AZURE_APIM_RESOURCEGROUP }} \
             --name ${{ env.AZURE_WEBAPP_NAME }}
