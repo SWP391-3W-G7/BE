@@ -20,8 +20,14 @@ builder.Services.AddDbContext<LostFoundTrackingSystemContext>(options =>
 
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<ILostItemRepository, LostItemRepository>();
+builder.Services.AddScoped<IImageRepository, ImageRepository>();
+
 builder.Services.AddScoped<ICampusRepository, CampusRepository>();
 builder.Services.AddScoped<ICampusService, CampusService>();
+builder.Services.AddScoped<ILostItemService, LostItemService>();
+
+builder.Services.AddHttpClient<IImageService, ImageService>();
 
 // Add a permissive CORS policy for development purposes.
 // For production, you should restrict this to specific origins.
