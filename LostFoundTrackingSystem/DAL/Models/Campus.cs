@@ -24,4 +24,6 @@ public partial class Campus
     public virtual ICollection<Staff> Staff { get; set; } = new List<Staff>();
 
     public virtual ICollection<User> Users { get; set; } = new List<User>();
+    public virtual ICollection<LostItem> LostItems { get; set; } = new List<LostItem>();
+
 }

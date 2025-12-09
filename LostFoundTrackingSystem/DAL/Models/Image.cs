@@ -16,12 +16,14 @@ public partial class Image
     public int? UploadedBy { get; set; }
 
     public int? FoundItemId { get; set; }
+    public int? LostItemId { get; set; }
 
     public int? EvidenceId { get; set; }
 
     public virtual Evidence Evidence { get; set; }
 
     public virtual FoundItem FoundItem { get; set; }
+    public virtual LostItem LostItem { get; set; }
 
     public virtual User UploadedByNavigation { get; set; }
 }

@@ -1,0 +1,82 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using DAL.IRepositories;
+using DAL.Models;
+using Microsoft.EntityFrameworkCore;
+
+namespace DAL.Repositories
+{
+    public class LostItemRepository : ILostItemRepository
+    {
+        private readonly LostFoundTrackingSystemContext _context;
+        public LostItemRepository(LostFoundTrackingSystemContext context)
+        {
+            _context = context;
+        }
+        public async Task<List<LostItem>> GetAllAsync()
+        {
+            return await _context.LostItems
+                .Include(l => l.Images)
+                .Include(l => l.Campus)
+                .Include(l => l.Category)
+                .ToListAsync();
+        }
+
+        public async Task<LostItem?> GetByIdAsync(int id)
+        {
+            return await _context.LostItems
+                .Include(l => l.Images)
+                .Include(l => l.Campus)
+                .Include(l => l.Category)
+                .FirstOrDefaultAsync(l => l.LostItemId == id);
+        }
+
+        public async Task AddAsync(LostItem item)
+        {
+            _context.LostItems.Add(item);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task UpdateAsync(LostItem item)
+        {
+            _context.LostItems.Update(item);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task DeleteAsync(LostItem item)
+        {
+            _context.LostItems.Remove(item);
+            await _context.SaveChangesAsync();
+        }
+        public async Task<List<LostItem>> GetByCampusAsync(int campusId)
+        {
+            return await _context.LostItems
+                .Include(l => l.Images)
+                .Include(l => l.Campus)
+                .Include(l => l.Category)
+                .Where(l => l.CampusId == campusId)
+                .ToListAsync();
+        }
+        public async Task<List<LostItem>> GetByCategoryAsync(int categoryId)
+        {
+            return await _context.LostItems
+                .Include(l => l.Images)
+                .Include(l => l.Campus)
+                .Include(l => l.Category)
+                .Where(l => l.CategoryId == categoryId)
+                .ToListAsync();
+        }
+        public async Task<List<LostItem>> SearchByTitleAsync(string title)
+        {
+            return await _context.LostItems
+                .Include(l => l.Images)
+                .Include(l => l.Campus)
+                .Include(l => l.Category)
+                .Where(l => l.Title.Contains(title))
+                .ToListAsync();
+        }
+    }
+}
