@@ -21,12 +21,14 @@ jobs:
       with:
         dotnet-quality: preview
         dotnet-version: ${{ env.DOTNET_CORE_VERSION }}
+    - name: Azure Login
+      uses: azure/login@v2
+      with:
+        creds: ${{ secrets.lostfoundapi_app_20251209220142_SPN }}
     - name: Log in to container registry
       uses: azure/docker-login@v2
       with:
         login-server: ${{ env.CONTAINER_REGISTRY_LOGIN_SERVER }}
-        username: ${{ secrets.LostFoundApi20251209220702_USERNAME_F0F2 }}
-        password: ${{ secrets.LostFoundApi20251209220702_PASSWORD_F0F2 }}
     - name: Build and push container image to registry
       run: dotnet publish -c Release -r linux-x64 -p:PublishProfile=DefaultContainer -p:ContainerImageTag=${{ github.sha }} --no-self-contained -p:ContainerRegistry=${{ env.CONTAINER_REGISTRY_LOGIN_SERVER }} -bl
     - name: Upload binlog for investigation
