@@ -96,3 +96,7 @@ app.MapControllers();
 
 
 app.Run();
+
+// By making the auto-generated Program class public, we allow design-time tools like the Swagger CLI
+// to discover the application's service provider and generate the OpenAPI specification document.
+public partial class Program { }
