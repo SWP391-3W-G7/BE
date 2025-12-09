@@ -27,6 +27,13 @@ builder.Services.AddScoped<ICampusService, CampusService>();
 builder.Services.AddScoped<ILostItemService, LostItemService>();
 builder.Services.AddHttpClient<IImageService, ImageService>();
 
+var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.ListenAnyIP(int.Parse(port));
+});
+
+
 // Add a permissive CORS policy for development purposes.
 builder.Services.AddCors(options =>
 {
@@ -71,7 +78,7 @@ app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "LostFound API V1");
-    c.RoutePrefix = string.Empty; // Serve Swagger at root
+    c.RoutePrefix = "swagger"; // Serve Swagger at root
 });
 
 // Don't use HTTPS redirection on Azure (handled by the front-end proxy)
