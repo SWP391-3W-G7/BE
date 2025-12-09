@@ -79,21 +79,27 @@ jobs:
             --name ${{ env.AZURE_WEBAPP_NAME }} \
             --linux-fx-version "DOTNETCORE|8.0"
 
-      # Set environment variables and app settings
+      # CRITICAL: Remove any port settings - let Azure manage ports automatically
       - name: Configure App Settings
         run: |
           az webapp config appsettings set \
             --resource-group ${{ env.AZURE_APIM_RESOURCEGROUP }} \
             --name ${{ env.AZURE_WEBAPP_NAME }} \
-            --settings ASPNETCORE_ENVIRONMENT="Production" WEBSITES_PORT="8081" PORT="8081"
+            --settings ASPNETCORE_ENVIRONMENT="Production"
+          
+          # Remove any existing port configurations
+          az webapp config appsettings delete \
+            --resource-group ${{ env.AZURE_APIM_RESOURCEGROUP }} \
+            --name ${{ env.AZURE_WEBAPP_NAME }} \
+            --setting-names PORT WEBSITES_PORT ASPNETCORE_URLS || true
 
-      # Set startup command
-      - name: Set Startup Command
+      # Remove startup command - let Azure use default
+      - name: Clear Startup Command
         run: |
           az webapp config set \
             --resource-group ${{ env.AZURE_APIM_RESOURCEGROUP }} \
             --name ${{ env.AZURE_WEBAPP_NAME }} \
-            --startup-file "dotnet LostFoundApi.dll"
+            --startup-file ""
 
       # Deploy to Azure WebApp
       - name: Deploy to Azure WebApp
@@ -111,13 +117,21 @@ jobs:
 
       # Wait for app to fully start
       - name: Wait for app to start
-        run: sleep 45
+        run: sleep 60
 
       # Verify deployment
       - name: Health Check
         run: |
           echo "Checking if app is responding..."
-          curl -f ${{ env.AZURE_APIM_APPSERVICEURL }} || echo "Health check failed, but continuing..."
+          for i in {1..5}; do
+            if curl -f -s ${{ env.AZURE_APIM_APPSERVICEURL }}; then
+              echo "App is responding!"
+              exit 0
+            fi
+            echo "Attempt $i failed, retrying in 10 seconds..."
+            sleep 10
+          done
+          echo "Health check failed after 5 attempts, but continuing..."
 
       # Import API into Azure API Management
       - name: Import API into Azure API Management
