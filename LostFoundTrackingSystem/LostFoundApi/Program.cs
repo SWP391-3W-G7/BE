@@ -10,6 +10,8 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.WebHost.UseKestrel();
+
 // Add services to the container.
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -27,11 +29,6 @@ builder.Services.AddScoped<ICampusService, CampusService>();
 builder.Services.AddScoped<ILostItemService, LostItemService>();
 builder.Services.AddHttpClient<IImageService, ImageService>();
 
-var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
-builder.WebHost.ConfigureKestrel(options =>
-{
-    options.ListenAnyIP(int.Parse(port));
-});
 
 
 // Add a permissive CORS policy for development purposes.
