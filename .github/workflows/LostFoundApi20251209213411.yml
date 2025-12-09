@@ -5,7 +5,7 @@ on:
     - main
 env:
   AZURE_WEBAPP_NAME: LostFoundApi20251209213411
-  AZURE_WEBAPP_PACKAGE_PATH: LostFoundApi\publish
+  AZURE_WEBAPP_PACKAGE_PATH: LostFoundApi/publish
   AZURE_APIM_RESOURCE_PATH: /
   AZURE_APIM_RESOURCEGROUP: LostFound
   AZURE_APIM_SERVICENAME: LostFoundApiapi
@@ -13,12 +13,12 @@ env:
   AZURE_APIM_APPSERVICEURL: https://lostfoundapi20251209213411-caebb3cah9gzb3ev.eastasia-01.azurewebsites.net
   SWASHBUCLE_ASPNET_CORE_CLI_PACKAGE_VERSION: 5.6.3
   SWASHBUCKLE_DOTNET_CORE_VERSION: 3.1.x
-  API_IMPORT_SPECIFICATION_PATH: LostFoundApi\publish\swagger.json
-  API_IMPORT_DLL: LostFoundApi\bin\Release\net8.0\LostFoundApi.dll
+  API_IMPORT_SPECIFICATION_PATH: LostFoundApi/publish/swagger.json
+  API_IMPORT_DLL: LostFoundTrackingSystem/LostFoundApi/bin/Release/net8.0/LostFoundApi.dll
   API_IMPORT_VERSION: v1
   CONFIGURATION: Release
   DOTNET_CORE_VERSION: 8.0.x
-  WORKING_DIRECTORY: LostFoundApi
+  WORKING_DIRECTORY: LostFoundTrackingSystem/LostFoundApi
 jobs:
   build:
     runs-on: windows-latest
