@@ -8,7 +8,8 @@ namespace DAL.Models;
 public partial class LostItem
 {
     public int LostItemId { get; set; }
-
+    public string Title { get; set; }
+    public string Description { get; set; }
     public DateTime? LostDate { get; set; }
 
     public string LostLocation { get; set; }
@@ -16,14 +17,18 @@ public partial class LostItem
     public string Status { get; set; }
 
     public int? CreatedBy { get; set; }
+    public int? CampusId { get; set; }
 
     public int? CategoryId { get; set; }
+    public virtual Campus Campus { get; set; }
 
     public virtual Category Category { get; set; }
 
     public virtual User CreatedByNavigation { get; set; }
 
     public virtual ICollection<Evidence> Evidences { get; set; } = new List<Evidence>();
+
+    public virtual ICollection<Image> Images { get; set; } = new List<Image>();
 
     public virtual ICollection<ItemActionLog> ItemActionLogs { get; set; } = new List<ItemActionLog>();
 

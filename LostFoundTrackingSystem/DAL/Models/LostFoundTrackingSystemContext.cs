@@ -173,6 +173,7 @@ public partial class LostFoundTrackingSystemContext : DbContext
             entity.Property(e => e.ImageId).HasColumnName("ImageID");
             entity.Property(e => e.EvidenceId).HasColumnName("EvidenceID");
             entity.Property(e => e.FoundItemId).HasColumnName("FoundItemID");
+            entity.Property(e => e.LostItemId).HasColumnName("LostItemID");
             entity.Property(e => e.ImageUrl)
                 .HasMaxLength(255)
                 .HasColumnName("ImageURL");
@@ -189,6 +190,11 @@ public partial class LostFoundTrackingSystemContext : DbContext
             entity.HasOne(d => d.UploadedByNavigation).WithMany(p => p.Images)
                 .HasForeignKey(d => d.UploadedBy)
                 .HasConstraintName("FK__Image__UploadedB__236943A5");
+
+            entity.HasOne(d => d.LostItem)
+                .WithMany(p => p.Images)
+                .HasForeignKey("LostItemId")
+                .HasConstraintName("FK_Image_LostItem");
         });
 
         modelBuilder.Entity<ItemActionLog>(entity =>
@@ -257,18 +263,29 @@ public partial class LostFoundTrackingSystemContext : DbContext
             entity.ToTable("LostItem");
 
             entity.Property(e => e.LostItemId).HasColumnName("LostItemID");
-            entity.Property(e => e.CategoryId).HasColumnName("CategoryID");
+            entity.Property(e => e.Title).HasMaxLength(255);
+            entity.Property(e => e.Description).HasMaxLength(255);
             entity.Property(e => e.LostDate).HasColumnType("datetime");
             entity.Property(e => e.LostLocation).HasMaxLength(255);
             entity.Property(e => e.Status).HasMaxLength(255);
+            entity.Property(e => e.CreatedBy).HasColumnName("CreatedBy");
+            entity.Property(e => e.CampusId).HasColumnName("CampusID");
+            entity.Property(e => e.CategoryId).HasColumnName("CategoryID");
 
-            entity.HasOne(d => d.Category).WithMany(p => p.LostItems)
+            entity.HasOne(d => d.Category)
+                .WithMany(p => p.LostItems)
                 .HasForeignKey(d => d.CategoryId)
                 .HasConstraintName("FK__LostItem__Catego__0E6E26BF");
 
-            entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.LostItems)
+            entity.HasOne(d => d.CreatedByNavigation)
+                .WithMany(p => p.LostItems)
                 .HasForeignKey(d => d.CreatedBy)
                 .HasConstraintName("FK__LostItem__Create__0D7A0286");
+
+            entity.HasOne(d => d.Campus)
+                .WithMany(p => p.LostItems)
+                .HasForeignKey(d => d.CampusId)
+                .HasConstraintName("FK_LostItem_Campus");
         });
 
         modelBuilder.Entity<MatchHistory>(entity =>
@@ -361,6 +378,7 @@ public partial class LostFoundTrackingSystemContext : DbContext
             entity.Property(e => e.RoleId).HasColumnName("RoleID");
             entity.Property(e => e.Status).HasMaxLength(255);
             entity.Property(e => e.Username).HasMaxLength(255);
+            entity.Property(e => e.PhoneNumber).HasMaxLength(20);
 
             entity.HasOne(d => d.Campus).WithMany(p => p.Users)
                 .HasForeignKey(d => d.CampusId)
