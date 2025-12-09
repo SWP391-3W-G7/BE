@@ -85,7 +85,7 @@ jobs:
           az webapp config appsettings set \
             --resource-group ${{ env.AZURE_APIM_RESOURCEGROUP }} \
             --name ${{ env.AZURE_WEBAPP_NAME }} \
-            --settings ASPNETCORE_ENVIRONMENT="Production" WEBSITES_PORT="8082" PORT="8082"
+            --settings ASPNETCORE_ENVIRONMENT="Production" WEBSITES_PORT="8081" PORT="8081"
 
       # Set startup command
       - name: Set Startup Command
