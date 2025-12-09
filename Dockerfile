@@ -24,7 +24,8 @@ RUN dotnet publish "LostFoundApi.csproj" -c Release -o /app/publish /p:UseAppHos
 # Use the official ASP.NET Core runtime image
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
 WORKDIR /app
-EXPOSE 8080 # Expose the default HTTP port (or whatever your app uses)
+# Expose the default HTTP port (or whatever your app uses)
+EXPOSE 8080
 
 # Copy the published output from the publish stage
 COPY --from=publish /app/publish .
