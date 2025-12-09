@@ -10,10 +10,6 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// CRITICAL: Azure App Service on Linux requires listening on the WEBSITES_PORT
-// Remove any explicit port configuration and let Azure manage it
-builder.WebHost.UseUrls();  // This will use default configuration from Azure
-
 // Add services to the container.
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
