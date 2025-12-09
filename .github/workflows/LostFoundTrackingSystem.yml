@@ -85,19 +85,13 @@ jobs:
             --name ${{ env.AZURE_WEBAPP_NAME }} \
             --linux-fx-version "DOTNETCORE|8.0"
 
-      # CRITICAL: Remove any port settings - let Azure manage ports automatically
+      # Configure App Settings
       - name: Configure App Settings
         run: |
           az webapp config appsettings set \
             --resource-group ${{ env.AZURE_APIM_RESOURCEGROUP }} \
             --name ${{ env.AZURE_WEBAPP_NAME }} \
-            --settings ASPNETCORE_ENVIRONMENT="Production"
-          
-          # Remove any existing port configurations
-          az webapp config appsettings delete \
-            --resource-group ${{ env.AZURE_APIM_RESOURCEGROUP }} \
-            --name ${{ env.AZURE_WEBAPP_NAME }} \
-            --setting-names PORT WEBSITES_PORT ASPNETCORE_URLS || true
+            --settings ASPNETCORE_ENVIRONMENT="Production" WEBSITES_PORT="80"
 
       # Stop the app before configuration changes
       - name: Stop App Service
