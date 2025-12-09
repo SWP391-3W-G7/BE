@@ -1,0 +1,57 @@
+name: Build and deploy .NET application to container app lostfoundapi-app-20251209220142
+on:
+  push:
+    branches:
+    - main
+env:
+  CONTAINER_APP_CONTAINER_NAME: lostfoundapi
+  CONTAINER_APP_NAME: lostfoundapi-app-20251209220142
+  CONTAINER_APP_RESOURCE_GROUP_NAME: LostFound
+  CONTAINER_REGISTRY_LOGIN_SERVER: lostfoundapi20251209220702.azurecr.io
+  DOTNET_CORE_VERSION: 8.0.x
+  PROJECT_NAME_FOR_DOCKER: lostfoundapi
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout to the branch
+      uses: actions/checkout@v4
+    - name: Setup .NET SDK
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-quality: preview
+        dotnet-version: ${{ env.DOTNET_CORE_VERSION }}
+    - name: Log in to container registry
+      uses: azure/docker-login@v2
+      with:
+        login-server: ${{ env.CONTAINER_REGISTRY_LOGIN_SERVER }}
+        username: ${{ secrets.LostFoundApi20251209220702_USERNAME_F0F2 }}
+        password: ${{ secrets.LostFoundApi20251209220702_PASSWORD_F0F2 }}
+    - name: Build and push container image to registry
+      run: dotnet publish -c Release -r linux-x64 -p:PublishProfile=DefaultContainer -p:ContainerImageTag=${{ github.sha }} --no-self-contained -p:ContainerRegistry=${{ env.CONTAINER_REGISTRY_LOGIN_SERVER }} -bl
+    - name: Upload binlog for investigation
+      uses: actions/upload-artifact@v4
+      with:
+        if-no-files-found: error
+        name: binlog
+        path: msbuild.binlog
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+    - name: Azure Login
+      uses: azure/login@v2
+      with:
+        creds: ${{ secrets.lostfoundapi_app_20251209220142_SPN }}
+    - name: Deploy to containerapp
+      uses: azure/CLI@v2
+      with:
+        inlineScript: >
+          az config set extension.use_dynamic_install=yes_without_prompt
+
+          az containerapp registry set --name ${{ env.CONTAINER_APP_NAME }} --resource-group ${{ env.CONTAINER_APP_RESOURCE_GROUP_NAME }} --server ${{ env.CONTAINER_REGISTRY_LOGIN_SERVER }} --username ${{ secrets.LostFoundApi20251209220702_USERNAME_F0F2 }} --password ${{ secrets.LostFoundApi20251209220702_PASSWORD_F0F2 }}
+
+          az containerapp update --name ${{ env.CONTAINER_APP_NAME }} --container-name ${{ env.CONTAINER_APP_CONTAINER_NAME }} --resource-group ${{ env.CONTAINER_APP_RESOURCE_GROUP_NAME }} --image ${{ env.CONTAINER_REGISTRY_LOGIN_SERVER }}/${{ env.PROJECT_NAME_FOR_DOCKER }}:${{ github.sha }}
+    - name: logout
+      run: >
+        az logout
