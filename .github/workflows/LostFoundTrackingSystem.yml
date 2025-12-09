@@ -47,8 +47,14 @@ jobs:
         working-directory: ${{ env.WORKING_DIRECTORY }}
 
       - name: Generate Open API Specification Document
-        run: dotnet tool run swagger tofile --output "${{ github.workspace }}/${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/swagger.json" "${{ github.workspace }}/${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/LostFoundApi.dll" "${{ env.API_IMPORT_VERSION }}"
+        run: |
+          export GenerateSwagger=true
+          dotnet tool run swagger tofile \
+            --output "${{ github.workspace }}/${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/swagger.json" \
+            "${{ github.workspace }}/${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/LostFoundApi.dll" \
+            "${{ env.API_IMPORT_VERSION }}"
         working-directory: ${{ env.WORKING_DIRECTORY }}
+
 
       - name: Publish Artifacts
         uses: actions/upload-artifact@v4

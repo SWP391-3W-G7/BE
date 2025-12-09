@@ -27,18 +27,14 @@ builder.Services.AddScoped<ICampusService, CampusService>();
 builder.Services.AddScoped<ILostItemService, LostItemService>();
 builder.Services.AddHttpClient<IImageService, ImageService>();
 
-
-
-// Add a permissive CORS policy for development purposes.
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy(name: "AllowAll",
-                      policy =>
-                      {
-                          policy.AllowAnyOrigin()
-                                .AllowAnyMethod()
-                                .AllowAnyHeader();
-                      });
+    options.AddPolicy("AllowAll", policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
 });
 
 var jwtKey = builder.Configuration["Jwt:Key"];
@@ -68,35 +64,30 @@ builder.Services.AddAuthentication(options =>
 
 var app = builder.Build();
 
-var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
-app.Urls.Add($"http://0.0.0.0:{port}");
+// IMPORTANT: Only bind port when running normally, NOT during Swagger CLI execution.
+if (!app.Configuration.GetValue<bool>("GenerateSwagger"))
+{
+    var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+    app.Urls.Add($"http://0.0.0.0:{port}");
+}
 
 // Configure Swagger for all environments
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "LostFound API V1");
-    c.RoutePrefix = "swagger"; // Serve Swagger at root
+    c.RoutePrefix = "swagger";
 });
 
-// Don't use HTTPS redirection on Azure (handled by the front-end proxy)
 if (app.Environment.IsDevelopment())
 {
     app.UseHttpsRedirection();
 }
 
-// Apply the permissive CORS policy.
 app.UseCors("AllowAll");
-
 app.UseStaticFiles();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
-
-
 app.Run();
-
-// By making the auto-generated Program class public, we allow design-time tools like the Swagger CLI
-// to discover the application's service provider and generate the OpenAPI specification document.
-public partial class Program { }
