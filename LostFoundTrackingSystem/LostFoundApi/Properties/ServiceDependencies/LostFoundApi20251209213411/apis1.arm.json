@@ -97,11 +97,11 @@
               "type": "Microsoft.ApiManagement/service/apis",
               "name": "LostFoundApiapi/LostFoundApi",
               "properties": {
-                "displayName": "LostFoundApi",
+                "displayName": "LostFoundApi, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
                 "apiRevision": "1",
                 "description": null,
-                "subscriptionRequired": true,
-                "serviceUrl": null,
+                "subscriptionRequired": false,
+                "serviceUrl": "https://lostfoundtrackingsystem-edg8cxgddjdqh6fj.southeastasia-01.azurewebsites.net",
                 "path": "",
                 "protocols": [
                   "https"

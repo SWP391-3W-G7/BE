@@ -64,7 +64,7 @@ builder.Services.AddAuthentication(options =>
 
 builder.WebHost.ConfigureKestrel(serverOptions =>
 {
-    var port = Environment.GetEnvironmentVariable("WEBSITES_PORT") ?? Environment.GetEnvironmentVariable("PORT") ?? "80";
+    var port = Environment.GetEnvironmentVariable("WEBSITES_PORT") ?? Environment.GetEnvironmentVariable("PORT") ?? "8000";
     serverOptions.ListenAnyIP(int.Parse(port));
 });
 
