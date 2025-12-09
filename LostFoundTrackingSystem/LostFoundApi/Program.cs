@@ -62,16 +62,12 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
+var port = Environment.GetEnvironmentVariable("PORT") ?? "8081";
+builder.WebHost.UseUrls($"http://*:{port}");
+
 var app = builder.Build();
 
-// Configure Swagger for all environments
-app.UseSwagger();
-app.UseSwaggerUI(c =>
-{
-    c.SwaggerEndpoint("/swagger/v1/swagger.json", "LostFound API V1");
-    c.RoutePrefix = "swagger";
-});
-
+// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseHttpsRedirection();
