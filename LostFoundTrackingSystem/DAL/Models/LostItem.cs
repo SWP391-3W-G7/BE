@@ -33,4 +33,5 @@ public partial class LostItem
     public virtual ICollection<ItemActionLog> ItemActionLogs { get; set; } = new List<ItemActionLog>();
 
     public virtual ICollection<ItemMatch> ItemMatches { get; set; } = new List<ItemMatch>();
+    public virtual ReturnRecord ReturnRecord { get; set; }
 }

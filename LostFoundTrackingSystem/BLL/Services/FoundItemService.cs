@@ -47,7 +47,7 @@ namespace BLL.Services
             };
         }
 
-        public async Task<FoundItemDto> CreateAsync(CreateFoundItemRequest request)
+        public async Task<FoundItemDto> CreateAsync(CreateFoundItemRequest request, int createdBy)
         {
             var entity = new FoundItem
             {
@@ -57,9 +57,9 @@ namespace BLL.Services
                 FoundLocation = request.FoundLocation,
                 CampusId = request.CampusId,
                 CategoryId = request.CategoryId,
-                CreatedBy = request.CreatedBy,
+                CreatedBy = createdBy,
                 StoredBy = request.StoredBy,
-                Status = "Found" // Hoặc dùng Enum FoundItemStatus.Found.ToString() nếu có
+                Status = FoundItemStatus.Stored.ToString()
             };
 
             await _repo.AddAsync(entity);
@@ -72,10 +72,10 @@ namespace BLL.Services
 
                     await _imageRepo.AddAsync(new Image
                     {
-                        FoundItemId = entity.FoundItemId, // Lưu ý: dùng FoundItemId thay vì LostItemId
+                        FoundItemId = entity.FoundItemId,
                         ImageUrl = url,
                         UploadedAt = DateTime.UtcNow,
-                        UploadedBy = request.CreatedBy
+                        UploadedBy = createdBy
                     });
                 }
             }

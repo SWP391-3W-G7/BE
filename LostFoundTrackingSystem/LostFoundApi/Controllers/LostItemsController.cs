@@ -1,11 +1,14 @@
-﻿using BLL.DTOs.LostItemDTO;
+﻿using System.Security.Claims;
+using BLL.DTOs.LostItemDTO;
 using BLL.IServices;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LostFoundApi.Controllers
 {
     [ApiController]
     [Route("api/lost-items")]
+    [Authorize]
     public class LostItemsController : ControllerBase
     {
         private readonly ILostItemService _service;
@@ -14,11 +17,13 @@ namespace LostFoundApi.Controllers
             _service = service;
         }
         [HttpGet]
+        [AllowAnonymous]
         public async Task<IActionResult> GetAll()
         {
             return Ok(await _service.GetAllAsync());
         }
         [HttpGet("{id}")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetById(int id)
         {
             var item = await _service.GetByIdAsync(id);
@@ -28,7 +33,13 @@ namespace LostFoundApi.Controllers
         [HttpPost]
         public async Task<IActionResult> Create([FromForm] CreateLostItemRequest request)
         {
-            var createdItem = await _service.CreateAsync(request);
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userId == null)
+            {
+                return Unauthorized("User ID not found in token.");
+            }
+            var createdBy = int.Parse(userId.Value);
+            var createdItem = await _service.CreateAsync(request, createdBy);
             return Ok(createdItem);
         }
         [HttpPut("{id}")]
@@ -45,9 +56,24 @@ namespace LostFoundApi.Controllers
         }
 
         [HttpGet("campus/{campusId}")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetByCampus(int campusId)
         {
             var items = await _service.GetByCampusAsync(campusId);
+            return Ok(items);
+        }
+        [HttpGet("category/{categoryId}")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetByCategory(int categoryId)
+        {
+            var items = await _service.GetByCategoryAsync(categoryId);
+            return Ok(items);
+        }
+        [HttpGet("search")]
+        [AllowAnonymous]
+        public async Task<IActionResult> SearchByTitle([FromQuery] string title)
+        {
+            var items = await _service.SearchByTitleAsync(title);
             return Ok(items);
         }
     }

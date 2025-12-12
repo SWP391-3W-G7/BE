@@ -1,11 +1,14 @@
-﻿using BLL.DTOs.FoundItemDTO;
+﻿using System.Security.Claims;
+using BLL.DTOs.FoundItemDTO;
 using BLL.IServices;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LostFoundApi.Controllers
 {
     [ApiController]
     [Route("api/found-items")]
+    [Authorize(Roles = "2,3,4")]
     public class FoundItemsController : ControllerBase
     {
         private readonly IFoundItemService _service;
@@ -16,12 +19,14 @@ namespace LostFoundApi.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public async Task<IActionResult> GetAll()
         {
             return Ok(await _service.GetAllAsync());
         }
 
         [HttpGet("{id}")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetById(int id)
         {
             var item = await _service.GetByIdAsync(id);
@@ -32,7 +37,13 @@ namespace LostFoundApi.Controllers
         [HttpPost]
         public async Task<IActionResult> Create([FromForm] CreateFoundItemRequest request)
         {
-            var createdItem = await _service.CreateAsync(request);
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userId == null)
+            {
+                return Unauthorized("User ID not found in token.");
+            }
+            var createdBy = int.Parse(userId.Value);
+            var createdItem = await _service.CreateAsync(request, createdBy);
             return Ok(createdItem);
         }
 
@@ -51,6 +62,7 @@ namespace LostFoundApi.Controllers
         }
 
         [HttpGet("campus/{campusId}")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetByCampus(int campusId)
         {
             var items = await _service.GetByCampusAsync(campusId);
@@ -58,6 +70,7 @@ namespace LostFoundApi.Controllers
         }
 
         [HttpGet("category/{categoryId}")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetByCategory(int categoryId)
         {
             var items = await _service.GetByCategoryAsync(categoryId);
@@ -65,6 +78,7 @@ namespace LostFoundApi.Controllers
         }
 
         [HttpGet("search")]
+        [AllowAnonymous]
         public async Task<IActionResult> SearchByTitle([FromQuery] string title)
         {
             if (string.IsNullOrWhiteSpace(title))

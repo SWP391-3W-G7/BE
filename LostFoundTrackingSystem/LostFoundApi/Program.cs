@@ -12,8 +12,11 @@ using System.Text;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddControllers();
-builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
+    }); builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "LostFoundApi", Version = "v1" });
@@ -46,21 +49,46 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
+builder.Services.AddHttpContextAccessor();
+
 builder.Services.AddDbContext<LostFoundTrackingSystemContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUserService, UserService>();
+
+builder.Services.AddScoped<IClaimRequestRepository, ClaimRequestRepository>();
+builder.Services.AddScoped<IClaimRequestService, ClaimRequestService>();
+
 builder.Services.AddScoped<ILostItemRepository, LostItemRepository>();
+builder.Services.AddScoped<ILostItemService, LostItemService>();
+
 builder.Services.AddScoped<IImageRepository, ImageRepository>();
+builder.Services.AddHttpClient<IImageService, ImageService>();
+
 builder.Services.AddScoped<ICampusRepository, CampusRepository>();
 builder.Services.AddScoped<ICampusService, CampusService>();
-builder.Services.AddScoped<ILostItemService, LostItemService>();
+
+builder.Services.AddScoped<IFoundItemRepository, FoundItemRepository>();
+builder.Services.AddScoped<IFoundItemService, FoundItemService>();
+
 builder.Services.AddScoped<IMatchingRepository, MatchingRepository>();
 builder.Services.AddScoped<IMatchingService, MatchingService>();
+
 builder.Services.AddScoped<IMatchHistoryRepository, MatchHistoryRepository>();
-builder.Services.AddHttpClient<IImageService, ImageService>();
 builder.Services.AddHostedService<LostFoundApi.HostedServices.MatchingHostedService>();
+
+builder.Services.AddScoped<IReturnRecordRepository, ReturnRecordRepository>();
+builder.Services.AddScoped<IReturnRecordService, ReturnRecordService>();
+
+builder.Services.AddScoped<IStaffRepository, StaffRepository>();
+
+builder.Services.AddScoped<IReportRepository, ReportRepository>();
+builder.Services.AddScoped<IReportService, ReportService>();
+
+builder.Services.AddScoped<IEvidenceRepository, EvidenceRepository>();
+
+builder.Services.AddScoped<IAdminService, AdminService>();
 
 builder.Services.AddCors(options =>
 {

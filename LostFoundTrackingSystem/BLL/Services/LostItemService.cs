@@ -45,7 +45,7 @@ namespace BLL.Services
                 ImageUrls = item.Images.Select(i => i.ImageUrl).ToList()
             };
         }
-        public async Task<LostItemDto> CreateAsync(CreateLostItemRequest request)
+        public async Task<LostItemDto> CreateAsync(CreateLostItemRequest request, int createdBy)
         {
             var entity = new LostItem
             {
@@ -55,7 +55,7 @@ namespace BLL.Services
                 LostLocation = request.LostLocation,
                 CampusId = request.CampusId,
                 CategoryId = request.CategoryId,
-                CreatedBy = request.CreatedBy,
+                CreatedBy = createdBy,
                 Status = LostItemStatus.Lost.ToString()
             };
 
@@ -72,7 +72,7 @@ namespace BLL.Services
                         LostItemId = entity.LostItemId,
                         ImageUrl = url,
                         UploadedAt = DateTime.UtcNow,
-                        UploadedBy = request.CreatedBy
+                        UploadedBy = createdBy
                     });
                 }
             }

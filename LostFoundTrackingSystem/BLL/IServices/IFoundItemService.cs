@@ -6,7 +6,7 @@ namespace BLL.IServices
     {
         Task<List<FoundItemDto>> GetAllAsync();
         Task<FoundItemDto?> GetByIdAsync(int id);
-        Task<FoundItemDto> CreateAsync(CreateFoundItemRequest request);
+        Task<FoundItemDto> CreateAsync(CreateFoundItemRequest request, int createdBy);
         Task<FoundItemDto> UpdateAsync(int id, UpdateFoundItemRequest request);
         Task DeleteAsync(int id);
         Task<List<FoundItemDto>> GetByCampusAsync(int campusId);

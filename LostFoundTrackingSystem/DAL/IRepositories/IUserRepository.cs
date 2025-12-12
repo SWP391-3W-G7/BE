@@ -8,5 +8,6 @@ namespace DAL.IRepositories
         Task<User?> GetUserByEmailAsync(string email);
         Task<User> AddUserAsync(User user);
         Task<User?> GetUserByIdAsync(int id);
+        Task UpdateAsync(User user);
     }
 }

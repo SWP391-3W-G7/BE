@@ -28,6 +28,7 @@ namespace DAL.Repositories
                 .Include(f => f.Images)
                 .Include(f => f.Campus)
                 .Include(f => f.Category)
+                .AsNoTracking() 
                 .FirstOrDefaultAsync(f => f.FoundItemId == id);
         }
 
@@ -39,7 +40,16 @@ namespace DAL.Repositories
 
         public async Task UpdateAsync(FoundItem item)
         {
-            _context.FoundItems.Update(item);
+            var local = _context.Set<FoundItem>()
+                .Local
+                .FirstOrDefault(e => e.FoundItemId == item.FoundItemId);
+
+            if (local != null)
+            {
+                _context.Entry(local).State = EntityState.Detached;
+            }
+
+            _context.Entry(item).State = EntityState.Modified;
             await _context.SaveChangesAsync();
         }
 

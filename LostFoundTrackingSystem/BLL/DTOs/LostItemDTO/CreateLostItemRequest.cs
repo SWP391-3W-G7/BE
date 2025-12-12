@@ -21,8 +21,6 @@ namespace BLL.DTOs.LostItemDTO
 
         [Required]
         public int CategoryId { get; set; }
-        [Required]
-        public int CreatedBy { get; set; }
 
         public List<IFormFile>? Images { get; set; }
     }

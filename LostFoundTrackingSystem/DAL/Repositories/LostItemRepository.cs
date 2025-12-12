@@ -31,6 +31,7 @@ namespace DAL.Repositories
                 .Include(l => l.Images)
                 .Include(l => l.Campus)
                 .Include(l => l.Category)
+                .AsNoTracking()
                 .FirstOrDefaultAsync(l => l.LostItemId == id);
         }
 
@@ -42,7 +43,16 @@ namespace DAL.Repositories
 
         public async Task UpdateAsync(LostItem item)
         {
-            _context.LostItems.Update(item);
+            var local = _context.Set<LostItem>()
+                .Local
+                .FirstOrDefault(e => e.LostItemId == item.LostItemId);
+
+            if (local != null)
+            {
+                _context.Entry(local).State = EntityState.Detached;
+            }
+
+            _context.Entry(item).State = EntityState.Modified;
             await _context.SaveChangesAsync();
         }
 
