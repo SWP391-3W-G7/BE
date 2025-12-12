@@ -43,5 +43,12 @@ namespace LostFoundApi.Controllers
             await _service.DeleteAsync(id);
             return NoContent();
         }
+
+        [HttpGet("campus/{campusId}")]
+        public async Task<IActionResult> GetByCampus(int campusId)
+        {
+            var items = await _service.GetByCampusAsync(campusId);
+            return Ok(items);
+        }
     }
 }

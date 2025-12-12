@@ -39,7 +39,8 @@ namespace BLL.Services
                 FullName = userRegisterDto.FullName,
                 RoleId = 1, // User
                 Status = "Active",
-                CampusId = userRegisterDto.CampusId
+                CampusId = userRegisterDto.CampusId,
+                PhoneNumber = userRegisterDto.PhoneNumber
             };
 
             var addedUser = await _userRepository.AddUserAsync(user);
@@ -60,6 +61,7 @@ namespace BLL.Services
                 RoleId = newUser.RoleId.Value,
                 Status = newUser.Status,
                 CampusId = newUser.CampusId,
+                PhoneNumber = newUser.PhoneNumber,
                 RoleName = newUser.Role?.RoleName,
                 CampusName = newUser.Campus?.CampusName
             };

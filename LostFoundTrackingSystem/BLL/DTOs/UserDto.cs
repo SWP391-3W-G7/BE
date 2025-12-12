@@ -9,6 +9,7 @@ namespace BLL.DTOs
         public int RoleId { get; set; }
         public required string Status { get; set; }
         public int? CampusId { get; set; }
+        public string? PhoneNumber { get; set; }
         public string? RoleName { get; set; }
         public string? CampusName { get; set; }
     }

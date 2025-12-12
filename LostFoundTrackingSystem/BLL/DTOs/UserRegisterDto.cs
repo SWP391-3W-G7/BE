@@ -7,5 +7,6 @@ namespace BLL.DTOs
         public required string Password { get; set; }
         public required string FullName { get; set; }
         public int? CampusId { get; set; }
+        public string? PhoneNumber { get; set; }
     }
 }

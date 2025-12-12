@@ -56,7 +56,11 @@ builder.Services.AddScoped<IImageRepository, ImageRepository>();
 builder.Services.AddScoped<ICampusRepository, CampusRepository>();
 builder.Services.AddScoped<ICampusService, CampusService>();
 builder.Services.AddScoped<ILostItemService, LostItemService>();
+builder.Services.AddScoped<IMatchingRepository, MatchingRepository>();
+builder.Services.AddScoped<IMatchingService, MatchingService>();
+builder.Services.AddScoped<IMatchHistoryRepository, MatchHistoryRepository>();
 builder.Services.AddHttpClient<IImageService, ImageService>();
+builder.Services.AddHostedService<LostFoundApi.HostedServices.MatchingHostedService>();
 
 builder.Services.AddCors(options =>
 {
@@ -108,7 +112,11 @@ app.UseSwaggerUI(c =>
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "LostFound API V1");
     c.RoutePrefix = "swagger";
 });
-app.UseHttpsRedirection();
+
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
 
 app.UseCors("AllowAll");
 app.UseStaticFiles();

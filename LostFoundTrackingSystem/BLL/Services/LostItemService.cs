@@ -15,12 +15,14 @@ namespace BLL.Services
         private readonly ILostItemRepository _repo;
         private readonly IImageRepository _imageRepo;
         private readonly IImageService _imageService;
+        private readonly IMatchingService _matchingService;
 
-        public LostItemService(ILostItemRepository repo, IImageRepository imageRepo, IImageService imageService)
+        public LostItemService(ILostItemRepository repo, IImageRepository imageRepo, IImageService imageService, IMatchingService matchingService)
         {
             _repo = repo;
             _imageRepo = imageRepo;
             _imageService = imageService;
+            _matchingService = matchingService;
         }
         
         public async Task<LostItemDto?> GetByIdAsync(int id)
@@ -74,6 +76,9 @@ namespace BLL.Services
                     });
                 }
             }
+
+            // Trigger auto-matching after a new lost item is created
+            await _matchingService.FindAndCreateMatchesAsync(entity.LostItemId);
 
             return await GetByIdAsync(entity.LostItemId);
         }
