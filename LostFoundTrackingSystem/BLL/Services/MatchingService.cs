@@ -66,14 +66,14 @@ namespace BLL.Services
             var match = await _matchingRepository.GetMatchByIdAsync(matchId);
             if (match != null)
             {
-                match.MatchStatus = "Confirmed";
+                match.MatchStatus = "Approved";
                 match.Status = "Resolved";
                 await _matchingRepository.UpdateMatchAsync(match);
 
                 await _matchHistoryRepository.AddAsync(new MatchHistory
                 {
                     MatchId = matchId,
-                    Action = "Confirmed",
+                    Action = "Approved",
                     ActionDate = DateTime.UtcNow,
                     ActionBy = staffUserId
                 });

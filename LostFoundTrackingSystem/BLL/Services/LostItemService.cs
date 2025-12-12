@@ -16,13 +16,19 @@ namespace BLL.Services
         private readonly IImageRepository _imageRepo;
         private readonly IImageService _imageService;
         private readonly IMatchingService _matchingService;
+        private readonly IMatchingRepository _matchRepo;
+        private readonly IReturnRecordRepository _returnRecordRepo;
+        private readonly IStaffRepository _staffRepo;
 
-        public LostItemService(ILostItemRepository repo, IImageRepository imageRepo, IImageService imageService, IMatchingService matchingService)
+        public LostItemService(ILostItemRepository repo, IImageRepository imageRepo, IImageService imageService, IMatchingService matchingService, IMatchingRepository matchRepo, IReturnRecordRepository returnRecordRepo, IStaffRepository staffRepo)
         {
             _repo = repo;
             _imageRepo = imageRepo;
             _imageService = imageService;
             _matchingService = matchingService;
+            _matchRepo = matchRepo;
+            _returnRecordRepo = returnRecordRepo;
+            _staffRepo = staffRepo;
         }
         
         public async Task<LostItemDto?> GetByIdAsync(int id)
@@ -159,6 +165,39 @@ namespace BLL.Services
                 CategoryName = l.Category?.CategoryName,
                 ImageUrls = l.Images.Select(i => i.ImageUrl).ToList()
             }).ToList();
+        }
+
+        public async Task<LostItemDto> UpdateStatusAsync(int lostItemId, string status, int staffId)
+        {
+            var entity = await _repo.GetByIdAsync(lostItemId);
+            if (entity == null) throw new Exception("Lost item not found");
+
+            entity.Status = status;
+
+            if (entity.Status.ToString() == LostItemStatus.Returned.ToString())
+            {
+                var match = (await _matchRepo.GetMatchesForLostItemAsync(lostItemId)).FirstOrDefault();
+                if (match == null)
+                    throw new Exception("No match found for this lost item.");
+
+                var staff = await _staffRepo.GetByUserIdAsync(staffId);
+                if (staff == null)
+                    throw new Exception("Staff not found");
+
+                var returnRecord = new ReturnRecord
+                {
+                    LostItemId = lostItemId,
+                    FoundItemId = match.FoundItemId,
+                    ReceiverId = entity.CreatedBy,
+                    StaffId = staff.StaffId,
+                    ReturnDate = DateTime.UtcNow
+                };
+                await _returnRecordRepo.AddAsync(returnRecord);
+            }
+
+            await _repo.UpdateAsync(entity);
+
+            return await GetByIdAsync(entity.LostItemId);
         }
     }
 }

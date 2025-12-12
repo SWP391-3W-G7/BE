@@ -1,4 +1,6 @@
-﻿using BLL.DTOs.FoundItemDTO;
+﻿using BLL.DTOs.ClaimRequestDTO;
+using BLL.DTOs.FoundItemDTO;
+using BLL.DTOs.LostItemDTO;
 using BLL.IServices;
 using DAL.IRepositories;
 using DAL.Models;
@@ -10,12 +12,18 @@ namespace BLL.Services
         private readonly IFoundItemRepository _repo;
         private readonly IImageRepository _imageRepo;
         private readonly IImageService _imageService;
+        private readonly IClaimRequestRepository _claimRequestRepository;
+        private readonly IMatchingRepository _matchingRepository;
+        private readonly ILostItemRepository _lostItemRepository;
 
-        public FoundItemService(IFoundItemRepository repo, IImageRepository imageRepo, IImageService imageService)
+        public FoundItemService(IFoundItemRepository repo, IImageRepository imageRepo, IImageService imageService, IClaimRequestRepository claimRequestRepository, IMatchingRepository matchingRepository, ILostItemRepository lostItemRepository)
         {
             _repo = repo;
             _imageRepo = imageRepo;
             _imageService = imageService;
+            _claimRequestRepository = claimRequestRepository;
+            _matchingRepository = matchingRepository;
+            _lostItemRepository = lostItemRepository;
         }
 
         public async Task<List<FoundItemDto>> GetAllAsync()
@@ -163,6 +171,98 @@ namespace BLL.Services
                 StoredBy = f.StoredBy,
                 ImageUrls = f.Images.Select(i => i.ImageUrl).ToList()
             }).ToList();
+        }
+
+        public async Task<FoundItemDetailsDto> GetFoundItemDetailsAsync(int foundItemId)
+        {
+            var foundItem = await _repo.GetByIdAsync(foundItemId);
+            if (foundItem == null)
+            {
+                throw new Exception("Found item not found.");
+            }
+
+            var approvedClaims = (await _claimRequestRepository.GetByFoundItemIdAsync(foundItemId))
+                .Where(c => c.Status == "Returned")
+                .Select(MapToClaimRequestDto)
+                .ToList();
+
+            var approvedMatches = (await _matchingRepository.GetMatchesForFoundItemAsync(foundItemId))
+                .Where(m => m.MatchStatus == "Approved")
+                .ToList();
+
+            var approvedLostItems = new List<LostItemDto>();
+            foreach (var match in approvedMatches)
+            {
+                if (match.LostItemId.HasValue)
+                {
+                    var lostItem = await _lostItemRepository.GetByIdAsync(match.LostItemId.Value);
+                    if (lostItem != null)
+                    {
+                        approvedLostItems.Add(MapToLostItemDto(lostItem));
+                    }
+                }
+            }
+
+            var detailsDto = new FoundItemDetailsDto
+            {
+                FoundItemId = foundItem.FoundItemId,
+                Title = foundItem.Title,
+                Description = foundItem.Description,
+                FoundDate = foundItem.FoundDate,
+                FoundLocation = foundItem.FoundLocation,
+                Status = foundItem.Status,
+                CampusId = foundItem.CampusId,
+                CampusName = foundItem.Campus?.CampusName,
+                CategoryId = foundItem.CategoryId,
+                CategoryName = foundItem.Category?.CategoryName,
+                CreatedBy = foundItem.CreatedBy,
+                StoredBy = foundItem.StoredBy,
+                ImageUrls = foundItem.Images.Select(i => i.ImageUrl).ToList(),
+                ApprovedClaimRequests = approvedClaims,
+                ApprovedLostItems = approvedLostItems
+            };
+
+            return detailsDto;
+        }
+
+        private LostItemDto MapToLostItemDto(LostItem item)
+        {
+            return new LostItemDto
+            {
+                LostItemId = item.LostItemId,
+                Title = item.Title,
+                Description = item.Description,
+                LostDate = item.LostDate,
+                LostLocation = item.LostLocation,
+                Status = item.Status,
+                CampusId = item.CampusId,
+                CampusName = item.Campus?.CampusName,
+                CategoryId = item.CategoryId,
+                CategoryName = item.Category?.CategoryName,
+                ImageUrls = item.Images.Select(i => i.ImageUrl).ToList()
+            };
+        }
+
+        private ClaimRequestDto MapToClaimRequestDto(ClaimRequest c)
+        {
+            return new ClaimRequestDto
+            {
+                ClaimId = c.ClaimId,
+                ClaimDate = c.ClaimDate,
+                Status = c.Status,
+                FoundItemId = c.FoundItemId,
+                FoundItemTitle = c.FoundItem?.Title,
+                StudentId = c.StudentId,
+                StudentName = c.Student?.FullName,
+                Evidences = c.Evidences.Select(e => new EvidenceDto
+                {
+                    EvidenceId = e.EvidenceId,
+                    Title = e.Title,
+                    Description = e.Description,
+                    CreatedAt = e.CreatedAt,
+                    ImageUrls = e.Images.Select(i => i.ImageUrl).ToList()
+                }).ToList()
+            };
         }
     }
 }

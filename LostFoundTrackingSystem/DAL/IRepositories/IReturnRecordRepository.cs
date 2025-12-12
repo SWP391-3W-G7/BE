@@ -10,5 +10,6 @@ namespace DAL.IRepositories
         Task<List<ReturnRecord>> GetByReceiverIdAsync(int receiverId);
         Task<ReturnRecord> GetByLostItemIdAsync(int lostItemId);
         Task<ReturnRecord> GetByFoundItemIdAsync(int foundItemId);
+        Task UpdateAsync(ReturnRecord record);
     }
 }

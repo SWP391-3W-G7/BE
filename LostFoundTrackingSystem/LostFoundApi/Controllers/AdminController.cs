@@ -21,7 +21,7 @@ namespace LostFoundApi.Controllers
         private bool IsAdmin()
         {
             var roleClaim = User.FindFirst(ClaimTypes.Role);
-            return roleClaim != null && roleClaim.Value == "4";
+            return roleClaim != null && roleClaim.Value == "Admin";
         }
 
         [HttpPost("campuses")]

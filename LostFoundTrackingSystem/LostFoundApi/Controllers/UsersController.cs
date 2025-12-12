@@ -36,8 +36,8 @@ namespace LostFoundApi.Controllers
         {
             try
             {
-                var token = await _userService.LoginAsync(userLoginDto);
-                return Ok(new { token });
+                var loginResponse = await _userService.LoginAsync(userLoginDto);
+                return Ok(loginResponse);
             }
             catch (Exception ex)
             {

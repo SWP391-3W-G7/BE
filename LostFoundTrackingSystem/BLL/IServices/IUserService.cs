@@ -6,6 +6,6 @@ namespace BLL.IServices
     public interface IUserService
     {
         Task<UserDto> RegisterAsync(UserRegisterDto userRegisterDto);
-        Task<string> LoginAsync(UserLoginDto userLoginDto);
+        Task<UserLoginResponseDto> LoginAsync(UserLoginDto userLoginDto);
     }
 }

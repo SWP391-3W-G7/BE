@@ -8,5 +8,6 @@ namespace BLL.IServices
         Task<List<ReturnRecordDto>> GetAllAsync();
         Task<ReturnRecordDto> GetByIdAsync(int returnId);
         Task<List<ReturnRecordDto>> GetMyRecord(int receiverId);
+        Task<ReturnRecordDto> UpdateReturnRecordAsync(int returnId, UpdateReturnRecordRequest request);
     }
 }

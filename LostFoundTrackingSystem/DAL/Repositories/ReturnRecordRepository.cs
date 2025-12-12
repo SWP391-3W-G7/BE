@@ -63,5 +63,11 @@ namespace DAL.Repositories
             return await _context.ReturnRecords
                 .FirstOrDefaultAsync(r => r.FoundItemId == foundItemId);
         }
+
+        public async Task UpdateAsync(ReturnRecord record)
+        {
+            _context.Entry(record).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
+        }
     }
 }

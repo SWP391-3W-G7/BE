@@ -19,7 +19,7 @@ namespace LostFoundApi.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "2,4")]
+        [Authorize(Roles = "Staff,Admin")]
         public async Task<IActionResult> Create([FromBody] CreateReturnRecordRequest request)
         {
             try
@@ -37,7 +37,7 @@ namespace LostFoundApi.Controllers
             }
         }
         [HttpGet]
-        [Authorize(Roles = "2,4")]
+        [Authorize(Roles = "Staff,Admin")]
         public async Task<IActionResult> GetAll()
         {
             var results = await _service.GetAllAsync();
@@ -65,6 +65,21 @@ namespace LostFoundApi.Controllers
 
             var results = await _service.GetMyRecord(receiverId);
             return Ok(results);
+        }
+
+        [HttpPut("{id}")]
+        [Authorize(Roles = "Admin,Staff")]
+        public async Task<IActionResult> Update(int id, [FromBody] UpdateReturnRecordRequest request)
+        {
+            try
+            {
+                var result = await _service.UpdateReturnRecordAsync(id, request);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
     }
 }

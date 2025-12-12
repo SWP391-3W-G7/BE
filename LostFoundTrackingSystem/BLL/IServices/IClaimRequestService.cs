@@ -10,6 +10,6 @@ namespace BLL.IServices
         Task<ClaimRequestDto?> GetByIdAsync(int id);
         Task<ClaimRequestDto> CreateAsync(CreateClaimRequest request, int studentId);
         Task<ClaimRequestDto> UpdateAsync(int id, UpdateClaimRequest request, int userId);
-        Task<ClaimRequestDto> UpdateStatusAsync(int id, ClaimStatus status);
+        Task<ClaimRequestDto> UpdateStatusAsync(int id, ClaimStatus status, int staffId);
     }
 }

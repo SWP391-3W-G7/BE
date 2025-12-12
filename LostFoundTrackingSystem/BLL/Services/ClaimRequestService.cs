@@ -11,13 +11,17 @@ namespace BLL.Services
         private readonly IFoundItemRepository _foundItemRepo;
         private readonly IImageRepository _imageRepo;
         private readonly IImageService _imageService;
+        private readonly IReturnRecordRepository _returnRecordRepo;
+        private readonly IStaffRepository _staffRepo;
 
-        public ClaimRequestService(IClaimRequestRepository repo, IFoundItemRepository foundItemRepo, IImageRepository imageRepo, IImageService imageService)
+        public ClaimRequestService(IClaimRequestRepository repo, IFoundItemRepository foundItemRepo, IImageRepository imageRepo, IImageService imageService, IReturnRecordRepository returnRecordRepo, IStaffRepository staffRepo)
         {
             _repo = repo;
             _foundItemRepo = foundItemRepo;
             _imageRepo = imageRepo;
             _imageService = imageService;
+            _returnRecordRepo = returnRecordRepo;
+            _staffRepo = staffRepo;
         }
 
         public async Task<ClaimRequestDto> CreateAsync(CreateClaimRequest request, int studentId)
@@ -153,16 +157,26 @@ namespace BLL.Services
             return await GetByIdAsync(entity.ClaimId);
         }
 
-        public async Task<ClaimRequestDto> UpdateStatusAsync(int id, ClaimStatus status)
+        public async Task<ClaimRequestDto> UpdateStatusAsync(int id, ClaimStatus status, int staffId)
         {
             var entity = await _repo.GetByIdAsync(id);
             if (entity == null) throw new Exception("Claim request not found");
 
             entity.Status = status.ToString();
 
-            if(entity.Status.ToString() == ClaimStatus.Returned.ToString())
+            if (entity.Status.ToString() == ClaimStatus.Returned.ToString())
             {
-                    
+                var staff = await _staffRepo.GetByUserIdAsync(staffId);
+                if (staff == null)
+                    throw new Exception("Staff not found");
+                var returnRecord = new ReturnRecord
+                {
+                    FoundItemId = entity.FoundItemId,
+                    ReceiverId = entity.StudentId,
+                    StaffId = staff.StaffId,
+                    ReturnDate = DateTime.UtcNow
+                };
+                await _returnRecordRepo.AddAsync(returnRecord);
             }
 
             await _repo.UpdateAsync(entity);

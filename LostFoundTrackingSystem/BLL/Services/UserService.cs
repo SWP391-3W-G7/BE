@@ -39,7 +39,7 @@ namespace BLL.Services
                 FullName = userRegisterDto.FullName,
                 RoleId = 1, // User
                 Status = "Active",
-                CampusId = userRegisterDto.CampusId,
+                CampusId = (int?)userRegisterDto.CampusId,
                 PhoneNumber = userRegisterDto.PhoneNumber
             };
 
@@ -67,7 +67,7 @@ namespace BLL.Services
             };
         }
 
-        public async Task<string> LoginAsync(UserLoginDto userLoginDto)
+        public async Task<UserLoginResponseDto> LoginAsync(UserLoginDto userLoginDto)
         {
             var user = await _userRepository.GetUserByEmailAsync(userLoginDto.Email);
 
@@ -105,8 +105,8 @@ namespace BLL.Services
                 {
                     new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
                     new Claim(ClaimTypes.Email, user.Email),
-                    new Claim(ClaimTypes.Role, user.RoleId.Value.ToString()),
-                    new Claim("CampusId", user.CampusId.Value.ToString())
+                    new Claim(ClaimTypes.Role, user.Role.RoleName),
+                    new Claim("CampusName", user.Campus.CampusName)
                 }),
                 Expires = DateTime.UtcNow.AddDays(7),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
@@ -114,7 +114,16 @@ namespace BLL.Services
                 Audience = _configuration["Jwt:Audience"]
             };
             var token = tokenHandler.CreateToken(tokenDescriptor);
-            return tokenHandler.WriteToken(token);
+            var tokenString = tokenHandler.WriteToken(token);
+
+            return new UserLoginResponseDto
+            {
+                Token = tokenString,
+                Email = user.Email,
+                FullName = user.FullName,
+                RoleName = user.Role?.RoleName,
+                CampusName = user.Campus?.CampusName
+            };
         }
     }
 }

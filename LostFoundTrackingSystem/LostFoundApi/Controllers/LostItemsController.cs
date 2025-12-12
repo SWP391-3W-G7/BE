@@ -76,5 +76,24 @@ namespace LostFoundApi.Controllers
             var items = await _service.SearchByTitleAsync(title);
             return Ok(items);
         }
+
+        [HttpPatch("{id}/status")]
+        [Authorize(Roles = "Admin,Staff")] // 4=Admin, 2=Staff
+        public async Task<IActionResult> UpdateStatus(int id, [FromQuery] string status)
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null) return Unauthorized();
+            int staffId = int.Parse(userIdClaim.Value);
+
+            try
+            {
+                var result = await _service.UpdateStatusAsync(id, status, staffId);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
     }
 }

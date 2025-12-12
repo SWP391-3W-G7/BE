@@ -1,5 +1,7 @@
 using BLL.IServices;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace LostFoundApi.Controllers
@@ -37,15 +39,25 @@ namespace LostFoundApi.Controllers
         }
 
         [HttpPut("{matchId}/confirm")]
-        public async Task<IActionResult> ConfirmMatch(int matchId, [FromBody] int staffUserId)
+        [Authorize(Roles = "Staff,Admin")]
+        public async Task<IActionResult> ConfirmMatch(int matchId)
         {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null) return Unauthorized();
+            int staffUserId = int.Parse(userIdClaim.Value);
+
             await _matchingService.ConfirmMatchAsync(matchId, staffUserId);
             return Ok();
         }
 
         [HttpPut("{matchId}/dismiss")]
-        public async Task<IActionResult> DismissMatch(int matchId, [FromBody] int staffUserId)
+        [Authorize(Roles = "Staff,Admin")]
+        public async Task<IActionResult> DismissMatch(int matchId)
         {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null) return Unauthorized();
+            int staffUserId = int.Parse(userIdClaim.Value);
+
             await _matchingService.DismissMatchAsync(matchId, staffUserId);
             return Ok();
         }

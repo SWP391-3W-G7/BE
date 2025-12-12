@@ -61,5 +61,15 @@ namespace DAL.Repositories
             _context.ClaimRequests.Remove(request);
             await _context.SaveChangesAsync();
         }
+
+        public async Task<List<ClaimRequest>> GetByFoundItemIdAsync(int foundItemId)
+        {
+            return await _context.ClaimRequests
+                .Where(c => c.FoundItemId == foundItemId)
+                .Include(c => c.FoundItem)
+                .Include(c => c.Student)
+                .Include(c => c.Evidences).ThenInclude(e => e.Images)
+                .ToListAsync();
+        }
     }
 }

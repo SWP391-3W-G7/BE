@@ -122,5 +122,18 @@ namespace BLL.Services
                 LostItemId = r.LostItemId
             };
         }
+
+        public async Task<ReturnRecordDto> UpdateReturnRecordAsync(int returnId, UpdateReturnRecordRequest request)
+        {
+            var entity = await _repo.GetByIdAsync(returnId);
+            if (entity == null)
+                throw new Exception("Return record not found.");
+
+            entity.Note = request.Note;
+
+            await _repo.UpdateAsync(entity);
+
+            return await GetByIdAsync(entity.ReturnId);
+        }
     }
 }

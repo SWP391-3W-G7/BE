@@ -12,5 +12,6 @@ namespace BLL.IServices
         Task<List<FoundItemDto>> GetByCampusAsync(int campusId);
         Task<List<FoundItemDto>> GetByCategoryAsync(int categoryId);
         Task<List<FoundItemDto>> SearchByTitleAsync(string title);
+        Task<FoundItemDetailsDto> GetFoundItemDetailsAsync(int foundItemId);
     }
 }

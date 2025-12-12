@@ -58,7 +58,7 @@ namespace LostFoundApi.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "2,4")] 
+        [Authorize(Roles = "Staff,Admin")] // 2=Staff, 4=Admin
         public async Task<IActionResult> GetAll()
         {
             return Ok(await _service.GetAllAsync());
@@ -83,12 +83,16 @@ namespace LostFoundApi.Controllers
 
         // PATCH: api/claim-requests/{id}/status
         [HttpPatch("{id}/status")]
-        [Authorize(Roles = "4, 2")]
+        [Authorize(Roles = "Admin,Staff")] // 4=Admin, 2=Staff
         public async Task<IActionResult> ChangeStatus(int id, [FromQuery] ClaimStatus status)
         {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null) return Unauthorized();
+            int staffId = int.Parse(userIdClaim.Value);
+
             try
             {
-                var result = await _service.UpdateStatusAsync(id, status);
+                var result = await _service.UpdateStatusAsync(id, status, staffId);
                 return Ok(result);
             }
             catch (Exception ex)
