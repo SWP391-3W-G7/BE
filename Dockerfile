@@ -7,7 +7,7 @@ COPY LostFoundTrackingSystem/LostFoundTrackingSystem.sln ./
 COPY LostFoundTrackingSystem/BLL/*.csproj LostFoundTrackingSystem/BLL/
 COPY LostFoundTrackingSystem/DAL/*.csproj LostFoundTrackingSystem/DAL/
 COPY LostFoundTrackingSystem/LostFoundApi/*.csproj LostFoundTrackingSystem/LostFoundApi/
-COPY LostFoundTrackingSystem/LostFoundApi/SwaggerGen/*.csproj LostFoundTrackingSystem/LostFoundApi/SwaggerGen/
+
 RUN dotnet restore "LostFoundTrackingSystem/LostFoundApi/LostFoundApi.csproj"
 
 # Copy the rest of the application files
