@@ -12,4 +12,17 @@ namespace DAL.Models
         Matched = 1,
         Returned = 2,
     }
+    public enum FoundItemStatus
+    {
+        Stored = 0,
+        Claimed = 1,
+        Returned = 2,
+    }
+    public enum ClaimStatus
+    {
+        Pending = 0,
+        Approved = 1,
+        Rejected = 2,
+        Returned = 3,
+    }
 }

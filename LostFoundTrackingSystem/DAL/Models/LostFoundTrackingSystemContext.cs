@@ -315,9 +315,11 @@ public partial class LostFoundTrackingSystemContext : DbContext
             entity.ToTable("ReturnRecord");
 
             entity.HasIndex(e => e.FoundItemId, "UQ__ReturnRe__DFA62C36D4297726").IsUnique();
+            entity.HasIndex(e => e.LostItemId, "UQ_ReturnRecord_LostItemId").IsUnique();
 
             entity.Property(e => e.ReturnId).HasColumnName("ReturnID");
             entity.Property(e => e.FoundItemId).HasColumnName("FoundItemID");
+            entity.Property(e => e.LostItemId).HasColumnName("LostItemID");
             entity.Property(e => e.Note).HasMaxLength(255);
             entity.Property(e => e.ReceiverId).HasColumnName("ReceiverID");
             entity.Property(e => e.ReturnDate).HasColumnType("datetime");
@@ -326,6 +328,11 @@ public partial class LostFoundTrackingSystemContext : DbContext
             entity.HasOne(d => d.FoundItem).WithOne(p => p.ReturnRecord)
                 .HasForeignKey<ReturnRecord>(d => d.FoundItemId)
                 .HasConstraintName("FK__ReturnRec__Found__1EA48E88");
+
+            entity.HasOne(d => d.LostItem)
+                .WithOne(p => p.ReturnRecord)
+                .HasForeignKey<ReturnRecord>(d => d.LostItemId)
+                .HasConstraintName("FK_ReturnRecord_LostItem");
 
             entity.HasOne(d => d.Receiver).WithMany(p => p.ReturnRecords)
                 .HasForeignKey(d => d.ReceiverId)

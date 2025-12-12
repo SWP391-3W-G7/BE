@@ -36,5 +36,18 @@ namespace DAL.Repositories
                 .Include(u => u.Campus)
                 .FirstOrDefaultAsync(u => u.UserId == id);
         }
+        public async Task UpdateAsync(User user)
+        {
+            user.Campus = null;
+            user.Role = null;
+
+            var entry = _context.Entry(user);
+            if (entry.State == EntityState.Detached)
+            {
+                _context.Users.Attach(user);
+            }
+            entry.State = EntityState.Modified;
+            await _context.SaveChangesAsync();
+        }
     }
 }

@@ -21,9 +21,7 @@ namespace BLL.DTOs.FoundItemDTO
 
         [Required]
         public int CategoryId { get; set; }
-
-        [Required]
-        public int CreatedBy { get; set; }
+        //public int CreatedBy { get; set; }
 
         public int? StoredBy { get; set; } // FoundItem có thêm trường này
 
