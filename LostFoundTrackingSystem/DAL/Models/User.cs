@@ -43,6 +43,8 @@ public partial class User
     public virtual ICollection<MatchHistory> MatchHistories { get; set; } = new List<MatchHistory>();
 
     public virtual ICollection<ReturnRecord> ReturnRecords { get; set; } = new List<ReturnRecord>();
+    public virtual ICollection<Notification> Notifications { get; set; } = new List<Notification>();
+
 
     public virtual Role Role { get; set; }
 

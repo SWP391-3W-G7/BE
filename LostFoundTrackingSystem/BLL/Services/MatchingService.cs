@@ -11,12 +11,14 @@ namespace BLL.Services
         private readonly IMatchingRepository _matchingRepository;
         private readonly ILostItemRepository _lostItemRepository;
         private readonly IMatchHistoryRepository _matchHistoryRepository;
+        private readonly INotificationService _notificationService;
 
-        public MatchingService(IMatchingRepository matchingRepository, ILostItemRepository lostItemRepository, IMatchHistoryRepository matchHistoryRepository)
+        public MatchingService(IMatchingRepository matchingRepository, ILostItemRepository lostItemRepository, IMatchHistoryRepository matchHistoryRepository, INotificationService notificationService)
         {
             _matchingRepository = matchingRepository;
             _lostItemRepository = lostItemRepository;
             _matchHistoryRepository = matchHistoryRepository;
+            _notificationService = notificationService;
         }
 
         public async Task FindAndCreateMatchesAsync(int lostItemId)
@@ -27,6 +29,7 @@ namespace BLL.Services
                 // Or handle this case as you see fit
                 throw new Exception("Lost item not found.");
             }
+            int matchCount = 0;
 
             var potentialMatches = await _matchingRepository.GetPotentialMatchesAsync(lostItem);
 
@@ -41,6 +44,27 @@ namespace BLL.Services
                     Status = "Pending" // Pending staff review
                 };
                 await _matchingRepository.AddMatchAsync(itemMatch);
+                matchCount++;
+            }
+            if (matchCount > 0 && lostItem.CreatedBy.HasValue)
+            {
+                string userId = lostItem.CreatedBy.Value.ToString();
+                string message = matchCount == 1
+                    ? $"We found a potential match for your lost item '{lostItem.Title}'!"
+                    : $"We found {matchCount} potential matches for your lost item '{lostItem.Title}'!";
+
+                try
+                {
+                    await _notificationService.SendMatchNotificationAsync(
+                        userId,
+                        lostItemId,
+                        message
+                    );
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Failed to send match notification: {ex.Message}");
+                }
             }
         }
 
@@ -54,7 +78,7 @@ namespace BLL.Services
             var allLostItems = await _lostItemRepository.GetAllAsync();
             foreach (var lostItem in allLostItems)
             {
-                if (lostItem.Status == "Lost") // or whatever status indicates it's still an active lost item
+                if (lostItem.Status == "Lost") 
                 {
                     await FindAndCreateMatchesAsync(lostItem.LostItemId);
                 }

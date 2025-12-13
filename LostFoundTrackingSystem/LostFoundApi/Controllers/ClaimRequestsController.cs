@@ -93,7 +93,11 @@ namespace LostFoundApi.Controllers
             try
             {
                 var result = await _service.UpdateStatusAsync(id, status, staffId);
-                return Ok(result);
+                return Ok(new
+                {
+                    result,
+                    Message = $"Claim request status updated to {status}"
+                });
             }
             catch (Exception ex)
             {

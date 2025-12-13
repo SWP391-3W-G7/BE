@@ -45,6 +45,7 @@ public partial class LostFoundTrackingSystemContext : DbContext
     public virtual DbSet<Staff> Staff { get; set; }
 
     public virtual DbSet<User> Users { get; set; }
+    public virtual DbSet<Notification> Notifications { get; set; }
 
     public static string GetConnectionString(string connectionStringName)
     {
@@ -395,6 +396,35 @@ public partial class LostFoundTrackingSystemContext : DbContext
                 .HasForeignKey(d => d.RoleId)
                 .HasConstraintName("FK__User__RoleID__0A9D95DB");
         });
+        modelBuilder.Entity<Notification>(entity =>
+        {
+            entity.HasKey(e => e.NotificationId).HasName("PK__Notifica__20CF2E32XXXXXXXX");
+
+
+            entity.Property(e => e.NotificationId).HasColumnName("NotificationID");
+            entity.Property(e => e.UserId).HasColumnName("UserID");
+            entity.Property(e => e.Type).HasMaxLength(50);
+            entity.Property(e => e.ReferenceId).HasColumnName("ReferenceID");
+            entity.Property(e => e.Message).IsRequired();
+            entity.Property(e => e.IsRead).HasDefaultValue(false);
+            entity.Property(e => e.IsSent).HasDefaultValue(false);
+            entity.Property(e => e.CreatedAt)
+                .HasColumnType("datetime")
+                .HasDefaultValueSql("(getdate())");
+            entity.Property(e => e.ReadAt).HasColumnType("datetime");
+
+            entity.HasOne(d => d.User)
+                .WithMany(p => p.Notifications)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK__Notification__UserID");
+
+            // Indexes
+            entity.HasIndex(e => e.UserId).HasDatabaseName("IX_Notification_UserID");
+            entity.HasIndex(e => e.IsRead).HasDatabaseName("IX_Notification_IsRead");
+        });
+
+        OnModelCreatingPartial(modelBuilder);
 
         OnModelCreatingPartial(modelBuilder);
     }
