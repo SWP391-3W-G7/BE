@@ -49,7 +49,7 @@ namespace LostFoundApi.Hubs
                 }
                 else
                 {
-                    Console.WriteLine($"User {userId} is not connected");
+                    Console.WriteLine($"User {userId} is not connected. Notification saved.");
                 }
             }
             catch (Exception ex)
@@ -91,7 +91,7 @@ namespace LostFoundApi.Hubs
                 }
                 else
                 {
-                    Console.WriteLine($"User {userId} is not connected");
+                    Console.WriteLine($"User {userId} is not connected. Notification saved.");
                 }
             }
             catch (Exception ex)
@@ -117,5 +117,6 @@ namespace LostFoundApi.Hubs
         {
             await _notificationRepo.MarkAsReadAsync(notificationId);
         }
+
     }
 }
