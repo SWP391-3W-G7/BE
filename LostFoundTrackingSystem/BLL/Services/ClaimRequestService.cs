@@ -13,8 +13,9 @@ namespace BLL.Services
         private readonly IImageService _imageService;
         private readonly IReturnRecordRepository _returnRecordRepo;
         private readonly IStaffRepository _staffRepo;
+        private readonly INotificationService _notifService;
 
-        public ClaimRequestService(IClaimRequestRepository repo, IFoundItemRepository foundItemRepo, IImageRepository imageRepo, IImageService imageService, IReturnRecordRepository returnRecordRepo, IStaffRepository staffRepo)
+        public ClaimRequestService(IClaimRequestRepository repo, IFoundItemRepository foundItemRepo, IImageRepository imageRepo, IImageService imageService, IReturnRecordRepository returnRecordRepo, IStaffRepository staffRepo, INotificationService notifService)
         {
             _repo = repo;
             _foundItemRepo = foundItemRepo;
@@ -22,21 +23,20 @@ namespace BLL.Services
             _imageService = imageService;
             _returnRecordRepo = returnRecordRepo;
             _staffRepo = staffRepo;
+            _notifService = notifService;
         }
 
         public async Task<ClaimRequestDto> CreateAsync(CreateClaimRequest request, int studentId)
         {
-            // 1. Validate FoundItem exists
             var foundItem = await _foundItemRepo.GetByIdAsync(request.FoundItemId);
             if (foundItem == null) throw new Exception("Found item not found.");
 
-            // 2. Create Claim Entity
             var claimEntity = new ClaimRequest
             {
                 FoundItemId = request.FoundItemId,
                 StudentId = studentId,
                 ClaimDate = DateTime.UtcNow,
-                Status = ClaimStatus.Pending.ToString() // Default status
+                Status = ClaimStatus.Pending.ToString()
             };
 
             var evidenceEntity = new Evidence
@@ -49,10 +49,8 @@ namespace BLL.Services
 
             claimEntity.Evidences.Add(evidenceEntity);
 
-            // 4. Save to DB 
             await _repo.AddAsync(claimEntity);
 
-            // 5. Handle Images for Evidence
             if (request.EvidenceImages != null)
             {
                 foreach (var file in request.EvidenceImages)
@@ -180,6 +178,17 @@ namespace BLL.Services
             }
 
             await _repo.UpdateAsync(entity);
+
+            string studentUserId = entity.StudentId.ToString();
+            string message = $"Your claim request (ID: {entity.FoundItem.Title}) status has been updated to {entity.Status}.";
+            try
+            {
+                await _notifService.SendNotificationAsync(studentUserId, entity.ClaimId, entity.Status, message);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Failed to send notification: {ex.Message}");
+            }
 
             return await GetByIdAsync(entity.ClaimId);
         }
