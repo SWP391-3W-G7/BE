@@ -20,10 +20,9 @@ namespace BLL.DTOs.FoundItemDTO
         public int CampusId { get; set; }
 
         [Required]
-        public int CategoryId { get; set; }
-
-        public int? StoredBy { get; set; }
-
-        public List<IFormFile>? NewImages { get; set; }
-    }
-}
+                public int CategoryId { get; set; }
+        
+                public List<IFormFile>? NewImages { get; set; }
+            }
+        }
+        

@@ -17,6 +17,7 @@ namespace DAL.Models
         Stored = 0,
         Claimed = 1,
         Returned = 2,
+        Open = 3,
     }
     public enum ClaimStatus
     {
@@ -25,4 +26,5 @@ namespace DAL.Models
         Rejected = 2,
         Returned = 3,
     }
+
 }

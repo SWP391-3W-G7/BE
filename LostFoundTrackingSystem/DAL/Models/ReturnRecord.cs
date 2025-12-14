@@ -15,7 +15,7 @@ public partial class ReturnRecord
 
     public int? ReceiverId { get; set; }
 
-    public int? StaffId { get; set; }
+    public int? StaffUserId { get; set; }
 
     public int? FoundItemId { get; set; }
     public int? LostItemId { get; set; }
@@ -24,5 +24,5 @@ public partial class ReturnRecord
 
     public virtual User Receiver { get; set; }
 
-    public virtual Staff Staff { get; set; }
+    public virtual User StaffUser { get; set; }
 }

@@ -13,6 +13,8 @@ public partial class ItemActionLog
 
     public int? FoundItemId { get; set; }
 
+    public int? ClaimRequestId { get; set; }
+
     public string ActionType { get; set; }
 
     public string ActionDetails { get; set; }
@@ -32,6 +34,8 @@ public partial class ItemActionLog
     public virtual FoundItem FoundItem { get; set; }
 
     public virtual LostItem LostItem { get; set; }
+
+    public virtual ClaimRequest ClaimRequest { get; set; }
 
     public virtual User PerformedByNavigation { get; set; }
 }

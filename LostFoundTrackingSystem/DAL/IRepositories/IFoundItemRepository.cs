@@ -10,6 +10,7 @@ namespace DAL.IRepositories
         Task UpdateAsync(FoundItem item);
         Task DeleteAsync(FoundItem item);
         Task<List<FoundItem>> GetByCampusAsync(int campusId);
+        Task<List<FoundItem>> GetByCampusAsync(int campusId, string status);
         Task<List<FoundItem>> GetByCategoryAsync(int categoryId);
         Task<List<FoundItem>> SearchByTitleAsync(string title);
     }

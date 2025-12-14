@@ -1,9 +1,14 @@
-﻿using BLL.DTOs.ClaimRequestDTO;
+using BLL.DTOs.ClaimRequestDTO;
 using BLL.DTOs.FoundItemDTO;
 using BLL.DTOs.LostItemDTO;
 using BLL.IServices;
 using DAL.IRepositories;
 using DAL.Models;
+using BLL.DTOs; // Added to access ItemActionLogDto
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace BLL.Services
 {
@@ -15,8 +20,9 @@ namespace BLL.Services
         private readonly IClaimRequestRepository _claimRequestRepository;
         private readonly IMatchingRepository _matchingRepository;
         private readonly ILostItemRepository _lostItemRepository;
+        private readonly IItemActionLogService _itemActionLogService;
 
-        public FoundItemService(IFoundItemRepository repo, IImageRepository imageRepo, IImageService imageService, IClaimRequestRepository claimRequestRepository, IMatchingRepository matchingRepository, ILostItemRepository lostItemRepository)
+        public FoundItemService(IFoundItemRepository repo, IImageRepository imageRepo, IImageService imageService, IClaimRequestRepository claimRequestRepository, IMatchingRepository matchingRepository, ILostItemRepository lostItemRepository, IItemActionLogService itemActionLogService)
         {
             _repo = repo;
             _imageRepo = imageRepo;
@@ -24,10 +30,12 @@ namespace BLL.Services
             _claimRequestRepository = claimRequestRepository;
             _matchingRepository = matchingRepository;
             _lostItemRepository = lostItemRepository;
+            _itemActionLogService = itemActionLogService;
         }
 
         public async Task<List<FoundItemDto>> GetAllAsync()
         {
+            // temporary comment
             var items = await _repo.GetAllAsync();
             return MapToDtoList(items);
         }
@@ -55,7 +63,7 @@ namespace BLL.Services
             };
         }
 
-        public async Task<FoundItemDto> CreateAsync(CreateFoundItemRequest request, int createdBy)
+        public async Task<FoundItemDto> CreateAsync(CreateFoundItemRequest request, int createdBy, string initialStatus = null)
         {
             var entity = new FoundItem
             {
@@ -66,11 +74,21 @@ namespace BLL.Services
                 CampusId = request.CampusId,
                 CategoryId = request.CategoryId,
                 CreatedBy = createdBy,
-                StoredBy = request.StoredBy,
-                Status = FoundItemStatus.Stored.ToString()
+                StoredBy = (initialStatus == FoundItemStatus.Open.ToString() ? (int?)null : createdBy),
+                Status = initialStatus ?? FoundItemStatus.Stored.ToString()
             };
 
             await _repo.AddAsync(entity);
+
+            await _itemActionLogService.AddLogAsync(new ItemActionLogDto
+            {
+                FoundItemId = entity.FoundItemId,
+                ActionType = "Created",
+                ActionDetails = $"Found item '{entity.Title}' created with status '{entity.Status}'.",
+                NewStatus = entity.Status,
+                PerformedBy = createdBy,
+                CampusId = entity.CampusId
+            });
 
             if (request.Images != null)
             {
@@ -103,11 +121,6 @@ namespace BLL.Services
             entity.CampusId = request.CampusId;
             entity.CategoryId = request.CategoryId;
 
-            if (request.StoredBy.HasValue)
-            {
-                entity.StoredBy = request.StoredBy;
-            }
-
             await _repo.UpdateAsync(entity);
 
             if (request.NewImages != null)
@@ -138,6 +151,12 @@ namespace BLL.Services
         public async Task<List<FoundItemDto>> GetByCampusAsync(int campusId)
         {
             var items = await _repo.GetByCampusAsync(campusId);
+            return MapToDtoList(items);
+        }
+
+        public async Task<List<FoundItemDto>> GetByCampusAsync(int campusId, string status)
+        {
+            var items = await _repo.GetByCampusAsync(campusId, status);
             return MapToDtoList(items);
         }
 
@@ -263,6 +282,34 @@ namespace BLL.Services
                     ImageUrls = e.Images.Select(i => i.ImageUrl).ToList()
                 }).ToList()
             };
+        }
+
+        public async Task<FoundItemDto> UpdateStatusAsync(int id, UpdateFoundItemStatusRequest request, int staffId)
+        {
+            var entity = await _repo.GetByIdAsync(id);
+            if (entity == null) throw new Exception("Found item not found");
+
+            string oldStatus = entity.Status;
+            entity.Status = request.Status;
+            if (request.Status == FoundItemStatus.Stored.ToString() && entity.StoredBy == null)
+            {
+                entity.StoredBy = staffId;
+            }
+
+            await _repo.UpdateAsync(entity);
+
+            await _itemActionLogService.AddLogAsync(new ItemActionLogDto
+            {
+                FoundItemId = entity.FoundItemId,
+                ActionType = "StatusUpdate",
+                ActionDetails = $"Found item '{entity.Title}' status changed from '{oldStatus}' to '{entity.Status}'.",
+                OldStatus = oldStatus,
+                NewStatus = entity.Status,
+                PerformedBy = staffId,
+                CampusId = entity.CampusId // Assuming campus ID doesn't change
+            });
+
+            return await GetByIdAsync(entity.FoundItemId);
         }
     }
 }

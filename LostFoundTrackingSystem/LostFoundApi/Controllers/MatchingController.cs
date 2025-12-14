@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using BLL.DTOs.MatchDTO; // Added to access ItemMatchDto
 
 namespace LostFoundApi.Controllers
 {
@@ -32,9 +33,16 @@ namespace LostFoundApi.Controllers
         }
 
         [HttpGet("found-item/{foundItemId}")]
-        public async Task<IActionResult> GetMatchesForFoundItem(int foundItemId)
+        public async Task<ActionResult<IEnumerable<ItemMatchDto>>> GetMatchesForFoundItem(int foundItemId)
         {
             var matches = await _matchingService.GetMatchesForFoundItemAsync(foundItemId);
+            return Ok(matches);
+        }
+
+        [HttpGet("lost-item/{lostItemId}")]
+        public async Task<ActionResult<IEnumerable<ItemMatchDto>>> GetMatchesForLostItem(int lostItemId)
+        {
+            var matches = await _matchingService.GetMatchesForLostItemAsync(lostItemId);
             return Ok(matches);
         }
 

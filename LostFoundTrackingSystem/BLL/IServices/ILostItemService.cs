@@ -12,6 +12,6 @@ namespace BLL.IServices
         Task<List<LostItemDto>> GetByCampusAsync(int campusId);
         Task<List<LostItemDto>> GetByCategoryAsync(int categoryId);
         Task<List<LostItemDto>> SearchByTitleAsync(string title);
-        Task<LostItemDto> UpdateStatusAsync(int lostItemId, string status, int staffId);
+        Task<LostItemDto> UpdateStatusAsync(int lostItemId, UpdateLostItemStatusRequest request, int staffId);
     }
 }

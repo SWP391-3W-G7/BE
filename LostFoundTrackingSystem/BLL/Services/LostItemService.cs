@@ -7,6 +7,7 @@ using BLL.DTOs.LostItemDTO;
 using BLL.IServices;
 using DAL.IRepositories;
 using DAL.Models;
+using BLL.DTOs; // Added to access ItemActionLogDto
 
 namespace BLL.Services 
 {
@@ -18,9 +19,9 @@ namespace BLL.Services
         private readonly IMatchingService _matchingService;
         private readonly IMatchingRepository _matchRepo;
         private readonly IReturnRecordRepository _returnRecordRepo;
-        private readonly IStaffRepository _staffRepo;
+        private readonly IItemActionLogService _itemActionLogService;
 
-        public LostItemService(ILostItemRepository repo, IImageRepository imageRepo, IImageService imageService, IMatchingService matchingService, IMatchingRepository matchRepo, IReturnRecordRepository returnRecordRepo, IStaffRepository staffRepo)
+        public LostItemService(ILostItemRepository repo, IImageRepository imageRepo, IImageService imageService, IMatchingService matchingService, IMatchingRepository matchRepo, IReturnRecordRepository returnRecordRepo, IItemActionLogService itemActionLogService)
         {
             _repo = repo;
             _imageRepo = imageRepo;
@@ -28,7 +29,7 @@ namespace BLL.Services
             _matchingService = matchingService;
             _matchRepo = matchRepo;
             _returnRecordRepo = returnRecordRepo;
-            _staffRepo = staffRepo;
+            _itemActionLogService = itemActionLogService;
         }
         
         public async Task<LostItemDto?> GetByIdAsync(int id)
@@ -67,6 +68,16 @@ namespace BLL.Services
 
             await _repo.AddAsync(entity);
 
+            await _itemActionLogService.AddLogAsync(new ItemActionLogDto
+            {
+                LostItemId = entity.LostItemId,
+                ActionType = "Created",
+                ActionDetails = $"Lost item '{entity.Title}' created with status '{entity.Status}'.",
+                NewStatus = entity.Status,
+                PerformedBy = createdBy,
+                CampusId = entity.CampusId
+            });
+
             if (request.Images != null)
             {
                 foreach (var file in request.Images)
@@ -93,6 +104,7 @@ namespace BLL.Services
             var entity = await _repo.GetByIdAsync(id);
             if (entity == null) throw new Exception("Lost item not found");
 
+            string oldStatus = entity.Status;
             entity.Title = request.Title;
             entity.Description = request.Description;
             entity.LostDate = request.LostDate;
@@ -101,6 +113,31 @@ namespace BLL.Services
             entity.CategoryId = request.CategoryId;
 
             await _repo.UpdateAsync(entity);
+
+            // Log update action if status changed
+            if (oldStatus != entity.Status)
+            {
+                await _itemActionLogService.AddLogAsync(new ItemActionLogDto
+                {
+                    LostItemId = entity.LostItemId,
+                    ActionType = "Updated",
+                    ActionDetails = $"Lost item '{entity.Title}' updated. Status changed from '{oldStatus}' to '{entity.Status}'.",
+                    OldStatus = oldStatus,
+                    NewStatus = entity.Status,
+                    PerformedBy = entity.CreatedBy, // Assuming the creator is the one updating, or pass a specific updater ID
+                    CampusId = entity.CampusId
+                });
+            } else {
+                 await _itemActionLogService.AddLogAsync(new ItemActionLogDto
+                {
+                    LostItemId = entity.LostItemId,
+                    ActionType = "Updated",
+                    ActionDetails = $"Lost item '{entity.Title}' updated.",
+                    PerformedBy = entity.CreatedBy,
+                    CampusId = entity.CampusId
+                });
+            }
+
 
             if (request.NewImages != null)
             {
@@ -124,6 +161,16 @@ namespace BLL.Services
             if (entity == null) throw new Exception("Lost item not found");
 
             await _repo.DeleteAsync(entity);
+
+            await _itemActionLogService.AddLogAsync(new ItemActionLogDto
+            {
+                LostItemId = entity.LostItemId,
+                ActionType = "Deleted",
+                ActionDetails = $"Lost item '{entity.Title}' deleted.",
+                OldStatus = entity.Status,
+                PerformedBy = entity.CreatedBy,
+                CampusId = entity.CampusId
+            });
         }
         public async Task<List<LostItemDto>> GetByCampusAsync(int campusId)
         {
@@ -167,12 +214,13 @@ namespace BLL.Services
             }).ToList();
         }
 
-        public async Task<LostItemDto> UpdateStatusAsync(int lostItemId, string status, int staffId)
+        public async Task<LostItemDto> UpdateStatusAsync(int lostItemId, UpdateLostItemStatusRequest request, int staffId)
         {
             var entity = await _repo.GetByIdAsync(lostItemId);
             if (entity == null) throw new Exception("Lost item not found");
 
-            entity.Status = status;
+            string oldStatus = entity.Status;
+            entity.Status = request.Status;
 
             if (entity.Status.ToString() == LostItemStatus.Returned.ToString())
             {
@@ -180,22 +228,29 @@ namespace BLL.Services
                 if (match == null)
                     throw new Exception("No match found for this lost item.");
 
-                var staff = await _staffRepo.GetByUserIdAsync(staffId);
-                if (staff == null)
-                    throw new Exception("Staff not found");
-
                 var returnRecord = new ReturnRecord
                 {
                     LostItemId = lostItemId,
                     FoundItemId = match.FoundItemId,
                     ReceiverId = entity.CreatedBy,
-                    StaffId = staff.StaffId,
+                    StaffUserId = staffId,
                     ReturnDate = DateTime.UtcNow
                 };
                 await _returnRecordRepo.AddAsync(returnRecord);
             }
 
             await _repo.UpdateAsync(entity);
+
+            await _itemActionLogService.AddLogAsync(new ItemActionLogDto
+            {
+                LostItemId = entity.LostItemId,
+                ActionType = "StatusUpdate",
+                ActionDetails = $"Lost item '{entity.Title}' status changed from '{oldStatus}' to '{entity.Status}'.",
+                OldStatus = oldStatus,
+                NewStatus = entity.Status,
+                PerformedBy = staffId,
+                CampusId = entity.CampusId
+            });
 
             return await GetByIdAsync(entity.LostItemId);
         }

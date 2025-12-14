@@ -73,6 +73,9 @@ builder.Services.AddHttpClient<IImageService, ImageService>();
 builder.Services.AddScoped<ICampusRepository, CampusRepository>();
 builder.Services.AddScoped<ICampusService, CampusService>();
 
+builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+builder.Services.AddScoped<ICategoryService, CategoryService>();
+
 builder.Services.AddScoped<IFoundItemRepository, FoundItemRepository>();
 builder.Services.AddScoped<IFoundItemService, FoundItemService>();
 
@@ -85,7 +88,8 @@ builder.Services.AddHostedService<LostFoundApi.HostedServices.MatchingHostedServ
 builder.Services.AddScoped<IReturnRecordRepository, ReturnRecordRepository>();
 builder.Services.AddScoped<IReturnRecordService, ReturnRecordService>();
 
-builder.Services.AddScoped<IStaffRepository, StaffRepository>();
+builder.Services.AddScoped<IItemActionLogRepository, ItemActionLogRepository>();
+builder.Services.AddScoped<IItemActionLogService, ItemActionLogService>();
 
 builder.Services.AddScoped<IReportRepository, ReportRepository>();
 builder.Services.AddScoped<IReportService, ReportService>();

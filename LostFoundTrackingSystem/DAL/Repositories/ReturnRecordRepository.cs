@@ -28,8 +28,7 @@ namespace DAL.Repositories
         {
             return await _context.ReturnRecords
                 .Include(r => r.Receiver)
-                .Include(r => r.Staff)
-                .ThenInclude(s => s.User)
+                .Include(r => r.StaffUser)
                 .Include(r => r.FoundItem)
                 .FirstOrDefaultAsync(r => r.ReturnId == id);
         }
@@ -37,8 +36,7 @@ namespace DAL.Repositories
         {
             return await _context.ReturnRecords
                 .Include(r => r.Receiver)
-                .Include(r => r.Staff)
-                .ThenInclude(s => s.User)
+                .Include(r => r.StaffUser)
                 .Include(r => r.FoundItem)
                 .ToListAsync();
         }
@@ -47,8 +45,7 @@ namespace DAL.Repositories
             return await _context.ReturnRecords
                 .Where(r => r.ReceiverId == receiverId)
                 .Include(r => r.Receiver)
-                .Include(r => r.Staff)
-                .ThenInclude(s => s.User)
+                .Include(r => r.StaffUser)
                 .Include(r => r.FoundItem)
                 .ToListAsync();
         }

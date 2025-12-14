@@ -21,10 +21,9 @@ namespace BLL.DTOs.FoundItemDTO
 
         [Required]
         public int CategoryId { get; set; }
-        //public int CreatedBy { get; set; }
-
-        public int? StoredBy { get; set; } // FoundItem có thêm trường này
-
-        public List<IFormFile>? Images { get; set; }
-    }
-}
+                //public int CreatedBy { get; set; }
+        
+                public List<IFormFile>? Images { get; set; }
+            }
+        }
+        

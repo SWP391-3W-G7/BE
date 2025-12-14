@@ -2,6 +2,7 @@
 using BLL.IServices;
 using DAL.IRepositories;
 using DAL.Models;
+using BLL.DTOs; // Added to access ItemActionLogDto
 
 namespace BLL.Services
 {
@@ -12,18 +13,18 @@ namespace BLL.Services
         private readonly IImageRepository _imageRepo;
         private readonly IImageService _imageService;
         private readonly IReturnRecordRepository _returnRecordRepo;
-        private readonly IStaffRepository _staffRepo;
         private readonly INotificationService _notifService;
+        private readonly IItemActionLogService _itemActionLogService;
 
-        public ClaimRequestService(IClaimRequestRepository repo, IFoundItemRepository foundItemRepo, IImageRepository imageRepo, IImageService imageService, IReturnRecordRepository returnRecordRepo, IStaffRepository staffRepo, INotificationService notifService)
+        public ClaimRequestService(IClaimRequestRepository repo, IFoundItemRepository foundItemRepo, IImageRepository imageRepo, IImageService imageService, IReturnRecordRepository returnRecordRepo, INotificationService notifService, IItemActionLogService itemActionLogService)
         {
             _repo = repo;
             _foundItemRepo = foundItemRepo;
             _imageRepo = imageRepo;
             _imageService = imageService;
             _returnRecordRepo = returnRecordRepo;
-            _staffRepo = staffRepo;
             _notifService = notifService;
+            _itemActionLogService = itemActionLogService;
         }
 
         public async Task<ClaimRequestDto> CreateAsync(CreateClaimRequest request, int studentId)
@@ -50,6 +51,17 @@ namespace BLL.Services
             claimEntity.Evidences.Add(evidenceEntity);
 
             await _repo.AddAsync(claimEntity);
+
+            await _itemActionLogService.AddLogAsync(new ItemActionLogDto
+            {
+                FoundItemId = foundItem.FoundItemId,
+                ClaimRequestId = claimEntity.ClaimId,
+                ActionType = "Created",
+                ActionDetails = $"Claim request for found item '{foundItem.Title}' created with status '{claimEntity.Status}'.",
+                NewStatus = claimEntity.Status,
+                PerformedBy = studentId,
+                CampusId = foundItem.CampusId
+            });
 
             if (request.EvidenceImages != null)
             {
@@ -126,6 +138,8 @@ namespace BLL.Services
             if (entity.Status != ClaimStatus.Pending.ToString())
                 throw new Exception("Cannot update a claim that has been processed.");
 
+            string oldStatus = entity.Status;
+
             var evidence = entity.Evidences.FirstOrDefault();
             if (evidence != null)
             {
@@ -136,6 +150,18 @@ namespace BLL.Services
             entity.ClaimDate = DateTime.UtcNow;
 
             await _repo.UpdateAsync(entity);
+
+            await _itemActionLogService.AddLogAsync(new ItemActionLogDto
+            {
+                ClaimRequestId = entity.ClaimId,
+                FoundItemId = entity.FoundItemId,
+                ActionType = "Updated",
+                ActionDetails = $"Claim request '{entity.ClaimId}' updated. Status changed from '{oldStatus}' to '{entity.Status}'.",
+                OldStatus = oldStatus,
+                NewStatus = entity.Status,
+                PerformedBy = userId,
+                CampusId = entity.FoundItem.CampusId
+            });
 
             if (request.NewImages != null && evidence != null)
             {
@@ -160,24 +186,34 @@ namespace BLL.Services
             var entity = await _repo.GetByIdAsync(id);
             if (entity == null) throw new Exception("Claim request not found");
 
+            string oldStatus = entity.Status;
             entity.Status = status.ToString();
 
             if (entity.Status.ToString() == ClaimStatus.Returned.ToString())
             {
-                var staff = await _staffRepo.GetByUserIdAsync(staffId);
-                if (staff == null)
-                    throw new Exception("Staff not found");
                 var returnRecord = new ReturnRecord
                 {
                     FoundItemId = entity.FoundItemId,
                     ReceiverId = entity.StudentId,
-                    StaffId = staff.StaffId,
+                    StaffUserId = staffId,
                     ReturnDate = DateTime.UtcNow
                 };
                 await _returnRecordRepo.AddAsync(returnRecord);
             }
 
             await _repo.UpdateAsync(entity);
+
+            await _itemActionLogService.AddLogAsync(new ItemActionLogDto
+            {
+                ClaimRequestId = entity.ClaimId,
+                FoundItemId = entity.FoundItemId,
+                ActionType = "StatusUpdate",
+                ActionDetails = $"Claim request '{entity.ClaimId}' status changed from '{oldStatus}' to '{entity.Status}'.",
+                OldStatus = oldStatus,
+                NewStatus = entity.Status,
+                PerformedBy = staffId,
+                CampusId = entity.FoundItem.CampusId
+            });
 
             string studentUserId = entity.StudentId.ToString();
             string message = $"Your claim request (ID: {entity.FoundItem.Title}) status has been updated to {entity.Status}.";

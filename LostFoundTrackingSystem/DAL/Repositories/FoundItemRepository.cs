@@ -69,6 +69,16 @@ namespace DAL.Repositories
                 .ToListAsync();
         }
 
+        public async Task<List<FoundItem>> GetByCampusAsync(int campusId, string status)
+        {
+            return await _context.FoundItems
+                .Include(f => f.Images)
+                .Include(f => f.Campus)
+                .Include(f => f.Category)
+                .Where(f => f.CampusId == campusId && f.Status == status)
+                .ToListAsync();
+        }
+
         public async Task<List<FoundItem>> GetByCategoryAsync(int categoryId)
         {
             return await _context.FoundItems

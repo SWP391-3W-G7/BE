@@ -3,6 +3,8 @@ using BLL.DTOs.ReturnRecordDTO;
 using BLL.IServices;
 using DAL.IRepositories;
 using DAL.Models;
+using BLL.DTOs.FoundItemDTO; // Added
+using BLL.DTOs.LostItemDTO; // Added
 
 namespace BLL.Services
 {
@@ -11,25 +13,20 @@ namespace BLL.Services
         private readonly IReturnRecordRepository _repo;
         private readonly IFoundItemRepository _foundItemRepo;
         private readonly ILostItemRepository _lostItemRepo;
-        private readonly IStaffRepository _staffRepo;
+        private readonly IFoundItemService _foundItemService; // Injected
+        private readonly ILostItemService _lostItemService; // Injected
 
-        public ReturnRecordService(IReturnRecordRepository repo, IFoundItemRepository foundItemRepo, ILostItemRepository lostItemRepo, IStaffRepository staffRepo)
+        public ReturnRecordService(IReturnRecordRepository repo, IFoundItemRepository foundItemRepo, ILostItemRepository lostItemRepo, IFoundItemService foundItemService, ILostItemService lostItemService)
         {
             _repo = repo;
             _foundItemRepo = foundItemRepo;
             _lostItemRepo = lostItemRepo;
-            _staffRepo = staffRepo;
+            _foundItemService = foundItemService;
+            _lostItemService = lostItemService;
         }
 
         public async Task<ReturnRecordDto> CreateReturnRecordAsync(CreateReturnRecordRequest request, int userId)
         {
-            var staff = await _staffRepo.GetByUserIdAsync(userId);
-            if (staff == null)
-            {
-                throw new Exception("Current user is not a valid Staff member.");
-            }
-            int realStaffId = staff.StaffId;
-
             var foundItem = await _foundItemRepo.GetByIdAsync(request.FoundItemId);
             if (foundItem == null)
                 throw new Exception("Found item not found.");
@@ -65,20 +62,18 @@ namespace BLL.Services
                 FoundItemId = request.FoundItemId,
                 LostItemId = request.LostItemId,
                 ReceiverId = request.ReceiverId,
-                StaffId = realStaffId,
+                StaffUserId = userId,
                 ReturnDate = request.ReturnDate ?? DateTime.UtcNow, 
                 Note = request.Note
             };
 
             await _repo.AddAsync(returnRecord);
 
-            foundItem.Status = "Returned";
-            await _foundItemRepo.UpdateAsync(foundItem);
+            await _foundItemService.UpdateStatusAsync(foundItem.FoundItemId, new UpdateFoundItemStatusRequest { Status = FoundItemStatus.Returned.ToString() }, userId);
 
             if (lostItem != null)
             {
-                lostItem.Status = "Returned";
-                await _lostItemRepo.UpdateAsync(lostItem);
+                await _lostItemService.UpdateStatusAsync(lostItem.LostItemId, new UpdateLostItemStatusRequest { Status = LostItemStatus.Returned.ToString() }, userId);
             }
 
             return await GetByIdAsync(returnRecord.ReturnId);
@@ -116,8 +111,8 @@ namespace BLL.Services
                 Note = r.Note,
                 ReceiverId = r.ReceiverId,
                 ReceiverName = r.Receiver?.FullName ?? "Unknown",
-                StaffId = r.StaffId,
-                StaffName = r.Staff?.User.FullName ?? "Unknown",
+                StaffId = r.StaffUserId,
+                StaffName = r.StaffUser?.FullName ?? "Unknown",
                 FoundItemId = r.FoundItemId,
                 LostItemId = r.LostItemId
             };

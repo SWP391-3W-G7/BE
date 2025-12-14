@@ -22,9 +22,19 @@ namespace DAL.Repositories
             await _context.SaveChangesAsync();
         }
 
+        public async Task<ItemMatch?> GetExistingMatchAsync(int lostItemId, int foundItemId)
+        {
+            return await _context.ItemMatches
+                .Where(m => m.LostItemId == lostItemId && m.FoundItemId == foundItemId && m.Status == "Pending")
+                .FirstOrDefaultAsync();
+        }
+
         public async Task<IEnumerable<ItemMatch>> GetMatchesForFoundItemAsync(int foundItemId)
         {
             return await _context.ItemMatches
+                .Include(m => m.FoundItem)
+                .Include(m => m.LostItem)
+                .Include(m => m.CreatedByNavigation)
                 .Where(m => m.FoundItemId == foundItemId)
                 .ToListAsync();
         }
@@ -32,6 +42,9 @@ namespace DAL.Repositories
         public async Task<IEnumerable<ItemMatch>> GetMatchesForLostItemAsync(int lostItemId)
         {
             return await _context.ItemMatches
+                .Include(m => m.FoundItem)
+                .Include(m => m.LostItem)
+                .Include(m => m.CreatedByNavigation)
                 .Where(m => m.LostItemId == lostItemId)
                 .ToListAsync();
         }
@@ -42,7 +55,7 @@ namespace DAL.Repositories
                 .Include(f => f.Images) // Include images for more detailed matching later if needed
                 .Where(f => f.CategoryId == lostItem.CategoryId &&
                              f.CampusId == lostItem.CampusId &&
-                             f.Status == "Available");
+                             (f.Status == FoundItemStatus.Stored.ToString() || f.Status == FoundItemStatus.Open.ToString()));
 
             // Simple keyword matching for title and description
             if (!string.IsNullOrWhiteSpace(lostItem.Title))

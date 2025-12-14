@@ -125,5 +125,27 @@ namespace BLL.Services
                 CampusName = user.Campus?.CampusName
             };
         }
+
+        public async Task<UserDto> GetByIdAsync(int id)
+        {
+            var user = await _userRepository.GetUserByIdAsync(id);
+            if (user == null)
+            {
+                return null;
+            }
+            return new UserDto
+            {
+                UserId = user.UserId,
+                Username = user.Username,
+                Email = user.Email,
+                FullName = user.FullName,
+                RoleId = user.RoleId.Value,
+                Status = user.Status,
+                CampusId = user.CampusId,
+                PhoneNumber = user.PhoneNumber,
+                RoleName = user.Role?.RoleName,
+                CampusName = user.Campus?.CampusName
+            };
+        }
     }
 }

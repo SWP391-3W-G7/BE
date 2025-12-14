@@ -1,5 +1,5 @@
 ﻿using System.Security.Claims;
-using BLL.DTOs.LostItemDTO;
+using BLL.DTOs.LostItemDTO; // Added
 using BLL.IServices;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -87,7 +87,7 @@ namespace LostFoundApi.Controllers
 
             try
             {
-                var result = await _service.UpdateStatusAsync(id, status, staffId);
+                var result = await _service.UpdateStatusAsync(id, new UpdateLostItemStatusRequest { Status = status }, staffId);
                 return Ok(result);
             }
             catch (Exception ex)
