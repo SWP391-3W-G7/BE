@@ -246,10 +246,71 @@ The API uses JWT (JSON Web Tokens) for authentication. Users must obtain a token
     -   **Authorization:** None (Accessible to all authenticated users).
 
 ### CampusController (`/api/campus`)
-*(Note: Endpoints for this controller were not explicitly detailed in our conversation, but it is expected to manage campus-related data.)*
+
+-   **`GET /api/Campus`**
+    -   **Description:** Retrieves a list of all campuses.
+    -   **Authorization:** None (Accessible to all authenticated users).
+-   **`GET /api/Campus/enum-values`**
+    -   **Description:** Retrieves a list of campus enum values, their IDs, names, and descriptions.
+    -   **Authorization:** None (Accessible to all authenticated users).
 
 ### UsersController (`/api/users`)
-*(Note: Endpoints for this controller were not explicitly detailed in our conversation, but it is expected to manage user-related data.)*
+
+-   **`POST /api/Users/register`**
+    -   **Description:** Registers a new user.
+    -   **Authorization:** None (Publicly accessible).
+    -   **Request Body:** `UserRegisterDto` (includes username, email, password, full name, role ID, campus ID, phone number).
+-   **`POST /api/Users/login`**
+    -   **Description:** Authenticates a user and returns a JWT token.
+    -   **Authorization:** None (Publicly accessible).
+    -   **Request Body:** `UserLoginDto` (includes email, password).
 
 ### AdminController (`/api/admin`)
-*(Note: Endpoints for this controller were not explicitly detailed in our conversation, but it is expected to manage administrative tasks.)*
+
+-   **`POST /api/Admin/campuses`**
+    -   **Description:** Creates a new campus.
+    -   **Authorization:** `Admin`
+    -   **Request Body:** `CreateCampusRequest` (contains `CampusName`, `Address`, `StorageLocation`).
+-   **`POST /api/Admin/assign-role`**
+    -   **Description:** Assigns a role and campus to a user.
+    -   **Authorization:** `Admin`
+    -   **Request Body:** `AssignRoleRequest` (contains `UserId`, `RoleId`, `CampusId`).
+
+### NotificationsController (`/api/notifications`)
+
+-   **`GET /api/notifications?unreadOnly={unreadOnly}`**
+    -   **Description:** Retrieves notifications for the authenticated user. Optionally filters for unread notifications.
+    -   **Authorization:** Authenticated users.
+    -   **Query Parameter:** `unreadOnly` (boolean, optional, default false).
+-   **`GET /api/notifications/unread-count`**
+    -   **Description:** Retrieves the count of unread notifications for the authenticated user.
+    -   **Authorization:** Authenticated users.
+-   **`PUT /api/notifications/{id}/read`**
+    -   **Description:** Marks a specific notification as read.
+    -   **Authorization:** Authenticated users.
+
+### ReportsController (`/api/reports`)
+
+-   **`GET /api/reports/dashboard`**
+    -   **Description:** Retrieves dashboard statistics based on the authenticated user's role and campus.
+    -   **Authorization:** Authenticated users (access determined by role and campus claims).
+
+### ReturnRecordsController (`/api/return-records`)
+
+-   **`POST /api/return-records`**
+    -   **Description:** Creates a new return record.
+    -   **Authorization:** `Staff`, `Admin`
+    -   **Request Body:** `CreateReturnRecordRequest` (contains `FoundItemId`, `LostItemId`, `ReceiverId`, `ReturnDate`, `Note`).
+-   **`GET /api/return-records`**
+    -   **Description:** Retrieves all return records.
+    -   **Authorization:** `Staff`, `Admin`
+-   **`GET /api/return-records/{id}`**
+    -   **Description:** Retrieves a specific return record by ID.
+    -   **Authorization:** Authenticated users (Owner, Admin, Staff).
+-   **`GET /api/return-records/my-returns`**
+    -   **Description:** Retrieves all return records where the authenticated user is the receiver.
+    -   **Authorization:** Authenticated users.
+-   **`PUT /api/return-records/{id}`**
+    -   **Description:** Updates an existing return record.
+    -   **Authorization:** `Admin`, `Staff`
+    -   **Request Body:** `UpdateReturnRecordRequest` (contains `Note`).
