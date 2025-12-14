@@ -17,5 +17,6 @@ namespace DAL.IRepositories
         Task<List<LostItem>> GetByCampusAsync(int campusId);
         Task<List<LostItem>> GetByCategoryAsync(int categoryId);
         Task<List<LostItem>> SearchByTitleAsync(string title);
+        Task<List<LostItem>> GetByCreatedByAsync(int userId);
     }
 }

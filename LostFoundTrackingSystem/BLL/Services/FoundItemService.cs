@@ -21,8 +21,9 @@ namespace BLL.Services
         private readonly IMatchingRepository _matchingRepository;
         private readonly ILostItemRepository _lostItemRepository;
         private readonly IItemActionLogService _itemActionLogService;
+        private readonly INotificationService _notificationService;
 
-        public FoundItemService(IFoundItemRepository repo, IImageRepository imageRepo, IImageService imageService, IClaimRequestRepository claimRequestRepository, IMatchingRepository matchingRepository, ILostItemRepository lostItemRepository, IItemActionLogService itemActionLogService)
+        public FoundItemService(IFoundItemRepository repo, IImageRepository imageRepo, IImageService imageService, IClaimRequestRepository claimRequestRepository, IMatchingRepository matchingRepository, ILostItemRepository lostItemRepository, IItemActionLogService itemActionLogService, INotificationService notificationService)
         {
             _repo = repo;
             _imageRepo = imageRepo;
@@ -31,11 +32,11 @@ namespace BLL.Services
             _matchingRepository = matchingRepository;
             _lostItemRepository = lostItemRepository;
             _itemActionLogService = itemActionLogService;
+            _notificationService = notificationService;
         }
 
         public async Task<List<FoundItemDto>> GetAllAsync()
         {
-            // temporary comment
             var items = await _repo.GetAllAsync();
             return MapToDtoList(items);
         }
@@ -60,6 +61,29 @@ namespace BLL.Services
                 CreatedBy = item.CreatedBy,
                 StoredBy = item.StoredBy,
                 ImageUrls = item.Images.Select(i => i.ImageUrl).ToList()
+            };
+        }
+
+        public async Task<FoundItemDto?> GetFoundItemDetailsForUserAsync(int foundItemId)
+        {
+            var foundItem = await _repo.GetByIdAsync(foundItemId);
+            if (foundItem == null) return null;
+
+            return new FoundItemDto
+            {
+                FoundItemId = foundItem.FoundItemId,
+                Title = foundItem.Title,
+                Description = foundItem.Description,
+                FoundDate = foundItem.FoundDate,
+                FoundLocation = foundItem.FoundLocation,
+                Status = foundItem.Status,
+                CampusId = foundItem.CampusId,
+                CampusName = foundItem.Campus?.CampusName,
+                CategoryId = foundItem.CategoryId,
+                CategoryName = foundItem.Category?.CategoryName,
+                CreatedBy = foundItem.CreatedBy,
+                StoredBy = foundItem.StoredBy,
+                ImageUrls = foundItem.Images.Select(i => i.ImageUrl).ToList()
             };
         }
 
@@ -308,6 +332,74 @@ namespace BLL.Services
                 PerformedBy = staffId,
                 CampusId = entity.CampusId // Assuming campus ID doesn't change
             });
+
+            // If found item status changes to Returned, reject other claims and dismiss other matches
+            if (request.Status == FoundItemStatus.Returned.ToString())
+            {
+                // Reject other ClaimRequests for this FoundItem
+                var otherClaims = (await _claimRequestRepository.GetByFoundItemIdAsync(entity.FoundItemId))
+                                    .Where(c => c.Status != ClaimStatus.Returned.ToString() && c.Status != ClaimStatus.Rejected.ToString()) 
+                                    .ToList();
+
+                foreach (var claim in otherClaims)
+                {
+                    string claimOldStatus = claim.Status;
+                    claim.Status = ClaimStatus.Rejected.ToString();
+                    await _claimRequestRepository.UpdateAsync(claim);
+
+                    await _itemActionLogService.AddLogAsync(new ItemActionLogDto
+                    {
+                        ClaimRequestId = claim.ClaimId,
+                        FoundItemId = entity.FoundItemId,
+                        ActionType = "StatusUpdate",
+                        ActionDetails = $"Claim request '{claim.ClaimId}' for Found Item '{entity.Title}' auto-rejected due to Found Item being returned.",
+                        OldStatus = claimOldStatus,
+                        NewStatus = claim.Status,
+                        PerformedBy = staffId, // Action performed by the staff who returned the FoundItem
+                        CampusId = entity.CampusId
+                    });
+                    
+                    // Notify student about rejected claim
+                    if (claim.StudentId.HasValue)
+                    {
+                        string studentUserId = claim.StudentId.Value.ToString();
+                        string message = $"Your claim request (ID: {claim.ClaimId}) for item '{entity.Title}' has been rejected because the item has been returned.";
+                        try
+                        {
+                            await _notificationService.SendNotificationAsync(studentUserId, claim.ClaimId, claim.Status, message);
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"Failed to send notification for rejected claim: {ex.Message}");
+                        }
+                    }
+                }
+
+                // Dismiss other ItemMatches for this FoundItem
+                var otherMatches = (await _matchingRepository.GetMatchesForFoundItemAsync(entity.FoundItemId))
+                                    .Where(m => m.Status != "Resolved" && m.MatchStatus != "Dismissed") // Exclude the match that might have led to this return
+                                    .ToList();
+
+                foreach (var match in otherMatches)
+                {
+                    string matchOldStatus = match.MatchStatus;
+                    match.MatchStatus = "Dismissed";
+                    match.Status = "Rejected"; // Or a more specific status for auto-dismissed
+                    await _matchingRepository.UpdateMatchAsync(match);
+
+                    await _itemActionLogService.AddLogAsync(new ItemActionLogDto
+                    {
+                        FoundItemId = entity.FoundItemId,
+                        LostItemId = match.LostItemId,
+                        ActionType = "MatchDismissed",
+                        ActionDetails = $"Match (ID: {match.MatchId}) for Found Item '{entity.Title}' auto-dismissed due to Found Item being returned.",
+                        OldStatus = matchOldStatus,
+                        NewStatus = match.MatchStatus,
+                        PerformedBy = staffId,
+                        CampusId = entity.CampusId
+                    });
+                }
+            }
 
             return await GetByIdAsync(entity.FoundItemId);
         }

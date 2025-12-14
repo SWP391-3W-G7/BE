@@ -89,29 +89,36 @@ namespace BLL.Services
         public async Task<List<ClaimRequestDto>> GetAllAsync()
         {
             var list = await _repo.GetAllAsync();
-            return MapToDtoList(list);
+            var dtoList = new List<ClaimRequestDto>();
+            foreach (var item in list)
+            {
+                dtoList.Add(await MapToDto(item));
+            }
+            return dtoList;
         }
 
         public async Task<List<ClaimRequestDto>> GetMyClaimsAsync(int studentId)
         {
             var list = await _repo.GetByStudentIdAsync(studentId);
-            return MapToDtoList(list);
+            var dtoList = new List<ClaimRequestDto>();
+            foreach (var item in list)
+            {
+                dtoList.Add(await MapToDto(item));
+            }
+            return dtoList;
         }
 
         public async Task<ClaimRequestDto?> GetByIdAsync(int id)
         {
             var item = await _repo.GetByIdAsync(id);
             if (item == null) return null;
-            return MapToDto(item);
+            return await MapToDto(item);
         }
 
-        private List<ClaimRequestDto> MapToDtoList(List<ClaimRequest> items)
+        private async Task<ClaimRequestDto> MapToDto(ClaimRequest c)
         {
-            return items.Select(MapToDto).ToList();
-        }
+            var actionLogs = await _itemActionLogService.GetLogsByClaimRequestIdAsync(c.ClaimId);
 
-        private ClaimRequestDto MapToDto(ClaimRequest c)
-        {
             return new ClaimRequestDto
             {
                 ClaimId = c.ClaimId,
@@ -128,7 +135,8 @@ namespace BLL.Services
                     Description = e.Description,
                     CreatedAt = e.CreatedAt,
                     ImageUrls = e.Images.Select(i => i.ImageUrl).ToList()
-                }).ToList()
+                }).ToList(),
+                ActionLogs = actionLogs
             };
         }
         public async Task<ClaimRequestDto> UpdateAsync(int id, UpdateClaimRequest request, int userId)
@@ -193,6 +201,47 @@ namespace BLL.Services
             string oldStatus = entity.Status;
             entity.Status = status.ToString();
 
+            // If the current claim is approved, reject all other pending/conflicted claims for the same found item
+            if (status == ClaimStatus.Approved)
+            {
+                var otherClaims = (await _repo.GetByFoundItemIdAsync(entity.FoundItemId.Value))
+                                    .Where(c => c.ClaimId != entity.ClaimId && (c.Status == ClaimStatus.Pending.ToString() || c.Status == ClaimStatus.Conflicted.ToString()))
+                                    .ToList();
+
+                foreach (var otherClaim in otherClaims)
+                {
+                    string otherClaimOldStatus = otherClaim.Status;
+                    otherClaim.Status = ClaimStatus.Rejected.ToString();
+                    await _repo.UpdateAsync(otherClaim);
+
+                    await _itemActionLogService.AddLogAsync(new ItemActionLogDto
+                    {
+                        ClaimRequestId = otherClaim.ClaimId,
+                        FoundItemId = otherClaim.FoundItemId,
+                        ActionType = "StatusUpdate",
+                        ActionDetails = $"Claim request '{otherClaim.ClaimId}' for Found Item '{entity.FoundItem?.Title}' auto-rejected because claim '{entity.ClaimId}' was approved.",
+                        OldStatus = otherClaimOldStatus,
+                        NewStatus = otherClaim.Status,
+                        PerformedBy = staffId, // Action performed by the staff who approved the main claim
+                        CampusId = entity.FoundItem?.CampusId
+                    });
+
+                    // Notify student about rejected claim
+                    if (otherClaim.StudentId.HasValue)
+                    {
+                                            string rejectedStudentUserId = otherClaim.StudentId.Value.ToString();
+                                            string rejectedMessage = $"Your claim request (ID: {otherClaim.ClaimId}) for item '{entity.FoundItem?.Title}' has been rejected because another claim was approved.";
+                                            try
+                                            {
+                                                await _notifService.SendNotificationAsync(rejectedStudentUserId, otherClaim.ClaimId, otherClaim.Status, rejectedMessage);
+                                            }                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"Failed to send notification for rejected claim: {ex.Message}");
+                        }
+                    }
+                }
+            }
+            
             if (entity.Status.ToString() == ClaimStatus.Returned.ToString())
             {
                 var returnRecord = new ReturnRecord

@@ -88,5 +88,15 @@ namespace DAL.Repositories
                 .Where(l => l.Title.Contains(title))
                 .ToListAsync();
         }
+
+        public async Task<List<LostItem>> GetByCreatedByAsync(int userId)
+        {
+            return await _context.LostItems
+                .Include(l => l.Images)
+                .Include(l => l.Campus)
+                .Include(l => l.Category)
+                .Where(l => l.CreatedBy == userId)
+                .ToListAsync();
+        }
     }
 }

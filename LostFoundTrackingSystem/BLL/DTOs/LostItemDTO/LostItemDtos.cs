@@ -1,4 +1,5 @@
-﻿using System;
+﻿using BLL.DTOs; // Added to access ItemActionLogDto
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -20,6 +21,7 @@ namespace BLL.DTOs.LostItemDTO
         public string? CategoryName { get; set; }
 
         public List<string> ImageUrls { get; set; } = new();
+        public List<ItemActionLogDto>? ActionLogs { get; set; } // Added
     }
 }
 

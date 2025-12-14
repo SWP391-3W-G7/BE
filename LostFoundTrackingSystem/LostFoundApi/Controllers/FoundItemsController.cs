@@ -139,5 +139,21 @@ namespace LostFoundApi.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
+
+        [HttpGet("{id}/user-details")]
+        [Authorize(Roles = "User,Security Officer,Staff,Admin")] // Accessible to all authenticated users
+        public async Task<IActionResult> GetFoundItemDetailsForUser(int id)
+        {
+            try
+            {
+                var result = await _foundItemService.GetFoundItemDetailsForUserAsync(id);
+                if (result == null) return NotFound();
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
     }
 }

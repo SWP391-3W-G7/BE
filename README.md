@@ -314,3 +314,9 @@ The API uses JWT (JSON Web Tokens) for authentication. Users must obtain a token
     -   **Description:** Updates an existing return record.
     -   **Authorization:** `Admin`, `Staff`
     -   **Request Body:** `UpdateReturnRecordRequest` (contains `Note`).
+
+### UserActivityController (`/api/user-activity`)
+
+-   **`GET /api/user-activity`**
+    -   **Description:** Retrieves all claim requests and lost item requests made by the authenticated user, including their associated action logs.
+    -   **Authorization:** Authenticated users.

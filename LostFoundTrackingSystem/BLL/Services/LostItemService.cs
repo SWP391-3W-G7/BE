@@ -37,6 +37,8 @@ namespace BLL.Services
             var item = await _repo.GetByIdAsync(id);
             if (item == null) return null;
 
+            var logs = await _itemActionLogService.GetLogsByLostItemIdAsync(item.LostItemId);
+
             return new LostItemDto
             {
                 LostItemId = item.LostItemId,
@@ -49,7 +51,8 @@ namespace BLL.Services
                 CampusName = item.Campus?.CampusName,
                 CategoryId = item.CategoryId,
                 CategoryName = item.Category?.CategoryName,
-                ImageUrls = item.Images.Select(i => i.ImageUrl).ToList()
+                ImageUrls = item.Images.Select(i => i.ImageUrl).ToList(),
+                ActionLogs = logs
             };
         }
         public async Task<LostItemDto> CreateAsync(CreateLostItemRequest request, int createdBy)
@@ -175,43 +178,56 @@ namespace BLL.Services
         public async Task<List<LostItemDto>> GetByCampusAsync(int campusId)
         {
             var items = await _repo.GetByCampusAsync(campusId);
-            return MapToDtoList(items);
+            return await MapToDtoList(items);
         }
 
         public async Task<List<LostItemDto>> GetByCategoryAsync(int categoryId)
         {
             var items = await _repo.GetByCategoryAsync(categoryId);
-            return MapToDtoList(items);
+            return await MapToDtoList(items);
         }
 
         public async Task<List<LostItemDto>> SearchByTitleAsync(string title)
         {
             var items = await _repo.SearchByTitleAsync(title);
-            return MapToDtoList(items);
+            return await MapToDtoList(items);
         }
         public async Task<List<LostItemDto>> GetAllAsync()
         {
             var items = await _repo.GetAllAsync();
 
-            return MapToDtoList(items);
+            return await MapToDtoList(items);
         }
 
-        private List<LostItemDto> MapToDtoList(List<LostItem> items)
+        public async Task<List<LostItemDto>> GetMyLostItemsAsync(int userId)
         {
-            return items.Select(l => new LostItemDto
+            var items = await _repo.GetByCreatedByAsync(userId);
+            return await MapToDtoList(items);
+        }
+
+        private async Task<List<LostItemDto>> MapToDtoList(List<LostItem> items)
+        {
+            var dtoList = new List<LostItemDto>();
+            foreach (var item in items)
             {
-                LostItemId = l.LostItemId,
-                Title = l.Title,
-                Description = l.Description,
-                LostDate = l.LostDate,
-                LostLocation = l.LostLocation,
-                Status = l.Status,
-                CampusId = l.CampusId,
-                CampusName = l.Campus?.CampusName,
-                CategoryId = l.CategoryId,
-                CategoryName = l.Category?.CategoryName,
-                ImageUrls = l.Images.Select(i => i.ImageUrl).ToList()
-            }).ToList();
+                var logs = await _itemActionLogService.GetLogsByLostItemIdAsync(item.LostItemId);
+                dtoList.Add(new LostItemDto
+                {
+                    LostItemId = item.LostItemId,
+                    Title = item.Title,
+                    Description = item.Description,
+                    LostDate = item.LostDate,
+                    LostLocation = item.LostLocation,
+                    Status = item.Status,
+                    CampusId = item.CampusId,
+                    CampusName = item.Campus?.CampusName,
+                    CategoryId = item.CategoryId,
+                    CategoryName = item.Category?.CategoryName,
+                    ImageUrls = item.Images.Select(i => i.ImageUrl).ToList(),
+                    ActionLogs = logs
+                });
+            }
+            return dtoList;
         }
 
         public async Task<LostItemDto> UpdateStatusAsync(int lostItemId, UpdateLostItemStatusRequest request, int staffId)
