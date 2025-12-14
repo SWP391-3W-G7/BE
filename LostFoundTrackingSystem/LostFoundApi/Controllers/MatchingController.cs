@@ -69,5 +69,24 @@ namespace LostFoundApi.Controllers
             await _matchingService.DismissMatchAsync(matchId, staffUserId);
             return Ok();
         }
+
+        [HttpPut("{matchId}/conflict")]
+        [Authorize(Roles = "Staff,Admin")]
+        public async Task<IActionResult> ConflictMatch(int matchId)
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null) return Unauthorized();
+            int staffUserId = int.Parse(userIdClaim.Value);
+
+            try
+            {
+                await _matchingService.ConflictMatchAsync(matchId, staffUserId);
+                return Ok("Match marked as conflicted.");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
     }
 }

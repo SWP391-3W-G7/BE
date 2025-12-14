@@ -12,5 +12,6 @@ namespace BLL.IServices
         Task FindAndCreateMatchesForAllLostItemsAsync();
         Task ConfirmMatchAsync(int matchId, int staffUserId);
         Task DismissMatchAsync(int matchId, int staffUserId);
+        Task ConflictMatchAsync(int matchId, int staffUserId);
     }
 }

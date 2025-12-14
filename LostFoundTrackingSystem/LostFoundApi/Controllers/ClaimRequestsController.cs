@@ -1,9 +1,11 @@
-﻿using BLL.DTOs.ClaimRequestDTO;
+using BLL.DTOs.ClaimRequestDTO;
 using BLL.IServices;
 using DAL.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System;
 using System.Security.Claims;
+using System.Threading.Tasks;
 
 namespace LostFoundApi.Controllers
 {
@@ -104,6 +106,43 @@ namespace LostFoundApi.Controllers
                 return BadRequest(ex.Message);
             }
         }
-        
+
+        [HttpPut("{claimId}/conflict")]
+        [Authorize(Roles = "Admin,Staff")]
+        public async Task<IActionResult> ConflictClaim(int claimId)
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null) return Unauthorized();
+            int staffId = int.Parse(userIdClaim.Value);
+
+            try
+            {
+                await _service.ConflictClaimAsync(claimId, staffId);
+                return Ok("Claim request marked as conflicted.");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        [HttpPost("{claimId}/evidence")]
+        [Authorize(Roles = "User,Security Officer")] // Only the student who owns the claim or Security Officer
+        public async Task<IActionResult> AddEvidence(int claimId, [FromForm] AddEvidenceRequest request)
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null) return Unauthorized();
+            int userId = int.Parse(userIdClaim.Value);
+
+            try
+            {
+                await _service.AddEvidenceToClaimAsync(claimId, request, userId);
+                return Ok("Evidence added successfully.");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
     }
 }

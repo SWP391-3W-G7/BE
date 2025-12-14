@@ -203,6 +203,61 @@ namespace BLL.Services
             }
         }
 
+        public async Task ConflictMatchAsync(int matchId, int staffUserId)
+        {
+            var match = await _matchingRepository.GetMatchByIdAsync(matchId);
+            if (match == null) throw new Exception("Match not found.");
+
+            string oldStatus = match.MatchStatus;
+            match.MatchStatus = "Conflicted"; // New status
+            await _matchingRepository.UpdateMatchAsync(match);
+
+            await _matchHistoryRepository.AddAsync(new MatchHistory
+            {
+                MatchId = matchId,
+                Action = "Conflicted",
+                ActionDate = DateTime.UtcNow,
+                ActionBy = staffUserId
+            });
+
+            // Log to ItemActionLog for the associated FoundItem and LostItem
+            if (match.FoundItemId.HasValue)
+            {
+                var foundItem = await _foundItemRepository.GetByIdAsync(match.FoundItemId.Value);
+                if (foundItem != null)
+                {
+                    await _itemActionLogService.AddLogAsync(new ItemActionLogDto
+                    {
+                        FoundItemId = foundItem.FoundItemId,
+                        ActionType = "MatchConflict",
+                        ActionDetails = $"Match (ID: {match.MatchId}) for Found Item '{foundItem.Title}' marked as Conflicted.",
+                        OldStatus = oldStatus,
+                        NewStatus = match.MatchStatus,
+                        PerformedBy = staffUserId,
+                        CampusId = foundItem.CampusId
+                    });
+                }
+            }
+
+            if (match.LostItemId.HasValue)
+            {
+                var lostItem = await _lostItemRepository.GetByIdAsync(match.LostItemId.Value);
+                if (lostItem != null)
+                {
+                    await _itemActionLogService.AddLogAsync(new ItemActionLogDto
+                    {
+                        LostItemId = lostItem.LostItemId,
+                        ActionType = "MatchConflict",
+                        ActionDetails = $"Match (ID: {match.MatchId}) for Lost Item '{lostItem.Title}' marked as Conflicted.",
+                        OldStatus = oldStatus,
+                        NewStatus = match.MatchStatus,
+                        PerformedBy = staffUserId,
+                        CampusId = lostItem.CampusId
+                    });
+                }
+            }
+        }
+
         private ClaimRequestDto MapToClaimRequestDto(ClaimRequest c)
         {
             return new ClaimRequestDto

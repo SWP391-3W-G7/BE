@@ -1,8 +1,12 @@
-﻿using BLL.DTOs.ClaimRequestDTO;
+using BLL.DTOs.ClaimRequestDTO;
 using BLL.IServices;
 using DAL.IRepositories;
 using DAL.Models;
 using BLL.DTOs; // Added to access ItemActionLogDto
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace BLL.Services
 {
@@ -227,6 +231,79 @@ namespace BLL.Services
             }
 
             return await GetByIdAsync(entity.ClaimId);
+        }
+
+        public async Task ConflictClaimAsync(int claimId, int staffUserId)
+        {
+            var entity = await _repo.GetByIdAsync(claimId);
+            if (entity == null) throw new Exception("Claim request not found.");
+
+            string oldStatus = entity.Status;
+            entity.Status = ClaimStatus.Conflicted.ToString();
+            await _repo.UpdateAsync(entity);
+
+            await _itemActionLogService.AddLogAsync(new ItemActionLogDto
+            {
+                ClaimRequestId = entity.ClaimId,
+                FoundItemId = entity.FoundItemId,
+                ActionType = "StatusUpdate",
+                ActionDetails = $"Claim request '{entity.ClaimId}' status changed from '{oldStatus}' to '{entity.Status}'.",
+                OldStatus = oldStatus,
+                NewStatus = entity.Status,
+                PerformedBy = staffUserId,
+                CampusId = entity.FoundItem.CampusId
+            });
+        }
+        
+        public async Task AddEvidenceToClaimAsync(int claimId, AddEvidenceRequest request, int userId)
+        {
+            var claim = await _repo.GetByIdAsync(claimId);
+            if (claim == null) throw new Exception("Claim request not found.");
+
+            if (claim.StudentId != userId)
+                throw new Exception("You are not authorized to add evidence to this claim.");
+
+            // Can only add evidence if claim is Pending or Conflicted
+            if (claim.Status != ClaimStatus.Pending.ToString() && claim.Status != ClaimStatus.Conflicted.ToString())
+                throw new Exception("Cannot add evidence to a claim that has been processed.");
+
+            var evidenceEntity = new Evidence
+            {
+                ClaimId = claimId,
+                Title = request.Title,
+                Description = request.Description,
+                CreatedAt = DateTime.UtcNow,
+                // CampusId can be null or derived from FoundItem.CampusId if needed
+            };
+
+            claim.Evidences.Add(evidenceEntity);
+            await _repo.UpdateAsync(claim); // Update to save the new evidence entity to the claim
+
+            if (request.Images != null)
+            {
+                foreach (var file in request.Images)
+                {
+                    var url = await _imageService.UploadAsync(file);
+
+                    await _imageRepo.AddAsync(new Image
+                    {
+                        EvidenceId = evidenceEntity.EvidenceId,
+                        ImageUrl = url,
+                        UploadedAt = DateTime.UtcNow,
+                        UploadedBy = userId
+                    });
+                }
+            }
+            
+            await _itemActionLogService.AddLogAsync(new ItemActionLogDto
+            {
+                ClaimRequestId = claim.ClaimId,
+                FoundItemId = claim.FoundItemId,
+                ActionType = "EvidenceAdded",
+                ActionDetails = $"New evidence added to claim request '{claim.ClaimId}'.",
+                PerformedBy = userId,
+                CampusId = claim.FoundItem.CampusId
+            });
         }
     }
 }

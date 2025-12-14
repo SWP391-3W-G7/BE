@@ -25,6 +25,7 @@ namespace DAL.Models
         Approved = 1,
         Rejected = 2,
         Returned = 3,
+        Conflicted = 4,
     }
 
 }
