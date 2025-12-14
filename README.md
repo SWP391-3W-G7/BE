@@ -124,7 +124,7 @@ The API uses JWT (JSON Web Tokens) for authentication. Users must obtain a token
     -   **Description:** Creates a new found item record. Initial status is "Stored".
     -   **Authorization:** `Staff`
     -   **Request Body:** `CreateFoundItemRequest` (Form data, including files for images).
--   **`POST /api/found-items/report`**
+-   **`POST /api/found-items/public`**
     -   **Description:** Allows a User (Student) or Security Officer to report a new found item. Initial status is "Open".
     -   **Authorization:** `User`, `Security Officer`
     -   **Request Body:** `CreateFoundItemRequest` (Form data, including files for images).
