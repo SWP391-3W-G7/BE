@@ -115,6 +115,63 @@ The system is designed to support multiple campuses (e.g., Nguyễn Văn Cừ / 
 ### Authentication
 The API uses JWT (JSON Web Tokens) for authentication. Users must obtain a token by logging in, and then include this token in the `Authorization` header of subsequent requests as a Bearer token. Roles are used for authorization to restrict access to certain endpoints.
 
+### AdminController (`/api/admin`)
+
+-   **`POST /api/admin/campuses`**
+    -   **Description:** Creates a new campus.
+    -   **Authorization:** `Admin`
+    -   **Request Body:** `CreateCampusRequest` (contains `CampusName`, `Address`, `StorageLocation`).
+-   **`POST /api/admin/assign-role`**
+    -   **Description:** Assigns a role and campus to a user.
+    -   **Authorization:** `Admin`
+    -   **Request Body:** `AssignRoleRequest` (contains `UserId`, `RoleId`, `CampusId`).
+
+### CampusController (`/api/Campus`)
+
+-   **`GET /api/Campus`**
+    -   **Description:** Retrieves a list of all campuses.
+    -   **Authorization:** None.
+-   **`GET /api/Campus/enum-values`**
+    -   **Description:** Retrieves a list of campus enum values, their IDs, names, and descriptions.
+    -   **Authorization:** None.
+
+### CategoriesController (`/api/categories`)
+
+-   **`GET /api/categories`**
+    -   **Description:** Retrieves a list of all item categories.
+    -   **Authorization:** None (Accessible to all authenticated users).
+
+### ClaimRequestsController (`/api/claim-requests`)
+
+-   **`POST /api/claim-requests`**
+    -   **Description:** Creates a new claim request for a found item.
+    -   **Authorization:** Authenticated users.
+    -   **Request Body:** `CreateClaimRequest` (Form data, including files for evidence images).
+-   **`GET /api/claim-requests/my-claims`**
+    -   **Description:** Retrieves all claim requests submitted by the authenticated user.
+    -   **Authorization:** Authenticated users.
+-   **`GET /api/claim-requests/{id}`**
+    -   **Description:** Retrieves details for a specific claim request.
+    -   **Authorization:** Authenticated users (Owner, Admin, Staff).
+-   **`GET /api/claim-requests`**
+    -   **Description:** Retrieves a list of all claim requests.
+    -   **Authorization:** `Staff`, `Admin`
+-   **`PUT /api/claim-requests/{id}`**
+    -   **Description:** Updates an existing claim request.
+    -   **Authorization:** Authenticated users (Owner).
+    -   **Request Body:** `UpdateClaimRequest` (Form data).
+-   **`PATCH /api/claim-requests/{id}/status`**
+    -   **Description:** Changes the status of a specific claim request (e.g., "Pending" to "Approved", "Rejected", "Returned").
+    -   **Authorization:** `Admin`, `Staff`
+    -   **Request Body:** `status` (Query parameter, `ClaimStatus` enum string).
+-   **`PUT /api/claim-requests/{claimId}/conflict`**
+    -   **Description:** Marks a specific claim request as "Conflicted".
+    -   **Authorization:** `Admin`, `Staff`
+-   **`POST /api/claim-requests/{claimId}/evidence`**
+    -   **Description:** Allows a user to add new evidence (images/description) to an existing claim request.
+    -   **Authorization:** `User`, `Security Officer` (Owner of the claim or Security Officer).
+    -   **Request Body:** `AddEvidenceRequest` (Form data, including files for images).
+
 ### FoundItemsController (`/api/found-items`)
 
 -   **`GET /api/found-items`**
@@ -130,7 +187,7 @@ The API uses JWT (JSON Web Tokens) for authentication. Users must obtain a token
     -   **Request Body:** `CreateFoundItemRequest` (Form data, including files for images).
 -   **`PUT /api/found-items/{id}/status`**
     -   **Description:** Updates the status of a specific found item (e.g., from "Open" to "Stored", or "Stored" to "Claimed", "Returned").
-    -   **Authorization:** `Staff`
+    -   **Authorization:** `Staff`, `Security Officer`
     -   **Request Body:** `UpdateFoundItemStatusRequest` (JSON, contains `Status` string).
 -   **`GET /api/found-items/campus`**
     -   **Description:** Retrieves all found items associated with the authenticated Staff user's campus.
@@ -141,6 +198,9 @@ The API uses JWT (JSON Web Tokens) for authentication. Users must obtain a token
 -   **`GET /api/found-items/{id}/details`**
     -   **Description:** Retrieves detailed information about a specific found item, including associated claim requests and matched lost items.
     -   **Authorization:** `Staff`, `Admin`
+-   **`GET /api/found-items/{id}/user-details`**
+    -   **Description:** Retrieves details for a specific found item, intended for a general user view.
+    -   **Authorization:** `User`, `Security Officer`, `Staff`, `Admin`
 
 ### LostItemsController (`/api/lost-items`)
 
@@ -174,37 +234,6 @@ The API uses JWT (JSON Web Tokens) for authentication. Users must obtain a token
     -   **Description:** Updates the status of a specific lost item.
     -   **Authorization:** `Admin`, `Staff`
     -   **Request Body:** `status` (Query parameter string, e.g., "Lost", "Returned").
-
-### ClaimRequestsController (`/api/claim-requests`)
-
--   **`POST /api/claim-requests`**
-    -   **Description:** Creates a new claim request for a found item.
-    -   **Authorization:** Authenticated users.
-    -   **Request Body:** `CreateClaimRequest` (Form data, including files for evidence images).
--   **`GET /api/claim-requests/my-claims`**
-    -   **Description:** Retrieves all claim requests submitted by the authenticated user.
-    -   **Authorization:** Authenticated users.
--   **`GET /api/claim-requests/{id}`**
-    -   **Description:** Retrieves details for a specific claim request.
-    -   **Authorization:** Authenticated users (Owner, Admin, Staff).
--   **`GET /api/claim-requests`**
-    -   **Description:** Retrieves a list of all claim requests.
-    -   **Authorization:** `Staff`, `Admin`
--   **`PUT /api/claim-requests/{id}`**
-    -   **Description:** Updates an existing claim request.
-    -   **Authorization:** Authenticated users (Owner).
-    -   **Request Body:** `UpdateClaimRequest` (Form data).
--   **`PATCH /api/claim-requests/{id}/status`**
-    -   **Description:** Changes the status of a specific claim request (e.g., "Pending" to "Approved", "Rejected", "Returned").
-    -   **Authorization:** `Admin`, `Staff`
-    -   **Request Body:** `status` (Query parameter, `ClaimStatus` enum string).
--   **`PUT /api/claim-requests/{claimId}/conflict`**
-    -   **Description:** Marks a specific claim request as "Conflicted".
-    -   **Authorization:** `Admin`, `Staff`
--   **`POST /api/claim-requests/{claimId}/evidence`**
-    -   **Description:** Allows a user to add new evidence (images/description) to an existing claim request.
-    -   **Authorization:** `User`, `Security Officer` (Owner of the claim or Security Officer).
-    -   **Request Body:** `AddEvidenceRequest` (Form data, including files for images).
 
 ### MatchingController (`/api/Matching`)
 
@@ -255,16 +284,7 @@ The API uses JWT (JSON Web Tokens) for authentication. Users must obtain a token
     -   **Description:** Retrieves a list of all item categories.
     -   **Authorization:** None (Accessible to all authenticated users).
 
-### CampusController (`/api/campus`)
-
--   **`GET /api/Campus`**
-    -   **Description:** Retrieves a list of all campuses.
-    -   **Authorization:** None (Accessible to all authenticated users).
--   **`GET /api/Campus/enum-values`**
-    -   **Description:** Retrieves a list of campus enum values, their IDs, names, and descriptions.
-    -   **Authorization:** None (Accessible to all authenticated users).
-
-### UsersController (`/api/users`)
+### UsersController (`/api/Users`)
 
 -   **`POST /api/Users/register`**
     -   **Description:** Registers a new user.
@@ -274,17 +294,6 @@ The API uses JWT (JSON Web Tokens) for authentication. Users must obtain a token
     -   **Description:** Authenticates a user and returns a JWT token.
     -   **Authorization:** None (Publicly accessible).
     -   **Request Body:** `UserLoginDto` (includes email, password).
-
-### AdminController (`/api/admin`)
-
--   **`POST /api/Admin/campuses`**
-    -   **Description:** Creates a new campus.
-    -   **Authorization:** `Admin`
-    -   **Request Body:** `CreateCampusRequest` (contains `CampusName`, `Address`, `StorageLocation`).
--   **`POST /api/Admin/assign-role`**
-    -   **Description:** Assigns a role and campus to a user.
-    -   **Authorization:** `Admin`
-    -   **Request Body:** `AssignRoleRequest` (contains `UserId`, `RoleId`, `CampusId`).
 
 ### NotificationsController (`/api/notifications`)
 
