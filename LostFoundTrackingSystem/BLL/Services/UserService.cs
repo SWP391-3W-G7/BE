@@ -1,4 +1,4 @@
-using BLL.DTOs;
+﻿using BLL.DTOs;
 using BLL.IServices;
 using DAL.IRepositories;
 using DAL.Models;
@@ -147,6 +147,74 @@ namespace BLL.Services
                 PhoneNumber = user.PhoneNumber,
                 RoleName = user.Role?.RoleName,
                 CampusName = user.Campus?.CampusName
+            };
+        }
+        public async Task<List<UserDto>> GetUsersByRoleAsync(int? roleId)
+        {
+
+            if (roleId == 4)
+            {
+                throw new Exception("Cannot view Admin list.");
+            }
+
+            var users = await _userRepository.GetUsersByRoleAsync(roleId);
+
+            return users.Select(u => new UserDto
+            {
+                UserId = u.UserId,
+                Username = u.Username,
+                Email = u.Email,
+                FullName = u.FullName,
+                RoleId = u.RoleId ?? 0,
+                Status = u.Status,
+                CampusId = u.CampusId,
+                PhoneNumber = u.PhoneNumber,
+                RoleName = u.Role?.RoleName,
+                CampusName = u.Campus?.CampusName
+            }).ToList();
+        }
+        public async Task<UserDto> CreateUserByAdminAsync(AdminCreateUserDto userDto)
+        {
+            if (userDto.RoleId == 4)
+            {
+                throw new Exception("Admin cannot create another Admin account.");
+            }
+
+            var existingUser = await _userRepository.GetUserByEmailAsync(userDto.Email);
+            if (existingUser != null)
+            {
+                throw new Exception("User with this email already exists.");
+            }
+
+            // 3. Map dữ liệu sang Entity User
+            var user = new User
+            {
+                Username = userDto.Username,
+                Email = userDto.Email,
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(userDto.Password),
+                FullName = userDto.FullName,
+                RoleId = userDto.RoleId, 
+                Status = "Active",
+                CampusId = userDto.CampusId,
+                PhoneNumber = userDto.PhoneNumber
+            };
+
+            var addedUser = await _userRepository.AddUserAsync(user);
+
+            var newUser = await _userRepository.GetUserByIdAsync(addedUser.UserId);
+
+            return new UserDto
+            {
+                UserId = newUser.UserId,
+                Username = newUser.Username,
+                Email = newUser.Email,
+                FullName = newUser.FullName,
+                RoleId = newUser.RoleId ?? 0,
+                Status = newUser.Status,
+                CampusId = newUser.CampusId,
+                PhoneNumber = newUser.PhoneNumber,
+                RoleName = newUser.Role?.RoleName,
+                CampusName = newUser.Campus?.CampusName
             };
         }
     }

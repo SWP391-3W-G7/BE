@@ -49,5 +49,19 @@ namespace DAL.Repositories
             entry.State = EntityState.Modified;
             await _context.SaveChangesAsync();
         }
+        public async Task<List<User>> GetUsersByRoleAsync(int? roleId)
+        {
+            var query = _context.Users
+                .Include(u => u.Role)
+                .Include(u => u.Campus)
+                .Where(u => u.RoleId != 4);
+
+            if (roleId.HasValue)
+            {
+                query = query.Where(u => u.RoleId == roleId);
+            }
+
+            return await query.ToListAsync();
+        }
     }
 }
