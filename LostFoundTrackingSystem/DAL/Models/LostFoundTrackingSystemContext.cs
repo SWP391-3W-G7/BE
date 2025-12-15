@@ -352,99 +352,191 @@ public partial class LostFoundTrackingSystemContext : DbContext
 
     
 
-            modelBuilder.Entity<ItemActionLog>(entity =>
-
-            {
-
-                entity.HasKey(e => e.ActionId).HasName("PK__ItemActi__FFE3F4B95A97F119");
+                                                                        modelBuilder.Entity<ItemActionLog>(entity =>
 
     
 
-                entity.ToTable("ItemActionLog");
+                                                                        {
 
     
 
-                entity.Property(e => e.ActionId).HasColumnName("ActionID");
-
-                entity.Property(e => e.ActionDate).HasColumnType("datetime");
-
-                entity.Property(e => e.ActionDetails).HasColumnType("text");
-
-                entity.Property(e => e.ActionType).HasMaxLength(255);
-
-                entity.Property(e => e.CampusId).HasColumnName("CampusID");
-
-                entity.Property(e => e.FoundItemId).HasColumnName("FoundItemID");
-
-                entity.Property(e => e.LostItemId).HasColumnName("LostItemID");
-
-                entity.Property(e => e.NewStatus).HasMaxLength(255);
-
-                entity.Property(e => e.OldStatus).HasMaxLength(255);
+                                                                            entity.HasKey(e => e.ActionId).HasName("PK__ItemActi__FFE3F4B95A97F119");
 
     
 
-                entity.HasOne(d => d.Campus).WithMany(p => p.ItemActionLogs)
-
-                    .HasForeignKey(d => d.CampusId)
-
-                    .HasConstraintName("FK__ItemActio__Campu__22751F6C");
+                                                            
 
     
 
-                entity.HasOne(d => d.FoundItem).WithMany(p => p.ItemActionLogs)
-
-                    .HasForeignKey(d => d.FoundItemId)
-
-                    .HasConstraintName("FK__ItemActio__Found__208CD6FA");
+                                                                            entity.ToTable("ItemActionLog");
 
     
 
-                                entity.HasOne(d => d.LostItem).WithMany(p => p.ItemActionLogs)
+                                                            
 
     
 
-                                    .HasForeignKey(d => d.LostItemId)
+                                                                            entity.Property(e => e.ActionId).HasColumnName("ActionID");
 
     
 
-                                    .HasConstraintName("FK__ItemActio__LostI__1F98B2C1");
+                                                                            entity.Property(e => e.ActionDate).HasColumnType("datetime");
 
     
 
-                
+                                                                            entity.Property(e => e.ActionDetails).HasColumnType("nvarchar(max)").UseCollation("Vietnamese_CI_AS");
 
     
 
-                                entity.HasOne(d => d.ClaimRequest).WithMany()
+                                                                            entity.Property(e => e.ActionType).HasMaxLength(255).UseCollation("Vietnamese_CI_AS");
 
     
 
-                                    .HasForeignKey(d => d.ClaimRequestId)
+                                                                            entity.Property(e => e.CampusId).HasColumnName("CampusID");
 
     
 
-                                    .HasConstraintName("FK_ItemActionLog_ClaimRequest");
+                                                                            entity.Property(e => e.FoundItemId).HasColumnName("FoundItemID");
 
     
 
-                
+                                                                            entity.Property(e => e.LostItemId).HasColumnName("LostItemID");
 
     
 
-                                entity.HasOne(d => d.PerformedByNavigation).WithMany(p => p.ItemActionLogs)
+                                                                            entity.Property(e => e.NewStatus).HasMaxLength(255).UseCollation("Vietnamese_CI_AS");
 
     
 
-                                    .HasForeignKey(d => d.PerformedBy)
+                                                                            entity.Property(e => e.OldStatus).HasMaxLength(255).UseCollation("Vietnamese_CI_AS");
 
     
 
-                                    .HasConstraintName("FK__ItemActio__Perfo__2180FB33");
+                                                            
 
     
 
-                            });
+                                                                            entity.HasOne(d => d.Campus).WithMany(p => p.ItemActionLogs)
+
+    
+
+                                                                                .HasForeignKey(d => d.CampusId)
+
+    
+
+                                                                                .HasConstraintName("FK__ItemActio__Campu__22751F6C");
+
+    
+
+                                                            
+
+    
+
+                                                                            entity.HasOne(d => d.FoundItem).WithMany(p => p.ItemActionLogs)
+
+    
+
+                                                                                .HasForeignKey(d => d.FoundItemId)
+
+    
+
+                                                                                .HasConstraintName("FK__ItemActio__Found__208CD6FA");
+
+    
+
+                                                            
+
+    
+
+                                                                                            entity.HasOne(d => d.LostItem).WithMany(p => p.ItemActionLogs)
+
+    
+
+                                                            
+
+    
+
+                                                                                                .HasForeignKey(d => d.LostItemId)
+
+    
+
+                                                            
+
+    
+
+                                                                                                .HasConstraintName("FK__ItemActio__LostI__1F98B2C1");
+
+    
+
+                                                            
+
+    
+
+                                                                            
+
+    
+
+                                                            
+
+    
+
+                                                                                            entity.HasOne(d => d.ClaimRequest).WithMany()
+
+    
+
+                                                            
+
+    
+
+                                                                                                .HasForeignKey(d => d.ClaimRequestId)
+
+    
+
+                                                            
+
+    
+
+                                                                                                .HasConstraintName("FK_ItemActionLog_ClaimRequest");
+
+    
+
+                                                            
+
+    
+
+                                                                            
+
+    
+
+                                                            
+
+    
+
+                                                                                            entity.HasOne(d => d.PerformedByNavigation).WithMany(p => p.ItemActionLogs)
+
+    
+
+                                                            
+
+    
+
+                                                                                                .HasForeignKey(d => d.PerformedBy)
+
+    
+
+                                                            
+
+    
+
+                                                                                                .HasConstraintName("FK__ItemActio__Perfo__2180FB33");
+
+    
+
+                                                            
+
+    
+
+                                                                                        });
 
     
 
