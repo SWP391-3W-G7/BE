@@ -412,7 +412,7 @@ namespace BLL.Services
                 FoundItemId = f.FoundItemId,
                 Title = f.Title,
                 Description = f.Description,
-                FoundDate = f.FoundDate,
+                FoundDate = (DateTime)f.FoundDate,
                 FoundLocation = f.FoundLocation,
                 Status = f.Status,
                 CategoryId = f.CategoryId,
