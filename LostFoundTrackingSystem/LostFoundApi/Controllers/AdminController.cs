@@ -1,4 +1,5 @@
-﻿using BLL.DTOs.AdminDTO;
+﻿using BLL.DTOs;
+using BLL.DTOs.AdminDTO;
 using BLL.IServices;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -12,10 +13,12 @@ namespace LostFoundApi.Controllers
     public class AdminController : ControllerBase
     {
         private readonly IAdminService _service;
+        private readonly IUserService _userService;
 
-        public AdminController(IAdminService service)
+        public AdminController(IAdminService service, IUserService userService)
         {
             _service = service;
+            _userService = userService;
         }
 
         private bool IsAdmin()
@@ -42,6 +45,45 @@ namespace LostFoundApi.Controllers
             {
                 await _service.AssignRoleAndCampusAsync(request);
                 return Ok(new { message = "User role and campus updated successfully." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+        [HttpGet("get-users-by-role")]
+        public async Task<IActionResult> GetUsersByRole([FromQuery] int? roleId)
+        {
+            if(!IsAdmin()) return Forbid();
+            try
+            {
+                var result = await _userService.GetUsersByRoleAsync(roleId);
+
+                if (result == null || result.Count == 0)
+                {
+                    return NotFound("No users found with the specified role.");
+                }
+
+                return Ok(result);
+            }
+            catch (System.Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+        [HttpPost("create-user")]
+        public async Task<IActionResult> CreateUser([FromBody] AdminCreateUserDto request)
+        {
+            if (!IsAdmin()) return Forbid();
+
+            try
+            {
+                var result = await _userService.CreateUserByAdminAsync(request);
+                return Ok(new
+                {
+                    message = "User created successfully.",
+                    data = result
+                });
             }
             catch (Exception ex)
             {
