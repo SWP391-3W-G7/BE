@@ -109,7 +109,7 @@ builder.Services.AddCors(options =>
         policy.WithOrigins("http://localhost:8000", "https://be-xtt0.onrender.com")
               .AllowAnyMethod()
               .AllowAnyHeader()
-              .AllowCredentials(); // SignalR
+              //.AllowCredentials(); // SignalR
     });
 });
 

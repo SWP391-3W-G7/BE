@@ -227,6 +227,16 @@ The API uses JWT (JSON Web Tokens) for authentication. Users must obtain a token
     -   **Description:** Marks a specific `ItemMatch` as "Conflicted".
     -   **Authorization:** `Staff`, `Admin`
 
+### SecurityController (`/api/security`)
+
+-   **`GET /api/security/my-open-found-items`**
+    -   **Description:** Retrieves a list of all found items with an "Open" status for the authenticated Security Officer's assigned campus.
+    -   **Authorization:** `Security Officer`
+-   **`PUT /api/security/found-items/{id}/return`**
+    -   **Description:** Updates the status of a specific found item to "Returned".
+    -   **Authorization:** `Security Officer`
+    -   **Request Body:** None (status is implicitly "Returned" in the endpoint logic).
+
 ### ItemActionLogsController (`/api/item-action-logs`)
 
 -   **`GET /api/item-action-logs/found-item/{foundItemId}`**
