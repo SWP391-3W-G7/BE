@@ -106,10 +106,10 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
     {
-        policy.WithOrigins("http://localhost:8000", "https://be-xtt0.onrender.com")
+        policy.AllowAnyOrigin()
               .AllowAnyMethod()
               .AllowAnyHeader();
-              //.AllowCredentials(); // SignalR
+
     });
 });
 
