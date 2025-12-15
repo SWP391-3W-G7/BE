@@ -106,7 +106,8 @@ namespace BLL.Services
                     new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
                     new Claim(ClaimTypes.Email, user.Email),
                     new Claim(ClaimTypes.Role, user.Role.RoleName),
-                    new Claim("CampusName", user.Campus.CampusName)
+                    new Claim("CampusName", user.Campus.CampusName),
+                    new Claim("CampusId", user.CampusId.ToString())
                 }),
                 Expires = DateTime.UtcNow.AddDays(7),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
@@ -122,7 +123,8 @@ namespace BLL.Services
                 Email = user.Email,
                 FullName = user.FullName,
                 RoleName = user.Role?.RoleName,
-                CampusName = user.Campus?.CampusName
+                CampusName = user.Campus?.CampusName,
+                CampusId = user.CampusId
             };
         }
 
