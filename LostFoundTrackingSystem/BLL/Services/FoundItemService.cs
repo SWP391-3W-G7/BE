@@ -1,6 +1,7 @@
 using BLL.DTOs.ClaimRequestDTO;
 using BLL.DTOs.FoundItemDTO;
 using BLL.DTOs.LostItemDTO;
+using BLL.DTOs.Security;
 using BLL.IServices;
 using DAL.IRepositories;
 using DAL.Models;
@@ -402,6 +403,21 @@ namespace BLL.Services
             }
 
             return await GetByIdAsync(entity.FoundItemId);
+        }
+        public async Task<List<SecurityFoundItemDto>> GetOpenFoundItemsForSecurityOfficerAsync(int campusId)
+        {
+            var items = await _repo.GetByCampusAsync(campusId, "Open");
+            return items.Select(f => new SecurityFoundItemDto
+            {
+                FoundItemId = f.FoundItemId,
+                Title = f.Title,
+                Description = f.Description,
+                FoundDate = f.FoundDate,
+                FoundLocation = f.FoundLocation,
+                Status = f.Status,
+                CategoryId = f.CategoryId,
+                CategoryName = f.Category?.CategoryName
+            }).ToList();
         }
     }
 }

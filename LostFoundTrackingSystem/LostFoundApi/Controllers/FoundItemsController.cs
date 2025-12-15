@@ -66,7 +66,7 @@ namespace LostFoundApi.Controllers
         }
 
         [HttpPut("{id}/status")]
-        [Authorize(Roles = "Staff")]
+        [Authorize(Roles = "Staff,Security Officer")]
         public async Task<IActionResult> UpdateFoundItemStatus(int id, [FromBody] UpdateFoundItemStatusRequest request)
         {
             try
