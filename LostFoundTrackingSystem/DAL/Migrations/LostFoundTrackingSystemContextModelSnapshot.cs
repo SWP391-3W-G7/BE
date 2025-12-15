@@ -493,7 +493,7 @@ namespace DAL.Migrations
                     b.HasIndex("UserId")
                         .HasDatabaseName("IX_Notification_UserID");
 
-                    b.ToTable("Notifications");
+                    b.ToTable("Notifications", (string)null);
                 });
 
             modelBuilder.Entity("DAL.Models.ReturnRecord", b =>

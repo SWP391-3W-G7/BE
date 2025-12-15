@@ -82,273 +82,503 @@ public partial class LostFoundTrackingSystemContext : DbContext
 
         {
 
-            modelBuilder.Entity<Campus>(entity =>
+                        modelBuilder.Entity<Campus>(entity =>
 
-            {
+                        {
 
-                entity.HasKey(e => e.CampusId).HasName("PK__Campus__FD598D36CC85AA0D");
+                            entity.HasKey(e => e.CampusId).HasName("PK__Campus__FD598D36CC85AA0D");
 
-    
+            
 
-                entity.ToTable("Campus");
+                            entity.ToTable("Campus");
 
-    
+            
 
-                entity.Property(e => e.CampusId).HasColumnName("CampusID");
+                            entity.Property(e => e.CampusId).HasColumnName("CampusID");
 
-                entity.Property(e => e.Address).HasMaxLength(255);
+                            entity.Property(e => e.Address).HasMaxLength(255).UseCollation("Vietnamese_CI_AS");
 
-                entity.Property(e => e.CampusName).HasMaxLength(255);
+                            entity.Property(e => e.CampusName).HasMaxLength(255).UseCollation("Vietnamese_CI_AS");
 
-                entity.Property(e => e.StorageLocation).HasMaxLength(255);
+                            entity.Property(e => e.StorageLocation).HasMaxLength(255).UseCollation("Vietnamese_CI_AS");
 
-            });
-
-    
-
-            modelBuilder.Entity<Category>(entity =>
-
-            {
-
-                entity.HasKey(e => e.CategoryId).HasName("PK__Category__19093A2BEE731716");
+                        });
 
     
 
-                entity.ToTable("Category");
+                        modelBuilder.Entity<Category>(entity =>
 
     
 
-                entity.Property(e => e.CategoryId).HasColumnName("CategoryID");
-
-                entity.Property(e => e.CategoryName).HasMaxLength(255);
-
-            });
+                        {
 
     
 
-            modelBuilder.Entity<ClaimRequest>(entity =>
-
-            {
-
-                entity.HasKey(e => e.ClaimId).HasName("PK__ClaimReq__EF2E13BBBCB583AD");
+                            entity.HasKey(e => e.CategoryId).HasName("PK__Category__19093A2BEE731716");
 
     
 
-                entity.ToTable("ClaimRequest");
+            
 
     
 
-                entity.Property(e => e.ClaimId).HasColumnName("ClaimID");
-
-                entity.Property(e => e.ClaimDate).HasColumnType("datetime");
-
-                entity.Property(e => e.FoundItemId).HasColumnName("FoundItemID");
-
-                entity.Property(e => e.Status).HasMaxLength(255);
-
-                entity.Property(e => e.StudentId).HasColumnName("StudentID");
+                            entity.ToTable("Category");
 
     
 
-                entity.HasOne(d => d.FoundItem).WithMany(p => p.ClaimRequests)
-
-                    .HasForeignKey(d => d.FoundItemId)
-
-                    .HasConstraintName("FK__ClaimRequ__Found__1332DBDC");
+            
 
     
 
-                entity.HasOne(d => d.Student).WithMany(p => p.ClaimRequests)
-
-                    .HasForeignKey(d => d.StudentId)
-
-                    .HasConstraintName("FK__ClaimRequ__Stude__14270015");
-
-            });
+                            entity.Property(e => e.CategoryId).HasColumnName("CategoryID");
 
     
 
-            modelBuilder.Entity<Evidence>(entity =>
-
-            {
-
-                entity.HasKey(e => e.EvidenceId).HasName("PK__Evidence__FA39D78D0464995F");
+                            entity.Property(e => e.CategoryName).HasMaxLength(255).UseCollation("Vietnamese_CI_AS");
 
     
 
-                entity.ToTable("Evidence");
+                        });
 
     
 
-                entity.Property(e => e.EvidenceId).HasColumnName("EvidenceID");
-
-                entity.Property(e => e.CampusId).HasColumnName("CampusID");
-
-                entity.Property(e => e.ClaimId).HasColumnName("ClaimID");
-
-                entity.Property(e => e.CreatedAt).HasColumnType("datetime");
-
-                entity.Property(e => e.Description).HasMaxLength(255);
-
-                entity.Property(e => e.LostItemId).HasColumnName("LostItemID");
-
-                entity.Property(e => e.Title).HasMaxLength(255);
+                        modelBuilder.Entity<ClaimRequest>(entity =>
 
     
 
-                entity.HasOne(d => d.Campus).WithMany(p => p.Evidences)
-
-                    .HasForeignKey(d => d.CampusId)
-
-                    .HasConstraintName("FK__Evidence__Campus__17036CC0");
+                        {
 
     
 
-                entity.HasOne(d => d.Claim).WithMany(p => p.Evidences)
-
-                    .HasForeignKey(d => d.ClaimId)
-
-                    .HasConstraintName("FK__Evidence__ClaimI__151B244E");
+                            entity.HasKey(e => e.ClaimId).HasName("PK__ClaimReq__EF2E13BBBCB583AD");
 
     
 
-                entity.HasOne(d => d.LostItem).WithMany(p => p.Evidences)
-
-                    .HasForeignKey(d => d.LostItemId)
-
-                    .HasConstraintName("FK__Evidence__LostIt__160F4887");
-
-            });
+            
 
     
 
-            modelBuilder.Entity<FoundItem>(entity =>
-
-            {
-
-                entity.HasKey(e => e.FoundItemId).HasName("PK__FoundIte__DFA62C37CBB854E9");
+                            entity.ToTable("ClaimRequest");
 
     
 
-                entity.ToTable("FoundItem");
+            
 
     
 
-                entity.Property(e => e.FoundItemId).HasColumnName("FoundItemID");
-
-                entity.Property(e => e.CampusId).HasColumnName("CampusID");
-
-                entity.Property(e => e.CategoryId).HasColumnName("CategoryID");
-
-                entity.Property(e => e.Description).HasMaxLength(255);
-
-                entity.Property(e => e.FoundDate).HasColumnType("datetime");
-
-                entity.Property(e => e.FoundLocation).HasMaxLength(255);
-
-                entity.Property(e => e.Status).HasMaxLength(255);
-
-                entity.Property(e => e.Title).HasMaxLength(255);
+                            entity.Property(e => e.ClaimId).HasColumnName("ClaimID");
 
     
 
-                entity.HasOne(d => d.Campus).WithMany(p => p.FoundItems)
-
-                    .HasForeignKey(d => d.CampusId)
-
-                    .HasConstraintName("FK__FoundItem__Campu__114A936A");
+                            entity.Property(e => e.ClaimDate).HasColumnType("datetime");
 
     
 
-                entity.HasOne(d => d.Category).WithMany(p => p.FoundItems)
-
-                    .HasForeignKey(d => d.CategoryId)
-
-                    .HasConstraintName("FK__FoundItem__Categ__123EB7A3");
+                            entity.Property(e => e.FoundItemId).HasColumnName("FoundItemID");
 
     
 
-                entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.FoundItemCreatedByNavigations)
-
-                    .HasForeignKey(d => d.CreatedBy)
-
-                    .HasConstraintName("FK__FoundItem__Creat__0F624AF8");
+                            entity.Property(e => e.Status).HasMaxLength(255).UseCollation("Vietnamese_CI_AS");
 
     
 
-                entity.HasOne(d => d.StoredByNavigation).WithMany(p => p.FoundItemStoredByNavigations)
-
-                    .HasForeignKey(d => d.StoredBy)
-
-                    .HasConstraintName("FK__FoundItem__Store__10566F31");
-
-            });
+                            entity.Property(e => e.StudentId).HasColumnName("StudentID");
 
     
 
-            modelBuilder.Entity<Image>(entity =>
-
-            {
-
-                entity.HasKey(e => e.ImageId).HasName("PK__Image__7516F4ECFA38BA08");
+            
 
     
 
-                entity.ToTable("Image");
+                            entity.HasOne(d => d.FoundItem).WithMany(p => p.ClaimRequests)
 
     
 
-                entity.Property(e => e.ImageId).HasColumnName("ImageID");
-
-                entity.Property(e => e.EvidenceId).HasColumnName("EvidenceID");
-
-                entity.Property(e => e.FoundItemId).HasColumnName("FoundItemID");
-
-                entity.Property(e => e.LostItemId).HasColumnName("LostItemID");
-
-                entity.Property(e => e.ImageUrl)
-
-                    .HasMaxLength(255)
-
-                    .HasColumnName("ImageURL");
-
-                entity.Property(e => e.UploadedAt).HasColumnType("datetime");
+                                .HasForeignKey(d => d.FoundItemId)
 
     
 
-                entity.HasOne(d => d.Evidence).WithMany(p => p.Images)
-
-                    .HasForeignKey(d => d.EvidenceId)
-
-                    .HasConstraintName("FK__Image__EvidenceI__25518C17");
+                                .HasConstraintName("FK__ClaimRequ__Found__1332DBDC");
 
     
 
-                entity.HasOne(d => d.FoundItem).WithMany(p => p.Images)
-
-                    .HasForeignKey(d => d.FoundItemId)
-
-                    .HasConstraintName("FK__Image__FoundItem__245D67DE");
+            
 
     
 
-                entity.HasOne(d => d.UploadedByNavigation).WithMany(p => p.Images)
-
-                    .HasForeignKey(d => d.UploadedBy)
-
-                    .HasConstraintName("FK__Image__UploadedB__236943A5");
+                            entity.HasOne(d => d.Student).WithMany(p => p.ClaimRequests)
 
     
 
-                entity.HasOne(d => d.LostItem)
+                                .HasForeignKey(d => d.StudentId)
 
-                    .WithMany(p => p.Images)
+    
 
-                    .HasForeignKey("LostItemId")
+                                .HasConstraintName("FK__ClaimRequ__Stude__14270015");
 
-                    .HasConstraintName("FK_Image_LostItem");
+    
 
-            });
+                        });
+
+    
+
+                        modelBuilder.Entity<Evidence>(entity =>
+
+    
+
+                        {
+
+    
+
+                            entity.HasKey(e => e.EvidenceId).HasName("PK__Evidence__FA39D78D0464995F");
+
+    
+
+            
+
+    
+
+                            entity.ToTable("Evidence");
+
+    
+
+            
+
+    
+
+                            entity.Property(e => e.EvidenceId).HasColumnName("EvidenceID");
+
+    
+
+                            entity.Property(e => e.CampusId).HasColumnName("CampusID");
+
+    
+
+                            entity.Property(e => e.ClaimId).HasColumnName("ClaimID");
+
+    
+
+                            entity.Property(e => e.CreatedAt).HasColumnType("datetime");
+
+    
+
+                            entity.Property(e => e.Description).HasMaxLength(255).UseCollation("Vietnamese_CI_AS");
+
+    
+
+                            entity.Property(e => e.LostItemId).HasColumnName("LostItemID");
+
+    
+
+                            entity.Property(e => e.Title).HasMaxLength(255).UseCollation("Vietnamese_CI_AS");
+
+    
+
+            
+
+    
+
+                            entity.HasOne(d => d.Campus).WithMany(p => p.Evidences)
+
+    
+
+                                .HasForeignKey(d => d.CampusId)
+
+    
+
+                                .HasConstraintName("FK__Evidence__Campus__17036CC0");
+
+    
+
+            
+
+    
+
+                            entity.HasOne(d => d.Claim).WithMany(p => p.Evidences)
+
+    
+
+                                .HasForeignKey(d => d.ClaimId)
+
+    
+
+                                .HasConstraintName("FK__Evidence__ClaimI__151B244E");
+
+    
+
+            
+
+    
+
+                            entity.HasOne(d => d.LostItem).WithMany(p => p.Evidences)
+
+    
+
+                                .HasForeignKey(d => d.LostItemId)
+
+    
+
+                                .HasConstraintName("FK__Evidence__LostIt__160F4887");
+
+    
+
+                        });
+
+    
+
+                        modelBuilder.Entity<FoundItem>(entity =>
+
+    
+
+                        {
+
+    
+
+                            entity.HasKey(e => e.FoundItemId).HasName("PK__FoundIte__DFA62C37CBB854E9");
+
+    
+
+            
+
+    
+
+                            entity.ToTable("FoundItem");
+
+    
+
+            
+
+    
+
+                            entity.Property(e => e.FoundItemId).HasColumnName("FoundItemID");
+
+    
+
+                            entity.Property(e => e.CampusId).HasColumnName("CampusID");
+
+    
+
+                            entity.Property(e => e.CategoryId).HasColumnName("CategoryID");
+
+    
+
+                            entity.Property(e => e.Description).HasMaxLength(255).UseCollation("Vietnamese_CI_AS");
+
+    
+
+                            entity.Property(e => e.FoundDate).HasColumnType("datetime");
+
+    
+
+                            entity.Property(e => e.FoundLocation).HasMaxLength(255).UseCollation("Vietnamese_CI_AS");
+
+    
+
+                            entity.Property(e => e.Status).HasMaxLength(255).UseCollation("Vietnamese_CI_AS");
+
+    
+
+                            entity.Property(e => e.Title).HasMaxLength(255).UseCollation("Vietnamese_CI_AS");
+
+    
+
+            
+
+    
+
+                            entity.HasOne(d => d.Campus).WithMany(p => p.FoundItems)
+
+    
+
+                                .HasForeignKey(d => d.CampusId)
+
+    
+
+                                .HasConstraintName("FK__FoundItem__Campu__114A936A");
+
+    
+
+            
+
+    
+
+                            entity.HasOne(d => d.Category).WithMany(p => p.FoundItems)
+
+    
+
+                                .HasForeignKey(d => d.CategoryId)
+
+    
+
+                                .HasConstraintName("FK__FoundItem__Categ__123EB7A3");
+
+    
+
+            
+
+    
+
+                            entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.FoundItemCreatedByNavigations)
+
+    
+
+                                .HasForeignKey(d => d.CreatedBy)
+
+    
+
+                                .HasConstraintName("FK__FoundItem__Creat__0F624AF8");
+
+    
+
+            
+
+    
+
+                            entity.HasOne(d => d.StoredByNavigation).WithMany(p => p.FoundItemStoredByNavigations)
+
+    
+
+                                .HasForeignKey(d => d.StoredBy)
+
+    
+
+                                .HasConstraintName("FK__FoundItem__Store__10566F31");
+
+    
+
+                        });
+
+    
+
+                        modelBuilder.Entity<Image>(entity =>
+
+    
+
+                        {
+
+    
+
+                            entity.HasKey(e => e.ImageId).HasName("PK__Image__7516F4ECFA38BA08");
+
+    
+
+            
+
+    
+
+                            entity.ToTable("Image");
+
+    
+
+            
+
+    
+
+                            entity.Property(e => e.ImageId).HasColumnName("ImageID");
+
+    
+
+                            entity.Property(e => e.EvidenceId).HasColumnName("EvidenceID");
+
+    
+
+                            entity.Property(e => e.FoundItemId).HasColumnName("FoundItemID");
+
+    
+
+                            entity.Property(e => e.LostItemId).HasColumnName("LostItemID");
+
+    
+
+                            entity.Property(e => e.ImageUrl)
+
+    
+
+                                .HasMaxLength(255)
+
+    
+
+                                .UseCollation("Vietnamese_CI_AS")
+
+    
+
+                                .HasColumnName("ImageURL");
+
+    
+
+                            entity.Property(e => e.UploadedAt).HasColumnType("datetime");
+
+    
+
+            
+
+    
+
+                            entity.HasOne(d => d.Evidence).WithMany(p => p.Images)
+
+    
+
+                                .HasForeignKey(d => d.EvidenceId)
+
+    
+
+                                .HasConstraintName("FK__Image__EvidenceI__25518C17");
+
+    
+
+            
+
+    
+
+                            entity.HasOne(d => d.FoundItem).WithMany(p => p.Images)
+
+    
+
+                                .HasForeignKey(d => d.FoundItemId)
+
+    
+
+                                .HasConstraintName("FK__Image__FoundItem__245D67DE");
+
+    
+
+            
+
+    
+
+                            entity.HasOne(d => d.UploadedByNavigation).WithMany(p => p.Images)
+
+    
+
+                                .HasForeignKey(d => d.UploadedBy)
+
+    
+
+                                .HasConstraintName("FK__Image__UploadedB__236943A5");
+
+    
+
+            
+
+    
+
+                            entity.HasOne(d => d.LostItem)
+
+    
+
+                                .WithMany(p => p.Images)
+
+    
+
+                                .HasForeignKey("LostItemId")
+
+    
+
+                                .HasConstraintName("FK_Image_LostItem");
+
+    
+
+                        });
 
     
 
@@ -540,351 +770,625 @@ public partial class LostFoundTrackingSystemContext : DbContext
 
     
 
-            modelBuilder.Entity<ItemMatch>(entity =>
-
-            {
-
-                entity.HasKey(e => e.MatchId).HasName("PK__ItemMatc__4218C83709C4822E");
+                        modelBuilder.Entity<ItemMatch>(entity =>
 
     
 
-                entity.ToTable("ItemMatch");
+                        {
 
     
 
-                entity.Property(e => e.MatchId).HasColumnName("MatchID");
-
-                entity.Property(e => e.CreatedAt).HasColumnType("datetime");
-
-                entity.Property(e => e.FoundItemId).HasColumnName("FoundItemID");
-
-                entity.Property(e => e.LostItemId).HasColumnName("LostItemID");
-
-                entity.Property(e => e.MatchStatus).HasMaxLength(255);
-
-                entity.Property(e => e.Status).HasMaxLength(255);
+                            entity.HasKey(e => e.MatchId).HasName("PK__ItemMatc__4218C83709C4822E");
 
     
 
-                entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.ItemMatches)
-
-                    .HasForeignKey(d => d.CreatedBy)
-
-                    .HasConstraintName("FK__ItemMatch__Creat__19DFD96B");
+            
 
     
 
-                entity.HasOne(d => d.FoundItem).WithMany(p => p.ItemMatches)
-
-                    .HasForeignKey(d => d.FoundItemId)
-
-                    .HasConstraintName("FK__ItemMatch__Found__17F790F9");
+                            entity.ToTable("ItemMatch");
 
     
 
-                entity.HasOne(d => d.LostItem).WithMany(p => p.ItemMatches)
-
-                    .HasForeignKey(d => d.LostItemId)
-
-                    .HasConstraintName("FK__ItemMatch__LostI__18EBB532");
-
-            });
+            
 
     
 
-            modelBuilder.Entity<LostItem>(entity =>
-
-            {
-
-                entity.HasKey(e => e.LostItemId).HasName("PK__LostItem__3B3BF43289AA9C74");
+                            entity.Property(e => e.MatchId).HasColumnName("MatchID");
 
     
 
-                entity.ToTable("LostItem");
+                            entity.Property(e => e.CreatedAt).HasColumnType("datetime");
 
     
 
-                entity.Property(e => e.LostItemId).HasColumnName("LostItemID");
-
-                entity.Property(e => e.Title).HasMaxLength(255);
-
-                entity.Property(e => e.Description).HasMaxLength(255);
-
-                entity.Property(e => e.LostDate).HasColumnType("datetime");
-
-                entity.Property(e => e.LostLocation).HasMaxLength(255);
-
-                entity.Property(e => e.Status).HasMaxLength(255);
-
-                entity.Property(e => e.CreatedBy).HasColumnName("CreatedBy");
-
-                entity.Property(e => e.CampusId).HasColumnName("CampusID");
-
-                entity.Property(e => e.CategoryId).HasColumnName("CategoryID");
+                            entity.Property(e => e.FoundItemId).HasColumnName("FoundItemID");
 
     
 
-                entity.HasOne(d => d.Category)
-
-                    .WithMany(p => p.LostItems)
-
-                    .HasForeignKey(d => d.CategoryId)
-
-                    .HasConstraintName("FK__LostItem__Catego__0E6E26BF");
+                            entity.Property(e => e.LostItemId).HasColumnName("LostItemID");
 
     
 
-                entity.HasOne(d => d.CreatedByNavigation)
-
-                    .WithMany(p => p.LostItems)
-
-                    .HasForeignKey(d => d.CreatedBy)
-
-                    .HasConstraintName("FK__LostItem__Create__0D7A0286");
+                            entity.Property(e => e.MatchStatus).HasMaxLength(255).UseCollation("Vietnamese_CI_AS");
 
     
 
-                entity.HasOne(d => d.Campus)
-
-                    .WithMany(p => p.LostItems)
-
-                    .HasForeignKey(d => d.CampusId)
-
-                    .HasConstraintName("FK_LostItem_Campus");
-
-            });
+                            entity.Property(e => e.Status).HasMaxLength(255).UseCollation("Vietnamese_CI_AS");
 
     
 
-            modelBuilder.Entity<MatchHistory>(entity =>
-
-            {
-
-                entity.HasKey(e => e.HistoryId).HasName("PK__MatchHis__4D7B4ADDC3B60DB0");
+            
 
     
 
-                entity.ToTable("MatchHistory");
+                            entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.ItemMatches)
 
     
 
-                entity.Property(e => e.HistoryId).HasColumnName("HistoryID");
-
-                entity.Property(e => e.Action).HasMaxLength(255);
-
-                entity.Property(e => e.ActionDate).HasColumnType("datetime");
-
-                entity.Property(e => e.MatchId).HasColumnName("MatchID");
+                                .HasForeignKey(d => d.CreatedBy)
 
     
 
-                entity.HasOne(d => d.ActionByNavigation).WithMany(p => p.MatchHistories)
-
-                    .HasForeignKey(d => d.ActionBy)
-
-                    .HasConstraintName("FK__MatchHist__Actio__1BC821DD");
+                                .HasConstraintName("FK__ItemMatch__Creat__19DFD96B");
 
     
 
-                entity.HasOne(d => d.Match).WithMany(p => p.MatchHistories)
-
-                    .HasForeignKey(d => d.MatchId)
-
-                    .HasConstraintName("FK__MatchHist__Match__1AD3FDA4");
-
-            });
+            
 
     
 
-            modelBuilder.Entity<ReturnRecord>(entity =>
-
-            {
-
-                entity.HasKey(e => e.ReturnId).HasName("PK__ReturnRe__F445E9884665C768");
+                            entity.HasOne(d => d.FoundItem).WithMany(p => p.ItemMatches)
 
     
 
-                entity.ToTable("ReturnRecord");
+                                .HasForeignKey(d => d.FoundItemId)
 
     
 
-                entity.HasIndex(e => e.FoundItemId, "UQ__ReturnRe__DFA62C36D4297726").IsUnique();
-
-                entity.HasIndex(e => e.LostItemId, "UQ_ReturnRecord_LostItemId").IsUnique();
+                                .HasConstraintName("FK__ItemMatch__Found__17F790F9");
 
     
 
-                entity.Property(e => e.ReturnId).HasColumnName("ReturnID");
-
-                entity.Property(e => e.FoundItemId).HasColumnName("FoundItemID");
-
-                entity.Property(e => e.LostItemId).HasColumnName("LostItemID");
-
-                entity.Property(e => e.Note).HasMaxLength(255);
-
-                entity.Property(e => e.ReceiverId).HasColumnName("ReceiverID");
-
-                entity.Property(e => e.ReturnDate).HasColumnType("datetime");
-
-                entity.Property(e => e.StaffUserId).HasColumnName("StaffUserID");
+            
 
     
 
-                entity.HasOne(d => d.FoundItem).WithOne(p => p.ReturnRecord)
-
-                    .HasForeignKey<ReturnRecord>(d => d.FoundItemId)
-
-                    .HasConstraintName("FK__ReturnRec__Found__1EA48E88");
+                            entity.HasOne(d => d.LostItem).WithMany(p => p.ItemMatches)
 
     
 
-                entity.HasOne(d => d.LostItem)
-
-                    .WithOne(p => p.ReturnRecord)
-
-                    .HasForeignKey<ReturnRecord>(d => d.LostItemId)
-
-                    .HasConstraintName("FK_ReturnRecord_LostItem");
+                                .HasForeignKey(d => d.LostItemId)
 
     
 
-                entity.HasOne(d => d.Receiver).WithMany(p => p.ReturnRecords)
-
-                    .HasForeignKey(d => d.ReceiverId)
-
-                    .HasConstraintName("FK__ReturnRec__Recei__1CBC4616");
+                                .HasConstraintName("FK__ItemMatch__LostI__18EBB532");
 
     
 
-                entity.HasOne(d => d.StaffUser).WithMany(p => p.HandledReturnRecords)
-
-                    .HasForeignKey(d => d.StaffUserId)
-
-                    .HasConstraintName("FK_ReturnRecord_User_Staff");
-
-            });
+                        });
 
     
 
-            modelBuilder.Entity<Role>(entity =>
-
-            {
-
-                entity.HasKey(e => e.RoleId).HasName("PK__Role__8AFACE3A4E892C72");
+                        modelBuilder.Entity<LostItem>(entity =>
 
     
 
-                entity.ToTable("Role");
+                        {
 
     
 
-                entity.Property(e => e.RoleId).HasColumnName("RoleID");
-
-                entity.Property(e => e.RoleName).HasMaxLength(255);
-
-            });
+                            entity.HasKey(e => e.LostItemId).HasName("PK__LostItem__3B3BF43289AA9C74");
 
     
 
-            modelBuilder.Entity<User>(entity =>
-
-            {
-
-                entity.HasKey(e => e.UserId).HasName("PK__User__1788CCACBDF5688F");
+            
 
     
 
-                entity.ToTable("User");
+                            entity.ToTable("LostItem");
 
     
 
-                entity.Property(e => e.UserId).HasColumnName("UserID");
-
-                entity.Property(e => e.Email).HasMaxLength(255);
-
-                entity.Property(e => e.FullName).HasMaxLength(255);
-
-                entity.Property(e => e.PasswordHash).HasMaxLength(255);
-
-                entity.Property(e => e.RoleId).HasColumnName("RoleID");
-
-                entity.Property(e => e.Status).HasMaxLength(255);
-
-                entity.Property(e => e.Username).HasMaxLength(255);
-
-                entity.Property(e => e.PhoneNumber).HasMaxLength(20);
+            
 
     
 
-                entity.HasOne(d => d.Campus).WithMany(p => p.Users)
-
-                    .HasForeignKey(d => d.CampusId)
-
-                    .HasConstraintName("FK_User_Campus");
+                            entity.Property(e => e.LostItemId).HasColumnName("LostItemID");
 
     
 
-                entity.HasOne(d => d.Role).WithMany(p => p.Users)
-
-                    .HasForeignKey(d => d.RoleId)
-
-                    .HasConstraintName("FK__User__RoleID__0A9D95DB");
-
-            });
-
-            modelBuilder.Entity<Notification>(entity =>
-
-            {
-
-                entity.HasKey(e => e.NotificationId).HasName("PK__Notifica__20CF2E32XXXXXXXX");
+                            entity.Property(e => e.Title).HasMaxLength(255).UseCollation("Vietnamese_CI_AS");
 
     
 
-    
-
-                entity.Property(e => e.NotificationId).HasColumnName("NotificationID");
-
-                entity.Property(e => e.UserId).HasColumnName("UserID");
-
-                entity.Property(e => e.Type).HasMaxLength(50);
-
-                entity.Property(e => e.ReferenceId).HasColumnName("ReferenceID");
-
-                entity.Property(e => e.Message).IsRequired();
-
-                entity.Property(e => e.IsRead).HasDefaultValue(false);
-
-                entity.Property(e => e.IsSent).HasDefaultValue(false);
-
-                entity.Property(e => e.CreatedAt)
-
-                    .HasColumnType("datetime")
-
-                    .HasDefaultValueSql("(getdate())");
-
-                entity.Property(e => e.ReadAt).HasColumnType("datetime");
+                            entity.Property(e => e.Description).HasMaxLength(255).UseCollation("Vietnamese_CI_AS");
 
     
 
-                entity.HasOne(d => d.User)
-
-                    .WithMany(p => p.Notifications)
-
-                    .HasForeignKey(d => d.UserId)
-
-                    .OnDelete(DeleteBehavior.Cascade)
-
-                    .HasConstraintName("FK__Notification__UserID");
+                            entity.Property(e => e.LostDate).HasColumnType("datetime");
 
     
 
-                // Indexes
+                            entity.Property(e => e.LostLocation).HasMaxLength(255).UseCollation("Vietnamese_CI_AS");
 
-                entity.HasIndex(e => e.UserId).HasDatabaseName("IX_Notification_UserID");
+    
 
-                entity.HasIndex(e => e.IsRead).HasDatabaseName("IX_Notification_IsRead");
+                            entity.Property(e => e.Status).HasMaxLength(255).UseCollation("Vietnamese_CI_AS");
 
-            });
+    
+
+                            entity.Property(e => e.CreatedBy).HasColumnName("CreatedBy");
+
+    
+
+                            entity.Property(e => e.CampusId).HasColumnName("CampusID");
+
+    
+
+                            entity.Property(e => e.CategoryId).HasColumnName("CategoryID");
+
+    
+
+            
+
+    
+
+                            entity.HasOne(d => d.Category)
+
+    
+
+                                .WithMany(p => p.LostItems)
+
+    
+
+                                .HasForeignKey(d => d.CategoryId)
+
+    
+
+                                .HasConstraintName("FK__LostItem__Catego__0E6E26BF");
+
+    
+
+            
+
+    
+
+                            entity.HasOne(d => d.CreatedByNavigation)
+
+    
+
+                                .WithMany(p => p.LostItems)
+
+    
+
+                                .HasForeignKey(d => d.CreatedBy)
+
+    
+
+                                .HasConstraintName("FK__LostItem__Create__0D7A0286");
+
+    
+
+            
+
+    
+
+                            entity.HasOne(d => d.Campus)
+
+    
+
+                                .WithMany(p => p.LostItems)
+
+    
+
+                                .HasForeignKey(d => d.CampusId)
+
+    
+
+                                .HasConstraintName("FK_LostItem_Campus");
+
+    
+
+                        });
+
+    
+
+                        modelBuilder.Entity<MatchHistory>(entity =>
+
+    
+
+                        {
+
+    
+
+                            entity.HasKey(e => e.HistoryId).HasName("PK__MatchHis__4D7B4ADDC3B60DB0");
+
+    
+
+            
+
+    
+
+                            entity.ToTable("MatchHistory");
+
+    
+
+            
+
+    
+
+                            entity.Property(e => e.HistoryId).HasColumnName("HistoryID");
+
+    
+
+                            entity.Property(e => e.Action).HasMaxLength(255).UseCollation("Vietnamese_CI_AS");
+
+    
+
+                            entity.Property(e => e.ActionDate).HasColumnType("datetime");
+
+    
+
+                            entity.Property(e => e.MatchId).HasColumnName("MatchID");
+
+    
+
+            
+
+    
+
+                            entity.HasOne(d => d.ActionByNavigation).WithMany(p => p.MatchHistories)
+
+    
+
+                                .HasForeignKey(d => d.ActionBy)
+
+    
+
+                                .HasConstraintName("FK__MatchHist__Actio__1BC821DD");
+
+    
+
+            
+
+    
+
+                            entity.HasOne(d => d.Match).WithMany(p => p.MatchHistories)
+
+    
+
+                                .HasForeignKey(d => d.MatchId)
+
+    
+
+                                .HasConstraintName("FK__MatchHist__Match__1AD3FDA4");
+
+    
+
+                        });
+
+    
+
+                        modelBuilder.Entity<ReturnRecord>(entity =>
+
+    
+
+                        {
+
+    
+
+                            entity.HasKey(e => e.ReturnId).HasName("PK__ReturnRe__F445E9884665C768");
+
+    
+
+            
+
+    
+
+                            entity.ToTable("ReturnRecord");
+
+    
+
+            
+
+    
+
+                            entity.HasIndex(e => e.FoundItemId, "UQ__ReturnRe__DFA62C36D4297726").IsUnique();
+
+    
+
+            
+
+    
+
+                            entity.HasIndex(e => e.LostItemId, "UQ_ReturnRecord_LostItemId").IsUnique();
+
+    
+
+            
+
+    
+
+                            entity.Property(e => e.ReturnId).HasColumnName("ReturnID");
+
+    
+
+                            entity.Property(e => e.FoundItemId).HasColumnName("FoundItemID");
+
+    
+
+                            entity.Property(e => e.LostItemId).HasColumnName("LostItemID");
+
+    
+
+                            entity.Property(e => e.Note).HasMaxLength(255).UseCollation("Vietnamese_CI_AS");
+
+    
+
+                            entity.Property(e => e.ReceiverId).HasColumnName("ReceiverID");
+
+    
+
+                            entity.Property(e => e.ReturnDate).HasColumnType("datetime");
+
+    
+
+                            entity.Property(e => e.StaffUserId).HasColumnName("StaffUserID");
+
+    
+
+            
+
+    
+
+                            entity.HasOne(d => d.FoundItem).WithOne(p => p.ReturnRecord)
+
+    
+
+                                .HasForeignKey<ReturnRecord>(d => d.FoundItemId)
+
+    
+
+                                .HasConstraintName("FK__ReturnRec__Found__1EA48E88");
+
+    
+
+            
+
+    
+
+                            entity.HasOne(d => d.LostItem)
+
+    
+
+                                .WithOne(p => p.ReturnRecord)
+
+    
+
+                                .HasForeignKey<ReturnRecord>(d => d.LostItemId)
+
+    
+
+                                .HasConstraintName("FK_ReturnRecord_LostItem");
+
+    
+
+            
+
+    
+
+                            entity.HasOne(d => d.Receiver).WithMany(p => p.ReturnRecords)
+
+    
+
+                                .HasForeignKey(d => d.ReceiverId)
+
+    
+
+                                .HasConstraintName("FK__ReturnRec__Recei__1CBC4616");
+
+    
+
+            
+
+    
+
+                            entity.HasOne(d => d.StaffUser).WithMany(p => p.HandledReturnRecords)
+
+    
+
+                                .HasForeignKey(d => d.StaffUserId)
+
+    
+
+                                .HasConstraintName("FK_ReturnRecord_User_Staff");
+
+    
+
+                        });
+
+    
+
+                        modelBuilder.Entity<Role>(entity =>
+
+    
+
+                        {
+
+    
+
+                            entity.HasKey(e => e.RoleId).HasName("PK__Role__8AFACE3A4E892C72");
+
+    
+
+            
+
+    
+
+                            entity.ToTable("Role");
+
+    
+
+            
+
+    
+
+                            entity.Property(e => e.RoleId).HasColumnName("RoleID");
+
+    
+
+                            entity.Property(e => e.RoleName).HasMaxLength(255).UseCollation("Vietnamese_CI_AS");
+
+    
+
+                        });
+
+    
+
+                        modelBuilder.Entity<User>(entity =>
+
+    
+
+                        {
+
+    
+
+                            entity.HasKey(e => e.UserId).HasName("PK__User__1788CCACBDF5688F");
+
+    
+
+            
+
+    
+
+                            entity.ToTable("User");
+
+    
+
+            
+
+    
+
+                            entity.Property(e => e.UserId).HasColumnName("UserID");
+
+    
+
+                            entity.Property(e => e.Email).HasMaxLength(255).UseCollation("Vietnamese_CI_AS");
+
+    
+
+                            entity.Property(e => e.FullName).HasMaxLength(255).UseCollation("Vietnamese_CI_AS");
+
+    
+
+                            entity.Property(e => e.PasswordHash).HasMaxLength(255).UseCollation("Vietnamese_CI_AS");
+
+    
+
+                            entity.Property(e => e.RoleId).HasColumnName("RoleID");
+
+    
+
+                            entity.Property(e => e.Status).HasMaxLength(255).UseCollation("Vietnamese_CI_AS");
+
+    
+
+                            entity.Property(e => e.Username).HasMaxLength(255).UseCollation("Vietnamese_CI_AS");
+
+    
+
+                            entity.Property(e => e.PhoneNumber).HasMaxLength(20).UseCollation("Vietnamese_CI_AS");
+
+    
+
+            
+
+    
+
+                            entity.HasOne(d => d.Campus).WithMany(p => p.Users)
+
+    
+
+                                .HasForeignKey(d => d.CampusId)
+
+    
+
+                                .HasConstraintName("FK_User_Campus");
+
+    
+
+            
+
+    
+
+                            entity.HasOne(d => d.Role).WithMany(p => p.Users)
+
+    
+
+                                .HasForeignKey(d => d.RoleId)
+
+    
+
+                                .HasConstraintName("FK__User__RoleID__0A9D95DB");
+
+    
+
+                        });
+
+                        modelBuilder.Entity<Notification>(entity =>
+
+                        {
+
+                            entity.HasKey(e => e.NotificationId).HasName("PK__Notifica__20CF2E32XXXXXXXX");
+
+            
+
+            
+
+                            entity.Property(e => e.NotificationId).HasColumnName("NotificationID");
+
+                            entity.Property(e => e.UserId).HasColumnName("UserID");
+
+                            entity.Property(e => e.Type).HasMaxLength(50).UseCollation("Vietnamese_CI_AS");
+
+                            entity.Property(e => e.ReferenceId).HasColumnName("ReferenceID");
+
+                            entity.Property(e => e.Message).IsRequired();
+
+                            entity.Property(e => e.IsRead).HasDefaultValue(false);
+
+                            entity.Property(e => e.IsSent).HasDefaultValue(false);
+
+                            entity.Property(e => e.CreatedAt)
+
+                                .HasColumnType("datetime")
+
+                                .HasDefaultValueSql("(getdate())");
+
+                            entity.Property(e => e.ReadAt).HasColumnType("datetime");
+
+            
+
+                            entity.HasOne(d => d.User)
+
+                                .WithMany(p => p.Notifications)
+
+                                .HasForeignKey(d => d.UserId)
+
+                                .OnDelete(DeleteBehavior.Cascade)
+
+                                .HasConstraintName("FK__Notification__UserID");
+
+            
+
+                            // Indexes
+
+                            entity.HasIndex(e => e.UserId).HasDatabaseName("IX_Notification_UserID");
+
+                            entity.HasIndex(e => e.IsRead).HasDatabaseName("IX_Notification_IsRead");
+
+                        });
 
     
 
