@@ -25,14 +25,14 @@ namespace LostFoundApi.Controllers
         [HttpGet("my-open-found-items")]
         public async Task<IActionResult> GetMyOpenFoundItems()
         {
-            var campusClaim = User.FindFirst("CampusId");
-            if (campusClaim == null) return Unauthorized("Campus info missing.");
-            if (!int.TryParse(campusClaim.Value, out int campusId))
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null) return Unauthorized("User info missing.");
+            if (!int.TryParse(userIdClaim.Value, out int securityOfficerId))
             {
-                return Unauthorized("Invalid CampusId format.");
+                return Unauthorized("Invalid UserId format.");
             }
 
-            var items = await _foundItemService.GetOpenFoundItemsForSecurityOfficerAsync(campusId);
+            var items = await _foundItemService.GetOpenFoundItemsForSecurityOfficerAsync(securityOfficerId);
             return Ok(items);
         }
 

@@ -404,9 +404,10 @@ namespace BLL.Services
 
             return await GetByIdAsync(entity.FoundItemId);
         }
-        public async Task<List<SecurityFoundItemDto>> GetOpenFoundItemsForSecurityOfficerAsync(int campusId)
+        public async Task<List<SecurityFoundItemDto>> GetOpenFoundItemsForSecurityOfficerAsync(int securityOfficerId)
         {
-            var items = await _repo.GetByCampusAsync(campusId, "Open");
+            var items = await _repo.GetByCreatedByAndStatusAsync(securityOfficerId, FoundItemStatus.Open.ToString());
+
             return items.Select(f => new SecurityFoundItemDto
             {
                 FoundItemId = f.FoundItemId,

@@ -230,7 +230,7 @@ The API uses JWT (JSON Web Tokens) for authentication. Users must obtain a token
 ### SecurityController (`/api/security`)
 
 -   **`GET /api/security/my-open-found-items`**
-    -   **Description:** Retrieves a list of all found items with an "Open" status for the authenticated Security Officer's assigned campus.
+    -   **Description:** Retrieves a list of all found items with an "Open" status created by the authenticated Security Officer.
     -   **Authorization:** `Security Officer`
 -   **`PUT /api/security/found-items/{id}/return`**
     -   **Description:** Updates the status of a specific found item to "Returned".

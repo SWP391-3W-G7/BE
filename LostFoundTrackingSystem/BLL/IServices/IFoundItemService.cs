@@ -17,6 +17,6 @@ namespace BLL.IServices
         Task<FoundItemDetailsDto> GetFoundItemDetailsAsync(int foundItemId);
         Task<FoundItemDto?> GetFoundItemDetailsForUserAsync(int foundItemId);
         Task<FoundItemDto> UpdateStatusAsync(int id, UpdateFoundItemStatusRequest request, int staffId);
-        Task<List<SecurityFoundItemDto>> GetOpenFoundItemsForSecurityOfficerAsync(int campusId);
+        Task<List<SecurityFoundItemDto>> GetOpenFoundItemsForSecurityOfficerAsync(int securityOfficerId);
     }
 }
