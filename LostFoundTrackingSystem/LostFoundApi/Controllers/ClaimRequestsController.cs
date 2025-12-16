@@ -127,7 +127,7 @@ namespace LostFoundApi.Controllers
         }
 
         [HttpPost("{claimId}/evidence")]
-        [Authorize(Roles = "User,Security Officer")] // Only the student who owns the claim or Security Officer
+        [Authorize(Roles = "User,Staff,Security Officer")] // Only the student who owns the claim or Security Officer
         public async Task<IActionResult> AddEvidence(int claimId, [FromForm] AddEvidenceRequest request)
         {
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
