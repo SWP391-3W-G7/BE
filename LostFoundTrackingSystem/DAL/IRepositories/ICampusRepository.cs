@@ -9,5 +9,7 @@ namespace DAL.IRepositories
         Task AddAsync(Campus campus);
         Task<Campus?> GetByIdAsync(int id);
         Task<List<Campus>> GetAllAsync();
+        Task UpdateAsync(Campus campus);
+        Task DeleteAsync(Campus campus);
     }
 }

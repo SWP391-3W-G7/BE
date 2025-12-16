@@ -90,5 +90,54 @@ namespace LostFoundApi.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
+        [HttpGet("users/{id}")]
+        public async Task<IActionResult> GetUserById(int id)
+        {
+            if (!IsAdmin()) return Forbid();
+
+            var user = await _userService.GetByIdAsync(id);
+            if (user == null) return NotFound("User not found.");
+
+            if (user.RoleId == 4) return Forbid();
+
+            return Ok(user);
+        }
+
+        [HttpPut("users/{id}")]
+        public async Task<IActionResult> UpdateUser(int id, [FromBody] AdminUpdateUserDto request)
+        {
+            if (!IsAdmin()) return Forbid();
+
+            try
+            {
+                var result = await _userService.UpdateUserByAdminAsync(id, request);
+                return Ok(new
+                {
+                    message = "User updated successfully.",
+                    data = result
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+        [HttpPatch("users/{id}/ban-status")]
+        public async Task<IActionResult> ChangeBanStatus(int id, [FromQuery] bool isBan)
+        {
+            if (!IsAdmin()) return Forbid();
+
+            try
+            {
+                await _userService.UpdateUserBanStatusAsync(id, isBan);
+
+                string statusMessage = isBan ? "banned" : "unbanned/active";
+                return Ok(new { message = $"User has been {statusMessage} successfully." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
     }
 }
