@@ -1,6 +1,10 @@
 ﻿using DAL.IRepositories;
 using DAL.Models;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace DAL.Repositories
 {
@@ -18,17 +22,22 @@ namespace DAL.Repositories
             var foundQuery = _context.FoundItems.AsQueryable();
             var claimQuery = _context.ClaimRequests.AsQueryable();
 
+            // 1. Filter theo Campus nếu có
             if (campusId.HasValue)
             {
                 foundQuery = foundQuery.Where(x => x.CampusId == campusId.Value);
-                // This join is not ideal, but for the sake of getting it done
                 claimQuery = claimQuery.Where(x => x.FoundItem.CampusId == campusId.Value);
             }
 
-            var totalFound = await foundQuery.CountAsync();
-            var returnedCount = await foundQuery.CountAsync(x => x.Status == "Returned");
-            var disposedCount = await foundQuery.CountAsync(x => x.Status == "Disposed");
-            var activeClaims = await claimQuery.CountAsync(x => x.Status == "Pending" || x.Status == "InProgress");
+            var foundStatsRaw = await foundQuery
+                .GroupBy(x => x.Status)
+                .Select(g => new { Status = g.Key, Count = g.Count() })
+                .ToDictionaryAsync(x => x.Status, x => x.Count);
+
+            var claimStatsRaw = await claimQuery
+                .GroupBy(x => x.Status)
+                .Select(g => new { Status = g.Key, Count = g.Count() })
+                .ToDictionaryAsync(x => x.Status, x => x.Count);
 
             var categoryStats = await foundQuery
                 .Include(x => x.Category)
@@ -37,16 +46,28 @@ namespace DAL.Repositories
                 .Select(g => new { Name = g.Key, Value = g.Count() })
                 .ToDictionaryAsync(k => k.Name, v => v.Value);
 
-            var stats = new DashboardStatisticsModel
+            var model = new DashboardStatisticsModel
             {
-                TotalFound = totalFound,
-                ReturnedCount = returnedCount,
-                DisposedCount = disposedCount,
-                ActiveClaims = activeClaims,
-                CategoryStats = categoryStats
+                TotalFoundItems = await foundQuery.CountAsync(),
+                TotalClaimRequests = await claimQuery.CountAsync(),
+                CategoryStats = categoryStats,
+                FoundItemStatusStats = new Dictionary<string, int>(),
+                ClaimStatusStats = new Dictionary<string, int>()
             };
 
-            return stats;
+            foreach (FoundItemStatus status in Enum.GetValues(typeof(FoundItemStatus)))
+            {
+                string statusName = status.ToString();
+                model.FoundItemStatusStats[statusName] = foundStatsRaw.ContainsKey(statusName) ? foundStatsRaw[statusName] : 0;
+            }
+
+            foreach (ClaimStatus status in Enum.GetValues(typeof(ClaimStatus)))
+            {
+                string statusName = status.ToString();
+                model.ClaimStatusStats[statusName] = claimStatsRaw.ContainsKey(statusName) ? claimStatsRaw[statusName] : 0;
+            }
+
+            return model;
         }
     }
 }
