@@ -404,21 +404,28 @@ namespace BLL.Services
 
             return await GetByIdAsync(entity.FoundItemId);
         }
-        public async Task<List<SecurityFoundItemDto>> GetOpenFoundItemsForSecurityOfficerAsync(int securityOfficerId)
-        {
-            var items = await _repo.GetByCreatedByAndStatusAsync(securityOfficerId, FoundItemStatus.Open.ToString());
-
-            return items.Select(f => new SecurityFoundItemDto
-            {
-                FoundItemId = f.FoundItemId,
-                Title = f.Title,
-                Description = f.Description,
-                FoundDate = (DateTime)f.FoundDate,
-                FoundLocation = f.FoundLocation,
-                Status = f.Status,
-                CategoryId = f.CategoryId,
-                CategoryName = f.Category?.CategoryName
-            }).ToList();
+                public async Task<List<SecurityFoundItemDto>> GetOpenFoundItemsForSecurityOfficerAsync(int securityOfficerId)
+                {
+                    var items = await _repo.GetByCreatedByAndStatusAsync(securityOfficerId, FoundItemStatus.Open.ToString());
+        
+                    return items.Select(f => new SecurityFoundItemDto
+                    {
+                        FoundItemId = f.FoundItemId,
+                        Title = f.Title,
+                        Description = f.Description,
+                        FoundDate = (DateTime)f.FoundDate,
+                        FoundLocation = f.FoundLocation,
+                        Status = f.Status,
+                        CategoryId = f.CategoryId,
+                        CategoryName = f.Category?.CategoryName
+                    }).ToList();
+                }
+        
+                public async Task<IEnumerable<FoundItemDto>> GetByUserIdAsync(int userId)
+                {
+                    var items = await _repo.GetByUserIdAsync(userId);
+                    return MapToDtoList(items.ToList());
+                }
+            }
         }
-    }
-}
+        

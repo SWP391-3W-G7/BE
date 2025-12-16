@@ -140,20 +140,70 @@ namespace LostFoundApi.Controllers
             }
         }
 
-        [HttpGet("{id}/user-details")]
-        [Authorize(Roles = "User,Security Officer,Staff,Admin")] // Accessible to all authenticated users
-        public async Task<IActionResult> GetFoundItemDetailsForUser(int id)
-        {
-            try
-            {
-                var result = await _foundItemService.GetFoundItemDetailsForUserAsync(id);
-                if (result == null) return NotFound();
-                return Ok(result);
+                [HttpGet("{id}/user-details")]
+
+                [Authorize(Roles = "User,Security Officer,Staff,Admin")] // Accessible to all authenticated users
+
+                public async Task<IActionResult> GetFoundItemDetailsForUser(int id)
+
+                {
+
+                    try
+
+                    {
+
+                        var result = await _foundItemService.GetFoundItemDetailsForUserAsync(id);
+
+                        if (result == null) return NotFound();
+
+                        return Ok(result);
+
+                    }
+
+                    catch (Exception ex)
+
+                    {
+
+                        return BadRequest(new { message = ex.Message });
+
+                    }
+
+                }
+
+        
+
+                [HttpGet("my-found-items")]
+
+                [Authorize]
+
+                public async Task<IActionResult> GetFoundItemsByUserId()
+
+                {
+
+                    try
+
+                    {
+
+                        var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+
+                        var result = await _foundItemService.GetByUserIdAsync(userId);
+
+                        return Ok(result);
+
+                    }
+
+                    catch (Exception ex)
+
+                    {
+
+                        return BadRequest(new { message = ex.Message });
+
+                    }
+
+                }
+
             }
-            catch (Exception ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
+
         }
-    }
-}
+
+        
