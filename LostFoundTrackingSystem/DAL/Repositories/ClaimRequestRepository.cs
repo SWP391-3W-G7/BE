@@ -18,13 +18,19 @@ namespace DAL.Repositories
             _context = context;
         }
 
-        public async Task<List<ClaimRequest>> GetAllAsync()
+        public async Task<List<ClaimRequest>> GetAllAsync(ClaimStatus? status = null)
         {
-            return await _context.ClaimRequests
+            var query = _context.ClaimRequests
                 .Include(c => c.FoundItem)
                 .Include(c => c.Student)
                 .Include(c => c.Evidences).ThenInclude(e => e.Images)
-                .ToListAsync();
+                .AsQueryable();
+            if (status.HasValue)
+            {
+                string statusStr = status.ToString();
+                query = query.Where(c => c.Status == statusStr);
+            }
+            return await query.ToListAsync();
         }
 
         public async Task<ClaimRequest?> GetByIdAsync(int id)

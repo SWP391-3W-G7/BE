@@ -1,4 +1,5 @@
 ﻿using BLL.DTOs;
+using BLL.DTOs.AdminDTO;
 using BLL.IServices;
 using DAL.IRepositories;
 using DAL.Models;
@@ -216,6 +217,51 @@ namespace BLL.Services
                 RoleName = newUser.Role?.RoleName,
                 CampusName = newUser.Campus?.CampusName
             };
+        }
+        // Thêm các hàm này vào Class UserService
+
+        public async Task<UserDto> UpdateUserByAdminAsync(int userId, AdminUpdateUserDto updateDto)
+        {
+            var user = await _userRepository.GetUserByIdAsync(userId);
+            if (user == null) throw new Exception("User not found.");
+
+            if (user.RoleId == 4)
+            {
+                throw new Exception("Cannot modify an Admin account.");
+            }
+
+            if (updateDto.RoleId == 4)
+            {
+                throw new Exception("Cannot promote user to Admin via this endpoint.");
+            }
+
+            if (!string.IsNullOrEmpty(updateDto.FullName)) user.FullName = updateDto.FullName;
+            if (!string.IsNullOrEmpty(updateDto.PhoneNumber)) user.PhoneNumber = updateDto.PhoneNumber;
+            if (!string.IsNullOrEmpty(updateDto.Status)) user.Status = updateDto.Status;
+
+            if (updateDto.RoleId.HasValue) user.RoleId = updateDto.RoleId.Value;
+            if (updateDto.CampusId.HasValue) user.CampusId = updateDto.CampusId.Value;
+
+            await _userRepository.UpdateAsync(user);
+
+            return await GetByIdAsync(userId);
+        }
+        public async Task UpdateUserBanStatusAsync(int userId, bool isBan)
+        {
+            var user = await _userRepository.GetUserByIdAsync(userId);
+            if (user == null)
+            {
+                throw new Exception("User not found.");
+            }
+
+            if (user.RoleId == 4)
+            {
+                throw new Exception("Cannot modify the status of an Admin account.");
+            }
+
+            user.Status = isBan ? "Banned" : "Active";
+
+            await _userRepository.UpdateAsync(user);
         }
     }
 }

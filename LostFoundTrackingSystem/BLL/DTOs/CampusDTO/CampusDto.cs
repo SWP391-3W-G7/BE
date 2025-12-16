@@ -1,4 +1,4 @@
-namespace BLL.DTOs
+namespace BLL.DTOs.CampusDTO
 {
     public class CampusDto
     {

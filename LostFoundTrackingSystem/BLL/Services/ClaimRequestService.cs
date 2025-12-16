@@ -86,9 +86,9 @@ namespace BLL.Services
             return await GetByIdAsync(claimEntity.ClaimId);
         }
 
-        public async Task<List<ClaimRequestDto>> GetAllAsync()
+        public async Task<List<ClaimRequestDto>> GetAllAsync(ClaimStatus? status = null)
         {
-            var list = await _repo.GetAllAsync();
+            var list = await _repo.GetAllAsync(status);
             var dtoList = new List<ClaimRequestDto>();
             foreach (var item in list)
             {

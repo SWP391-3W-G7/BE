@@ -61,9 +61,9 @@ namespace LostFoundApi.Controllers
 
         [HttpGet]
         [Authorize(Roles = "Staff,Admin")] // 2=Staff, 4=Admin
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery] ClaimStatus? status)
         {
-            return Ok(await _service.GetAllAsync());
+            return Ok(await _service.GetAllAsync(status));
         }
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromForm] UpdateClaimRequest request)
