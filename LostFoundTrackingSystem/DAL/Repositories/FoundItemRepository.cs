@@ -13,13 +13,25 @@ namespace DAL.Repositories
             _context = context;
         }
 
-        public async Task<List<FoundItem>> GetAllAsync()
+        public async Task<IEnumerable<FoundItem>> GetFoundItemsAsync(int? campusId, string status)
         {
-            return await _context.FoundItems
+            var query = _context.FoundItems
                 .Include(f => f.Images)
                 .Include(f => f.Campus)
                 .Include(f => f.Category)
-                .ToListAsync();
+                .AsQueryable();
+
+            if (campusId.HasValue)
+            {
+                query = query.Where(f => f.CampusId == campusId.Value);
+            }
+
+            if (!string.IsNullOrEmpty(status))
+            {
+                query = query.Where(f => f.Status == status);
+            }
+
+            return await query.ToListAsync();
         }
 
         public async Task<FoundItem?> GetByIdAsync(int id)

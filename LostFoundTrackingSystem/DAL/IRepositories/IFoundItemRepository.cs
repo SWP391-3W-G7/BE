@@ -4,7 +4,7 @@ namespace DAL.IRepositories
 {
     public interface IFoundItemRepository
     {
-        Task<List<FoundItem>> GetAllAsync();
+        Task<IEnumerable<FoundItem>> GetFoundItemsAsync(int? campusId, string status);
         Task<FoundItem?> GetByIdAsync(int id);
         Task AddAsync(FoundItem item);
         Task UpdateAsync(FoundItem item);

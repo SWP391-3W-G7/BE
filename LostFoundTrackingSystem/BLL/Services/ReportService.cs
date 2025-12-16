@@ -9,24 +9,20 @@ namespace BLL.Services
     {
         private readonly IReportRepository _repo;
 
-        // Định nghĩa hằng số cho dễ đọc code
-        private const int ROLE_ADMIN = 4;
-        private const int ROLE_STAFF = 2;
-
         public ReportService(IReportRepository repo)
         {
             _repo = repo;
         }
 
-        public async Task<SystemReportDto> GetDashboardReportAsync(int roleId, int? campusId)
+        public async Task<SystemReportDto> GetDashboardReportAsync(string roleName, int? campusId)
         {
             SystemStatisticModel rawData;
 
-            if (roleId == ROLE_ADMIN) 
+            if (roleName == "Admin")
             {
                 rawData = await _repo.GetSystemStatsAsync(null);
             }
-            else if (roleId == ROLE_STAFF)
+            else if (roleName == "Staff")
             {
                 if (campusId == null)
                 {

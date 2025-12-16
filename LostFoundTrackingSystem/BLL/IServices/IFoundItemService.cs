@@ -5,7 +5,7 @@ namespace BLL.IServices
 {
     public interface IFoundItemService
     {
-        Task<List<FoundItemDto>> GetAllAsync();
+        Task<IEnumerable<FoundItemDto>> GetFoundItemsAsync(FoundItemFilterDto filter);
         Task<FoundItemDto?> GetByIdAsync(int id);
         Task<FoundItemDto> CreateAsync(CreateFoundItemRequest request, int createdBy, string initialStatus = null);
         Task<FoundItemDto> UpdateAsync(int id, UpdateFoundItemRequest request);

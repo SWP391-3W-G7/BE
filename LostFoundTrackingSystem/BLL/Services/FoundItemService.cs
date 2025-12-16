@@ -36,10 +36,10 @@ namespace BLL.Services
             _notificationService = notificationService;
         }
 
-        public async Task<List<FoundItemDto>> GetAllAsync()
+        public async Task<IEnumerable<FoundItemDto>> GetFoundItemsAsync(FoundItemFilterDto filter)
         {
-            var items = await _repo.GetAllAsync();
-            return MapToDtoList(items);
+            var items = await _repo.GetFoundItemsAsync(filter.CampusId, filter.Status);
+            return MapToDtoList(items.ToList());
         }
 
         public async Task<FoundItemDto?> GetByIdAsync(int id)
@@ -417,7 +417,8 @@ namespace BLL.Services
                         FoundLocation = f.FoundLocation,
                         Status = f.Status,
                         CategoryId = f.CategoryId,
-                        CategoryName = f.Category?.CategoryName
+                        CategoryName = f.Category?.CategoryName,
+                        ImageUrls = f.Images.Select(i => i.ImageUrl).ToList()
                     }).ToList();
                 }
         

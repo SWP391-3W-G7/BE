@@ -22,10 +22,10 @@ namespace LostFoundApi.Controllers
             _userService = userService;
         }
 
-        [HttpGet]
-        public async Task<IActionResult> GetAll()
+        [HttpGet("")]
+        public async Task<IActionResult> GetAll([FromQuery] FoundItemFilterDto filter)
         {
-            var result = await _foundItemService.GetAllAsync();
+            var result = await _foundItemService.GetFoundItemsAsync(filter);
             return Ok(result);
         }
 

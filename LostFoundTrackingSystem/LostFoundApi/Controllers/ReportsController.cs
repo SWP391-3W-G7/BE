@@ -25,10 +25,7 @@ namespace LostFoundApi.Controllers
                 var roleClaim = User.FindFirst(ClaimTypes.Role);
                 if (roleClaim == null) return Unauthorized("Role info missing.");
 
-                if (!int.TryParse(roleClaim.Value, out int roleId))
-                {
-                    return Unauthorized("Invalid Role format.");
-                }
+                var roleName = roleClaim.Value;
 
                 int? campusId = null;
                 var campusClaim = User.FindFirst("CampusId");
@@ -37,7 +34,7 @@ namespace LostFoundApi.Controllers
                     campusId = cId;
                 }
 
-                var report = await _service.GetDashboardReportAsync(roleId, campusId);
+                var report = await _service.GetDashboardReportAsync(roleName, campusId);
 
                 return Ok(report);
             }
