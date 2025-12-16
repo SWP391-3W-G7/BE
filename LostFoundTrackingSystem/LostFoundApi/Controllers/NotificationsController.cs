@@ -1,7 +1,9 @@
-﻿using BLL.IServices;
+using BLL.DTOs.NotificationDTO;
+using BLL.IServices;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using System.Threading.Tasks;
 
 namespace LostFoundApi.Controllers
 {
@@ -15,6 +17,14 @@ namespace LostFoundApi.Controllers
         public NotificationsController(INotificationService notificationService)
         {
             _notificationService = notificationService;
+        }
+
+        [HttpPost("send")]
+        [Authorize(Roles = "Staff")]
+        public async Task<IActionResult> SendNotification([FromBody] SendNotificationRequestDto request)
+        {
+            await _notificationService.SendGenericNotificationAsync(request.UserId, request.Message);
+            return Ok(new { message = "Notification sent successfully." });
         }
 
         // GET: api/notifications

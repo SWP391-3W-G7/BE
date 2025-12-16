@@ -16,7 +16,7 @@ namespace BLL.Services
 
         public async Task<SystemReportDto> GetDashboardReportAsync(string roleName, int? campusId)
         {
-            SystemStatisticModel rawData;
+            DashboardStatisticsModel rawData;
 
             if (roleName == "Admin")
             {
@@ -35,11 +35,20 @@ namespace BLL.Services
                 throw new UnauthorizedAccessException("You are not authorized to view this report.");
             }
 
+            double returnRate = 0;
+            if (rawData.TotalFound > 0)
+            {
+                returnRate = Math.Round((double)rawData.ReturnedCount / rawData.TotalFound * 100, 2);
+            }
+
             return new SystemReportDto
             {
-                TotalLostItems = rawData.TotalLost,
-                TotalFoundItems = rawData.TotalFound,
-                ItemsInStorage = rawData.InStorage
+                TotalFound = rawData.TotalFound,
+                ReturnedCount = rawData.ReturnedCount,
+                DisposedCount = rawData.DisposedCount,
+                ActiveClaims = rawData.ActiveClaims,
+                ReturnRate = returnRate,
+                CategoryStats = rawData.CategoryStats.Select(cs => new CategoryStatDto { Name = cs.Key, Value = cs.Value }).ToList()
             };
         }
     }

@@ -118,5 +118,44 @@ namespace LostFoundApi.Hubs
             await _notificationRepo.MarkAsReadAsync(notificationId);
         }
 
+        public async Task SendGenericNotificationAsync(string userId, string message)
+        {
+            try
+            {
+                var notification = new Notification
+                {
+                    UserId = int.Parse(userId),
+                    Type = "generic",
+                    Message = message,
+                    IsRead = false,
+                    IsSent = false,
+                    CreatedAt = DateTime.UtcNow
+                };
+                await _notificationRepo.AddAsync(notification);
+                var connectionId = NotificationHub.GetConnectionId(userId);
+
+                if (!string.IsNullOrEmpty(connectionId))
+                {
+                    await _hubContext.Clients.Client(connectionId).SendAsync("ReceiveNotification", new
+                    {
+                        notificationId = notification.NotificationId,
+                        type = "generic",
+                        message,
+                        timestamp = DateTime.UtcNow
+                    });
+
+                    await _notificationRepo.MarkAsSentAsync(notification.NotificationId);
+                    Console.WriteLine($"Generic notification sent to user {userId}: {message}");
+                }
+                else
+                {
+                    Console.WriteLine($"User {userId} is not connected. Notification saved.");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error sending generic notification: {ex.Message}");
+            }
+        }
     }
 }

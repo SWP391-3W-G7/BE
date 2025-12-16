@@ -13,5 +13,6 @@ namespace BLL.IServices
         Task SendMatchNotificationAsync(string userId, int matchId, string message);
         Task<List<NotificationDto>> GetUserNotificationsAsync(int userId, bool unreadOnly = false);
         Task MarkAsReadAsync(int notificationId);
+        Task SendGenericNotificationAsync(string userId, string message);
     }
 }
