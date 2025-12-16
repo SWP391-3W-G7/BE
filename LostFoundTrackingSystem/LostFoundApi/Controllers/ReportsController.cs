@@ -18,7 +18,7 @@ namespace LostFoundApi.Controllers
         }
 
         [HttpGet("dashboard")]
-        public async Task<IActionResult> GetDashboardStats()
+        public async Task<IActionResult> GetDashboardStats([FromQuery] int? campusId)
         {
             try
             {
@@ -27,14 +27,14 @@ namespace LostFoundApi.Controllers
 
                 var roleName = roleClaim.Value;
 
-                int? campusId = null;
+                int? userTokenCampusId = null;
                 var campusClaim = User.FindFirst("CampusId");
                 if (campusClaim != null && int.TryParse(campusClaim.Value, out int cId))
                 {
-                    campusId = cId;
+                    userTokenCampusId = cId;
                 }
 
-                var report = await _service.GetDashboardReportAsync(roleName, campusId);
+                var report = await _service.GetDashboardReportAsync(roleName, userTokenCampusId, campusId);
 
                 return Ok(report);
             }
