@@ -5,7 +5,7 @@ namespace BLL.IServices
 {
     public interface IClaimRequestService
     {
-        Task<List<ClaimRequestDto>> GetAllAsync();
+        Task<List<ClaimRequestDto>> GetAllAsync(ClaimStatus? status = null);
         Task<List<ClaimRequestDto>> GetMyClaimsAsync(int studentId);
         Task<ClaimRequestDto?> GetByIdAsync(int id);
         Task<ClaimRequestDto> CreateAsync(CreateClaimRequest request, int studentId);

@@ -25,5 +25,15 @@ namespace DAL.Repositories
         {
             return await _context.Campuses.ToListAsync();
         }
+        public async Task UpdateAsync(Campus campus)
+        {
+            _context.Campuses.Update(campus);
+            await _context.SaveChangesAsync();
+        }
+        public async Task DeleteAsync(Campus campus)
+        {
+            _context.Campuses.Remove(campus);
+            await _context.SaveChangesAsync();
+        }
     }
 }
