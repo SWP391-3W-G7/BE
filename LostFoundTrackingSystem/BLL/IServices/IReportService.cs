@@ -4,6 +4,6 @@ namespace BLL.IServices
 {
     public interface IReportService
     {
-        Task<SystemReportDto> GetDashboardReportAsync(string roleName, int? campusId);
+        Task<SystemReportDto> GetDashboardReportAsync(string roleName, int? campusId, int? filterCampusId);
     }
 }

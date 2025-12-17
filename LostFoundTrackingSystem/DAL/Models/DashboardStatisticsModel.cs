@@ -4,10 +4,10 @@ namespace DAL.Models
 {
     public class DashboardStatisticsModel
     {
-        public int TotalFound { get; set; }
-        public int ReturnedCount { get; set; }
-        public int DisposedCount { get; set; }
-        public int ActiveClaims { get; set; }
+        public int TotalFoundItems { get; set; }
+        public int TotalClaimRequests { get; set; }
+        public Dictionary<string, int> FoundItemStatusStats { get; set; }
+        public Dictionary<string, int> ClaimStatusStats { get; set; }
         public Dictionary<string, int> CategoryStats { get; set; }
     }
 }

@@ -14,13 +14,13 @@ namespace BLL.Services
             _repo = repo;
         }
 
-        public async Task<SystemReportDto> GetDashboardReportAsync(string roleName, int? campusId)
+        public async Task<SystemReportDto> GetDashboardReportAsync(string roleName, int? campusId, int? filterCampusId)
         {
             DashboardStatisticsModel rawData;
 
             if (roleName == "Admin")
             {
-                rawData = await _repo.GetSystemStatsAsync(null);
+                rawData = await _repo.GetSystemStatsAsync(filterCampusId);
             }
             else if (roleName == "Staff")
             {
@@ -35,20 +35,41 @@ namespace BLL.Services
                 throw new UnauthorizedAccessException("You are not authorized to view this report.");
             }
 
-            double returnRate = 0;
-            if (rawData.TotalFound > 0)
+            int returnedCount = 0;
+
+            if (rawData.FoundItemStatusStats.ContainsKey(FoundItemStatus.Returned.ToString()))
             {
-                returnRate = Math.Round((double)rawData.ReturnedCount / rawData.TotalFound * 100, 2);
+                returnedCount = rawData.FoundItemStatusStats[FoundItemStatus.Returned.ToString()];
+            }
+
+            double returnRate = 0;
+            if (rawData.TotalFoundItems > 0)
+            {
+                returnRate = Math.Round((double)returnedCount / rawData.TotalFoundItems * 100, 2);
             }
 
             return new SystemReportDto
             {
-                TotalFound = rawData.TotalFound,
-                ReturnedCount = rawData.ReturnedCount,
-                DisposedCount = rawData.DisposedCount,
-                ActiveClaims = rawData.ActiveClaims,
-                ReturnRate = returnRate,
-                CategoryStats = rawData.CategoryStats.Select(cs => new CategoryStatDto { Name = cs.Key, Value = cs.Value }).ToList()
+                TotalFound = rawData.TotalFoundItems,
+                TotalClaims = rawData.TotalClaimRequests,
+
+                FoundItemStats = rawData.FoundItemStatusStats.Select(x => new StatItemDto
+                {
+                    StatusName = x.Key,
+                    Count = x.Value
+                }).ToList(),
+
+                ClaimStats = rawData.ClaimStatusStats.Select(x => new StatItemDto
+                {
+                    StatusName = x.Key,
+                    Count = x.Value
+                }).ToList(),
+
+                CategoryStats = rawData.CategoryStats.Select(cs => new CategoryStatDto
+                {
+                    Name = cs.Key,
+                    Value = cs.Value
+                }).ToList()
             };
         }
     }
