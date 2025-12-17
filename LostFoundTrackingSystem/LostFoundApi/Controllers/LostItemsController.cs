@@ -55,6 +55,20 @@ namespace LostFoundApi.Controllers
             return NoContent();
         }
 
+        [HttpGet("my-lost-items")]
+        public async Task<IActionResult> GetMyLostItems()
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null)
+            {
+                return Unauthorized("User ID not found in token.");
+            }
+
+            int userId = int.Parse(userIdClaim.Value);
+            var lostItems = await _service.GetMyLostItemsAsync(userId);
+            return Ok(lostItems);
+        }
+
         [HttpGet("campus/{campusId}")]
         [AllowAnonymous]
         public async Task<IActionResult> GetByCampus(int campusId)
