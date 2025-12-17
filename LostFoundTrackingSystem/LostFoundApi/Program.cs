@@ -152,6 +152,11 @@ builder.Services.AddAuthentication(options =>
             return Task.CompletedTask;
         }
     };
+})
+.AddGoogle(options =>
+{
+    options.ClientId = builder.Configuration["Authentication:Google:ClientId"];
+    options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
 });
 
 builder.WebHost.ConfigureKestrel(serverOptions =>

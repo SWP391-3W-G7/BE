@@ -13,6 +13,8 @@ namespace BLL.IServices
         Task<UserDto> CreateUserByAdminAsync(AdminCreateUserDto userDto);
         Task<UserDto> UpdateUserByAdminAsync(int userId, AdminUpdateUserDto updateDto);
         Task UpdateUserBanStatusAsync(int userId, bool isBan);
+        Task<UserDto> GetByEmailAsync(string email);
+        Task<UserLoginResponseDto> LoginWithGoogleAsync(string email, string fullName);
     }
 }
 

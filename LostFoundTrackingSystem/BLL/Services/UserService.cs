@@ -92,41 +92,7 @@ namespace BLL.Services
                 throw new Exception("User does not have a campus.");
             }
             
-            var jwtKey = _configuration["Jwt:Key"];
-            if (string.IsNullOrEmpty(jwtKey))
-            {
-                throw new Exception("JWT Key is not configured.");
-            }
-
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes(jwtKey);
-            var tokenDescriptor = new SecurityTokenDescriptor
-            {
-                Subject = new ClaimsIdentity(new[]
-                {
-                    new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
-                    new Claim(ClaimTypes.Email, user.Email),
-                    new Claim(ClaimTypes.Role, user.Role.RoleName),
-                    new Claim("CampusName", user.Campus.CampusName),
-                    new Claim("CampusId", user.CampusId.ToString())
-                }),
-                Expires = DateTime.UtcNow.AddDays(7),
-                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
-                Issuer = _configuration["Jwt:Issuer"],
-                Audience = _configuration["Jwt:Audience"]
-            };
-            var token = tokenHandler.CreateToken(tokenDescriptor);
-            var tokenString = tokenHandler.WriteToken(token);
-
-            return new UserLoginResponseDto
-            {
-                Token = tokenString,
-                Email = user.Email,
-                FullName = user.FullName,
-                RoleName = user.Role?.RoleName,
-                CampusName = user.Campus?.CampusName,
-                CampusId = user.CampusId
-            };
+            return GenerateJwtToken(user);
         }
 
         public async Task<UserDto> GetByIdAsync(int id)
@@ -262,6 +228,82 @@ namespace BLL.Services
             user.Status = isBan ? "Banned" : "Active";
 
             await _userRepository.UpdateAsync(user);
+        }
+
+        public async Task<UserDto> GetByEmailAsync(string email)
+        {
+            var user = await _userRepository.GetUserByEmailAsync(email);
+            if (user == null) return null;
+            return new UserDto
+            {
+                UserId = user.UserId,
+                Username = user.Username,
+                Email = user.Email,
+                FullName = user.FullName,
+                RoleId = user.RoleId.Value,
+                Status = user.Status,
+                CampusId = user.CampusId,
+                PhoneNumber = user.PhoneNumber,
+                RoleName = user.Role?.RoleName,
+                CampusName = user.Campus?.CampusName
+            };
+        }
+
+        public async Task<UserLoginResponseDto> LoginWithGoogleAsync(string email, string fullName)
+        {
+            var user = await _userRepository.GetUserByEmailAsync(email);
+            if (user == null)
+            {
+                var newUser = new User
+                {
+                    Email = email,
+                    FullName = fullName,
+                    RoleId = 1, // User
+                    Status = "Active",
+                    CampusId = 1
+                };
+                user = await _userRepository.AddUserAsync(newUser);
+            }
+            return GenerateJwtToken(user);
+        }
+
+        private UserLoginResponseDto GenerateJwtToken(User user)
+        {
+            var jwtKey = _configuration["Jwt:Key"];
+            if (string.IsNullOrEmpty(jwtKey))
+            {
+                throw new Exception("JWT Key is not configured.");
+            }
+
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var key = Encoding.ASCII.GetBytes(jwtKey);
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(new[]
+                {
+                    new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
+                    new Claim(ClaimTypes.Email, user.Email),
+                    new Claim(ClaimTypes.Role, user.Role.RoleName),
+                    new Claim("CampusName", user.Campus.CampusName),
+                    new Claim("CampusId", user.CampusId.ToString())
+                }),
+                Expires = DateTime.UtcNow.AddDays(7),
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
+                Issuer = _configuration["Jwt:Issuer"],
+                Audience = _configuration["Jwt:Audience"]
+            };
+            var token = tokenHandler.CreateToken(tokenDescriptor);
+            var tokenString = tokenHandler.WriteToken(token);
+
+            return new UserLoginResponseDto
+            {
+                Token = tokenString,
+                Email = user.Email,
+                FullName = user.FullName,
+                RoleName = user.Role?.RoleName,
+                CampusName = user.Campus?.CampusName,
+                CampusId = user.CampusId
+            };
         }
     }
 }
