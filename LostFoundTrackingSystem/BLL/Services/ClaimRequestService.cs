@@ -19,8 +19,9 @@ namespace BLL.Services
         private readonly IReturnRecordRepository _returnRecordRepo;
         private readonly INotificationService _notifService;
         private readonly IItemActionLogService _itemActionLogService;
+        private readonly ILostItemRepository _lostItemRepo;
 
-        public ClaimRequestService(IClaimRequestRepository repo, IFoundItemRepository foundItemRepo, IImageRepository imageRepo, IImageService imageService, IReturnRecordRepository returnRecordRepo, INotificationService notifService, IItemActionLogService itemActionLogService)
+        public ClaimRequestService(IClaimRequestRepository repo, IFoundItemRepository foundItemRepo, IImageRepository imageRepo, IImageService imageService, IReturnRecordRepository returnRecordRepo, INotificationService notifService, IItemActionLogService itemActionLogService, ILostItemRepository lostItemRepo)
         {
             _repo = repo;
             _foundItemRepo = foundItemRepo;
@@ -29,30 +30,56 @@ namespace BLL.Services
             _returnRecordRepo = returnRecordRepo;
             _notifService = notifService;
             _itemActionLogService = itemActionLogService;
+            _lostItemRepo = lostItemRepo;
         }
 
         public async Task<ClaimRequestDto> CreateAsync(CreateClaimRequest request, int studentId)
         {
             var foundItem = await _foundItemRepo.GetByIdAsync(request.FoundItemId);
             if (foundItem == null) throw new Exception("Found item not found.");
+            
+            var lostItem = await _lostItemRepo.GetByIdAsync(request.LostItemId.Value);
+
+            bool hasEvidence = !string.IsNullOrEmpty(request.EvidenceTitle) ||
+                       !string.IsNullOrEmpty(request.EvidenceDescription) ||
+                       (request.EvidenceImages != null && request.EvidenceImages.Count > 0);
+
+            ClaimPriority priority = ClaimPriority.Low;
+            if (request.LostItemId.HasValue && hasEvidence)
+            {
+                priority = ClaimPriority.High;
+            }
+            else if (request.LostItemId.HasValue && hasEvidence)
+            {
+                priority = ClaimPriority.Medium; 
+            }
+            else
+            {
+                priority = ClaimPriority.Low; 
+            }
 
             var claimEntity = new ClaimRequest
             {
                 FoundItemId = request.FoundItemId,
+                LostItemId = request.LostItemId,
                 StudentId = studentId,
                 ClaimDate = DateTime.UtcNow,
-                Status = ClaimStatus.Pending.ToString()
+                Status = ClaimStatus.Pending.ToString(),
+                Priority = (int)priority
             };
 
-            var evidenceEntity = new Evidence
+            Evidence? evidenceEntity = null;
+            if (hasEvidence)
             {
-                Title = request.EvidenceTitle,
-                Description = request.EvidenceDescription,
-                CampusId = request.CampusId,
-                CreatedAt = DateTime.UtcNow,
-            };
-
-            claimEntity.Evidences.Add(evidenceEntity);
+                evidenceEntity = new Evidence
+                {
+                    Title = request.EvidenceTitle ?? "No Title", 
+                    Description = request.EvidenceDescription ?? "No Description",
+                    CampusId = request.CampusId,
+                    CreatedAt = DateTime.UtcNow,
+                };
+                claimEntity.Evidences.Add(evidenceEntity);
+            }
 
             await _repo.AddAsync(claimEntity);
 
@@ -61,7 +88,7 @@ namespace BLL.Services
                 FoundItemId = foundItem.FoundItemId,
                 ClaimRequestId = claimEntity.ClaimId,
                 ActionType = "Created",
-                ActionDetails = $"Claim request for found item '{foundItem.Title}' created with status '{claimEntity.Status}'.",
+                ActionDetails = $"Claim created. Priority: {priority}. Status: {claimEntity.Status}.",
                 NewStatus = claimEntity.Status,
                 PerformedBy = studentId,
                 CampusId = foundItem.CampusId
@@ -154,8 +181,11 @@ namespace BLL.Services
                 ClaimId = c.ClaimId,
                 ClaimDate = c.ClaimDate,
                 Status = c.Status,
+                Priority = ((ClaimPriority)c.Priority).ToString(),
                 FoundItemId = c.FoundItemId,
                 FoundItemTitle = c.FoundItem?.Title,
+                LostItemId = c.LostItemId,
+                LostItemTitle = c.LostItem?.Title,
                 StudentId = c.StudentId,
                 StudentName = c.Student?.FullName,
                 Evidences = c.Evidences.Select(e => new EvidenceDto
@@ -265,7 +295,7 @@ namespace BLL.Services
                                             {
                                                 await _notifService.SendNotificationAsync(rejectedStudentUserId, otherClaim.ClaimId, otherClaim.Status, rejectedMessage);
                                             }                        catch (Exception ex)
-                        {
+                                            {
                             Console.WriteLine($"Failed to send notification for rejected claim: {ex.Message}");
                         }
                     }
@@ -383,6 +413,45 @@ namespace BLL.Services
                 PerformedBy = userId,
                 CampusId = claim.FoundItem.CampusId
             });
+        }
+        public async Task UpdatePriorityAsync(int id, ClaimPriority priority)
+        {
+            var entity = await _repo.GetByIdAsync(id);
+            if (entity == null) throw new Exception("Claim request not found");
+            entity.Priority = (int)priority;
+            await _repo.UpdateAsync(entity);
+        }
+
+        public async Task RequestMoreEvidenceAsync(int claimId, string message, int staffId)
+        {
+            var claim = await _repo.GetByIdAsync(claimId);
+            if (claim == null) throw new Exception("Claim request not found.");
+
+            if (claim.StudentId.HasValue)
+            {
+                string studentUserId = claim.StudentId.Value.ToString();
+                try
+                {
+                    await _notifService.SendNotificationAsync(studentUserId, claimId, claim.Status, message);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Failed to send notification: {ex.Message}");
+                }
+            }
+
+            await _itemActionLogService.AddLogAsync(new ItemActionLogDto
+            {
+                ClaimRequestId = claim.ClaimId,
+                FoundItemId = claim.FoundItemId,
+                ActionType = "EvidenceRequested",
+                ActionDetails = $"Staff requested more evidence: {message}",
+                PerformedBy = staffId,
+                CampusId = claim.FoundItem?.CampusId
+            });
+        }
+    }
+}
         }
 
         public async Task ScanForConflictingClaimsAsync()

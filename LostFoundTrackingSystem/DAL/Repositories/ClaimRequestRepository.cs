@@ -23,6 +23,7 @@ namespace DAL.Repositories
             var query = _context.ClaimRequests
                 .Include(c => c.FoundItem)
                 .Include(c => c.Student)
+                .Include(c => c.LostItem)
                 .Include(c => c.Evidences).ThenInclude(e => e.Images)
                 .AsQueryable();
             if (status.HasValue)
@@ -38,6 +39,7 @@ namespace DAL.Repositories
             return await _context.ClaimRequests
                 .Include(c => c.FoundItem)
                 .Include(c => c.Student)
+                .Include(c => c.LostItem)
                 .Include(c => c.Evidences).ThenInclude(e => e.Images)
                 .FirstOrDefaultAsync(c => c.ClaimId == id);
         }
@@ -46,6 +48,7 @@ namespace DAL.Repositories
         {
             return await _context.ClaimRequests
                 .Include(c => c.FoundItem)
+                .Include(c => c.LostItem)
                 .Include(c => c.Evidences).ThenInclude(e => e.Images)
                 .Where(c => c.StudentId == studentId)
                 .ToListAsync();
@@ -74,6 +77,7 @@ namespace DAL.Repositories
                 .Where(c => c.FoundItemId == foundItemId)
                 .Include(c => c.FoundItem)
                 .Include(c => c.Student)
+                .Include(c => c.LostItem)
                 .Include(c => c.Evidences).ThenInclude(e => e.Images)
                 .ToListAsync();
         }

@@ -144,5 +144,44 @@ namespace LostFoundApi.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
+        [HttpPatch("{id}/priority")]
+        [Authorize(Roles = "Admin,Staff")] 
+        public async Task<IActionResult> UpdatePriority(int id, [FromQuery] ClaimPriority priority)
+        {
+            try
+            {
+                await _service.UpdatePriorityAsync(id, priority);
+                return Ok(new { message = $"Priority updated to {priority}" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+        // PUT: api/claim-requests/{id}/request-evidence
+        [HttpPut("{id}/request-evidence")]
+        [Authorize(Roles = "Admin,Staff")] // Chỉ Staff hoặc Admin mới được yêu cầu thêm bằng chứng
+        public async Task<IActionResult> RequestMoreEvidence(int id, [FromBody] RequestMoreEvidenceDTO request)
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null) return Unauthorized();
+            int staffId = int.Parse(userIdClaim.Value);
+
+            if (request == null || string.IsNullOrWhiteSpace(request.Message))
+            {
+                return BadRequest(new { message = "Message is required." });
+            }
+
+            try
+            {
+                await _service.RequestMoreEvidenceAsync(id, request.Message, staffId);
+
+                return Ok(new { message = "Request for more evidence sent successfully." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
     }
 }

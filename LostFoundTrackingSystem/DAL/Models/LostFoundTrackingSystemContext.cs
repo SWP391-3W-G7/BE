@@ -142,21 +142,12 @@ public partial class LostFoundTrackingSystemContext : DbContext
 
     
 
-                        modelBuilder.Entity<ClaimRequest>(entity =>
+                        modelBuilder.Entity<ClaimRequest>(entity =>    
+                        {  
+                            entity.HasKey(e => e.ClaimId).HasName("PK__ClaimReq__EF2E13BBBCB583AD");    
+           
 
-    
 
-                        {
-
-    
-
-                            entity.HasKey(e => e.ClaimId).HasName("PK__ClaimReq__EF2E13BBBCB583AD");
-
-    
-
-            
-
-    
 
                             entity.ToTable("ClaimRequest");
 
@@ -184,11 +175,11 @@ public partial class LostFoundTrackingSystemContext : DbContext
 
                             entity.Property(e => e.StudentId).HasColumnName("StudentID");
 
-    
 
-            
+                            entity.Property(e => e.LostItemId).HasColumnName("LostItemID");
 
-    
+
+
 
                             entity.HasOne(d => d.FoundItem).WithMany(p => p.ClaimRequests)
 
@@ -215,8 +206,10 @@ public partial class LostFoundTrackingSystemContext : DbContext
     
 
                                 .HasConstraintName("FK__ClaimRequ__Stude__14270015");
+                            entity.HasOne(d => d.LostItem).WithMany(p => p.ClaimRequests)
+                                    .HasForeignKey(d => d.LostItemId)
+                                    .HasConstraintName("FK_ClaimRequest_LostItem");
 
-    
 
                         });
 
