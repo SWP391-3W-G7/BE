@@ -450,9 +450,9 @@ namespace BLL.Services
                 CampusId = claim.FoundItem?.CampusId
             });
         }
-    }
-}
-        }
+    
+
+        
 
         public async Task ScanForConflictingClaimsAsync()
         {
