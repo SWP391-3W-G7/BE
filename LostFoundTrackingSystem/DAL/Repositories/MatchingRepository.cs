@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using LinqKit; // Added
 
 namespace DAL.Repositories
 {
@@ -57,15 +58,31 @@ namespace DAL.Repositories
                              f.CampusId == lostItem.CampusId &&
                              (f.Status == FoundItemStatus.Stored.ToString() || f.Status == FoundItemStatus.Open.ToString()));
 
-            // Simple keyword matching for title and description
+            // Build dynamic text matching conditions with OR logic
+            var titleDescriptionPredicate = PredicateBuilder.False<FoundItem>();
+
             if (!string.IsNullOrWhiteSpace(lostItem.Title))
             {
-                query = query.Where(f => f.Title.Contains(lostItem.Title) || f.Description.Contains(lostItem.Title));
+                var lowerLostItemTitle = lostItem.Title.ToLower();
+                titleDescriptionPredicate = titleDescriptionPredicate.Or(f =>
+                    f.Title.ToLower().Contains(lowerLostItemTitle) ||
+                    f.Description.ToLower().Contains(lowerLostItemTitle)
+                );
             }
 
             if (!string.IsNullOrWhiteSpace(lostItem.Description))
             {
-                query = query.Where(f => f.Description.Contains(lostItem.Description) || f.Title.Contains(lostItem.Description));
+                var lowerLostItemDescription = lostItem.Description.ToLower();
+                titleDescriptionPredicate = titleDescriptionPredicate.Or(f =>
+                    f.Description.ToLower().Contains(lowerLostItemDescription) ||
+                    f.Title.ToLower().Contains(lowerLostItemDescription)
+                );
+            }
+
+            // Only apply the title/description predicate if it has any conditions
+            if (titleDescriptionPredicate.Parameters.Any())
+            {
+                query = query.Where(titleDescriptionPredicate);
             }
 
             return await query.ToListAsync();

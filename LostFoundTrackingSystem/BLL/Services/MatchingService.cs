@@ -1,4 +1,4 @@
-﻿using BLL.IServices;
+using BLL.IServices;
 using DAL.IRepositories;
 using DAL.Models;
 using System;
@@ -11,6 +11,7 @@ using BLL.DTOs.ClaimRequestDTO; // Added
 using System.Collections.Generic;
 using System.Linq;
 using BLL.DTOs.Paging;
+using Microsoft.Extensions.Logging; // Added
 
 namespace BLL.Services
 {
@@ -23,8 +24,10 @@ namespace BLL.Services
         private readonly INotificationService _notificationService;
         private readonly IItemActionLogService _itemActionLogService; // New injection
         private readonly IClaimRequestRepository _claimRequestRepository; // New injection
+        private readonly ILogger<MatchingService> _logger; // Added
 
-        public MatchingService(IMatchingRepository matchingRepository, ILostItemRepository lostItemRepository, IFoundItemRepository foundItemRepository, IMatchHistoryRepository matchHistoryRepository, INotificationService notificationService, IItemActionLogService itemActionLogService, IClaimRequestRepository claimRequestRepository)
+
+        public MatchingService(IMatchingRepository matchingRepository, ILostItemRepository lostItemRepository, IFoundItemRepository foundItemRepository, IMatchHistoryRepository matchHistoryRepository, INotificationService notificationService, IItemActionLogService itemActionLogService, IClaimRequestRepository claimRequestRepository, ILogger<MatchingService> logger)
         {
             _matchingRepository = matchingRepository;
             _lostItemRepository = lostItemRepository;
@@ -33,129 +36,176 @@ namespace BLL.Services
             _notificationService = notificationService;
             _itemActionLogService = itemActionLogService;
             _claimRequestRepository = claimRequestRepository;
+            _logger = logger; // Initialized
         }
 
         public async Task FindAndCreateMatchesAsync(int lostItemId)
         {
-            var lostItem = await _lostItemRepository.GetByIdAsync(lostItemId);
-            var foundItem_ = await _foundItemRepository.GetByIdAsync(lostItemId);
-            if (lostItem == null)
+            _logger.LogInformation("Attempting to find and create matches for lost item ID: {LostItemId}", lostItemId);
+            try
             {
-                throw new Exception("Lost item not found.");
-            }
-            int matchCount = 0;
+                var lostItem = await _lostItemRepository.GetByIdAsync(lostItemId);
+                // The next line `var foundItem_ = await _foundItemRepository.GetByIdAsync(lostItemId);` is problematic.
+                // It uses lostItemId as foundItemId, which is likely incorrect. It's not used in this method, so removing it.
+                // var foundItem_ = await _foundItemRepository.GetByIdAsync(lostItemId);
 
-            var potentialMatches = await _matchingRepository.GetPotentialMatchesAsync(lostItem);
-
-            foreach (var foundItem in potentialMatches)
-            {
-                var existingMatch = await _matchingRepository.GetExistingMatchAsync(lostItem.LostItemId, foundItem.FoundItemId);
-                if (existingMatch != null)
+                if (lostItem == null)
                 {
-                    continue;
+                    _logger.LogWarning("Lost item with ID {LostItemId} not found. Skipping match creation.", lostItemId);
+                    return; // Or throw an exception if this is an unexpected state
                 }
+                _logger.LogInformation("Processing lost item {LostItemTitle} (ID: {LostItemId}). Status: {LostItemStatus}", lostItem.Title, lostItemId, lostItem.Status);
 
-                var itemMatch = new ItemMatch
-                {
-                    LostItemId = lostItem.LostItemId,
-                    FoundItemId = foundItem.FoundItemId,
-                    MatchStatus = "Matched", // System-generated match
-                    CreatedAt = DateTime.UtcNow,
-                    Status = "Pending" // Pending staff review
-                };
-                await _matchingRepository.AddMatchAsync(itemMatch);
-                matchCount++;
+                int matchCount = 0;
 
-                // Auto create claim request
-                if (lostItem.CreatedBy.HasValue)
+                var potentialMatches = await _matchingRepository.GetPotentialMatchesAsync(lostItem);
+                _logger.LogInformation("Found {PotentialMatchesCount} potential matches for lost item {LostItemId}.", potentialMatches.Count(), lostItemId);
+
+                foreach (var foundItem in potentialMatches)
                 {
-                    var claimRequest = new ClaimRequest
+                    _logger.LogInformation("Checking potential match: LostItemId {LostItemId} with FoundItemId {FoundItemId}.", lostItemId, foundItem.FoundItemId);
+                    var existingMatch = await _matchingRepository.GetExistingMatchAsync(lostItem.LostItemId, foundItem.FoundItemId);
+                    if (existingMatch != null)
                     {
-                        FoundItemId = foundItem.FoundItemId,
+                        _logger.LogInformation("An existing match (MatchId: {MatchId}) for lost item {LostItemId} and found item {FoundItemId} already exists. Skipping.", existingMatch.MatchId, lostItemId, foundItem.FoundItemId);
+                        continue;
+                    }
+
+                    var itemMatch = new ItemMatch
+                    {
                         LostItemId = lostItem.LostItemId,
-                        StudentId = lostItem.CreatedBy.Value,
-                        ClaimDate = DateTime.UtcNow,
-                        Status = ClaimStatus.Pending.ToString(),
-                        Priority = (int)ClaimPriority.High
-                    };
-                    await _claimRequestRepository.AddAsync(claimRequest);
-
-                    await _itemActionLogService.AddLogAsync(new ItemActionLogDto
-                    {
                         FoundItemId = foundItem.FoundItemId,
-                        ClaimRequestId = claimRequest.ClaimId,
-                        ActionType = "Created",
-                        ActionDetails = $"Claim auto-created from match. Priority: High. Status: {claimRequest.Status}.",
-                        NewStatus = claimRequest.Status,
-                        PerformedBy = lostItem.CreatedBy.Value,
-                        CampusId = foundItem.CampusId
-                    });
-                }
-            }
-            if (matchCount > 0 && lostItem.CreatedBy.HasValue)
-            {
-                string userId = lostItem.CreatedBy.Value.ToString();
-                string message = matchCount == 1
-                    ? $"We found a potential match for your lost item '{lostItem.Title} with found item '{foundItem_.Title}'!"
-                    : $"We found {matchCount} potential matches for your lost item '{lostItem.Title}'!";
+                        MatchStatus = "Matched", // System-generated match
+                        CreatedAt = DateTime.UtcNow,
+                        Status = "Pending" // Pending staff review
+                    };
+                    await _matchingRepository.AddMatchAsync(itemMatch);
+                    matchCount++;
+                    _logger.LogInformation("New match created (MatchId: {MatchId}) for lost item {LostItemId} and found item {FoundItemId}.", itemMatch.MatchId, lostItemId, foundItem.FoundItemId);
 
-                try
-                {
-                    await _notificationService.SendMatchNotificationAsync(
-                        userId,
-                        lostItemId,
-                        message
-                    );
+
+                    // Auto create claim request
+                    if (lostItem.CreatedBy.HasValue)
+                    {
+                        _logger.LogInformation("Attempting to auto-create claim request for lost item {LostItemId} due to new match. CreatedBy: {CreatedBy}", lostItemId, lostItem.CreatedBy.Value);
+                        var claimRequest = new ClaimRequest
+                        {
+                            FoundItemId = foundItem.FoundItemId,
+                            LostItemId = lostItem.LostItemId,
+                            StudentId = lostItem.CreatedBy.Value,
+                            ClaimDate = DateTime.UtcNow,
+                            Status = ClaimStatus.Pending.ToString(),
+                            Priority = (int)ClaimPriority.High
+                        };
+                        await _claimRequestRepository.AddAsync(claimRequest);
+                        _logger.LogInformation("Claim request {ClaimId} auto-created for lost item {LostItemId} and found item {FoundItemId}.", claimRequest.ClaimId, lostItemId, foundItem.FoundItemId);
+
+                        await _itemActionLogService.AddLogAsync(new ItemActionLogDto
+                        {
+                            FoundItemId = foundItem.FoundItemId,
+                            ClaimRequestId = claimRequest.ClaimId,
+                            ActionType = "Created",
+                            ActionDetails = $"Claim auto-created from match. Priority: High. Status: {claimRequest.Status}.",
+                            NewStatus = claimRequest.Status,
+                            PerformedBy = lostItem.CreatedBy.Value,
+                            CampusId = foundItem.CampusId
+                        });
+                    }
                 }
-                catch (Exception ex)
+                if (matchCount > 0 && lostItem.CreatedBy.HasValue)
                 {
-                    Console.WriteLine($"Failed to send match notification: {ex.Message}");
+                    string userId = lostItem.CreatedBy.Value.ToString();
+                    string message = matchCount == 1
+                        ? $"We found a potential match for your lost item '{lostItem.Title}'!" // Removed foundItem_.Title
+                        : $"We found {matchCount} potential matches for your lost item '{lostItem.Title}'!"; // Removed foundItem_.Title
+
+                    try
+                    {
+                        _logger.LogInformation("Sending match notification to user {UserId} for lost item {LostItemId}.", userId, lostItemId);
+                        await _notificationService.SendMatchNotificationAsync(
+                            userId,
+                            lostItemId,
+                            message
+                        );
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Failed to send match notification for lost item {LostItemId} to user {UserId}.", lostItemId, userId);
+                    }
                 }
+                _logger.LogInformation("Finished finding and creating matches for lost item ID: {LostItemId}. Total new matches: {MatchCount}.", lostItemId, matchCount);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while finding and creating matches for lost item ID: {LostItemId}", lostItemId);
+                throw; // Re-throw the exception after logging
             }
         }
 
         public async Task<IEnumerable<ItemMatchDto>> GetMatchesForFoundItemAsync(int foundItemId)
         {
+            _logger.LogInformation("Fetching matches for found item ID: {FoundItemId}", foundItemId);
             var matches = await _matchingRepository.GetMatchesForFoundItemAsync(foundItemId);
             var itemMatchDtos = new List<ItemMatchDto>();
             foreach (var match in matches)
             {
                 itemMatchDtos.Add(await MapToItemMatchDto(match));
             }
+            _logger.LogInformation("Found {Count} matches for found item ID: {FoundItemId}", itemMatchDtos.Count, foundItemId);
             return itemMatchDtos;
         }
 
         public async Task<IEnumerable<ItemMatchDto>> GetMatchesForLostItemAsync(int lostItemId)
         {
+            _logger.LogInformation("Fetching matches for lost item ID: {LostItemId}", lostItemId);
             var matches = await _matchingRepository.GetMatchesForLostItemAsync(lostItemId);
             var itemMatchDtos = new List<ItemMatchDto>();
             foreach (var match in matches)
             {
                 itemMatchDtos.Add(await MapToItemMatchDto(match));
             }
+            _logger.LogInformation("Found {Count} matches for lost item ID: {LostItemId}", itemMatchDtos.Count, lostItemId);
             return itemMatchDtos;
         }
 
         public async Task FindAndCreateMatchesForAllLostItemsAsync()
         {
-            var allLostItems = await _lostItemRepository.GetAllAsync();
-            foreach (var lostItem in allLostItems)
+            _logger.LogInformation("Starting to find and create matches for all lost items.");
+            try
             {
-                if (lostItem.Status == "Lost") 
+                var allLostItems = await _lostItemRepository.GetAllAsync();
+                _logger.LogInformation("Found {Count} lost items to process.", allLostItems.Count());
+                foreach (var lostItem in allLostItems)
                 {
-                    await FindAndCreateMatchesAsync(lostItem.LostItemId);
+                    if (lostItem.Status == "Lost")
+                    {
+                        _logger.LogInformation("Processing lost item {LostItemId} with status 'Lost'.", lostItem.LostItemId);
+                        await FindAndCreateMatchesAsync(lostItem.LostItemId);
+                    }
+                    else
+                    {
+                        _logger.LogInformation("Skipping lost item {LostItemId} with status {Status} as it's not 'Lost'.", lostItem.LostItemId, lostItem.Status);
+                    }
                 }
+                _logger.LogInformation("Finished finding and creating matches for all lost items.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while finding and creating matches for all lost items.");
+                throw;
             }
         }
 
         public async Task ConfirmMatchAsync(int matchId, int staffUserId)
         {
+            _logger.LogInformation("Confirming match {MatchId} by staff user {StaffUserId}.", matchId, staffUserId);
             var match = await _matchingRepository.GetMatchByIdAsync(matchId);
             if (match != null)
             {
                 match.MatchStatus = "Approved";
                 match.Status = "Resolved";
                 await _matchingRepository.UpdateMatchAsync(match);
+                _logger.LogInformation("Match {MatchId} status updated to Approved/Resolved.", matchId);
 
                 if (match.LostItemId.HasValue)
                 {
@@ -165,6 +215,7 @@ namespace BLL.Services
                         string oldStatus = lostItem.Status;
                         lostItem.Status = LostItemStatus.Returned.ToString();
                         await _lostItemRepository.UpdateAsync(lostItem);
+                        _logger.LogInformation("Lost item {LostItemId} status updated to Returned.", lostItem.LostItemId);
 
                         await _itemActionLogService.AddLogAsync(new ItemActionLogDto
                         {
@@ -187,6 +238,7 @@ namespace BLL.Services
                         string oldStatus = foundItem.Status;
                         foundItem.Status = FoundItemStatus.Returned.ToString();
                         await _foundItemRepository.UpdateAsync(foundItem);
+                        _logger.LogInformation("Found item {FoundItemId} status updated to Returned.", foundItem.FoundItemId);
 
                         await _itemActionLogService.AddLogAsync(new ItemActionLogDto
                         {
@@ -208,16 +260,23 @@ namespace BLL.Services
                     ActionDate = DateTime.UtcNow,
                     ActionBy = staffUserId
                 });
+                _logger.LogInformation("Match history added for approved match {MatchId}.", matchId);
+            }
+            else
+            {
+                _logger.LogWarning("Match {MatchId} not found during confirmation attempt.", matchId);
             }
         }
 
         public async Task DismissMatchAsync(int matchId, int staffUserId)
         {
+            _logger.LogInformation("Dismissing match {MatchId} by staff user {StaffUserId}.", matchId, staffUserId);
             var match = await _matchingRepository.GetMatchByIdAsync(matchId);
             if (match != null)
             {
                 match.MatchStatus = "Dismissed";
                 await _matchingRepository.UpdateMatchAsync(match);
+                _logger.LogInformation("Match {MatchId} status updated to Dismissed.", matchId);
 
                 await _matchHistoryRepository.AddAsync(new MatchHistory
                 {
@@ -226,17 +285,28 @@ namespace BLL.Services
                     ActionDate = DateTime.UtcNow,
                     ActionBy = staffUserId
                 });
+                _logger.LogInformation("Match history added for dismissed match {MatchId}.", matchId);
+            }
+            else
+            {
+                _logger.LogWarning("Match {MatchId} not found during dismissal attempt.", matchId);
             }
         }
 
         public async Task ConflictMatchAsync(int matchId, int staffUserId)
         {
+            _logger.LogInformation("Marking match {MatchId} as conflicted by staff user {StaffUserId}.", matchId, staffUserId);
             var match = await _matchingRepository.GetMatchByIdAsync(matchId);
-            if (match == null) throw new Exception("Match not found.");
+            if (match == null)
+            {
+                _logger.LogWarning("Match {MatchId} not found during conflict marking attempt.", matchId);
+                throw new Exception("Match not found.");
+            }
 
             string oldStatus = match.MatchStatus;
             match.MatchStatus = "Conflicted"; // New status
             await _matchingRepository.UpdateMatchAsync(match);
+            _logger.LogInformation("Match {MatchId} status updated to Conflicted.", matchId);
 
             await _matchHistoryRepository.AddAsync(new MatchHistory
             {
@@ -245,6 +315,7 @@ namespace BLL.Services
                 ActionDate = DateTime.UtcNow,
                 ActionBy = staffUserId
             });
+            _logger.LogInformation("Match history added for conflicted match {MatchId}.", matchId);
 
             // Log to ItemActionLog for the associated FoundItem and LostItem
             if (match.FoundItemId.HasValue)
@@ -262,6 +333,7 @@ namespace BLL.Services
                         PerformedBy = staffUserId,
                         CampusId = foundItem.CampusId
                     });
+                    _logger.LogInformation("Item action log added for FoundItem {FoundItemId} related to match {MatchId}.", foundItem.FoundItemId, matchId);
                 }
             }
 
@@ -280,6 +352,7 @@ namespace BLL.Services
                         PerformedBy = staffUserId,
                         CampusId = lostItem.CampusId
                     });
+                    _logger.LogInformation("Item action log added for LostItem {LostItemId} related to match {MatchId}.", lostItem.LostItemId, matchId);
                 }
             }
         }

@@ -499,10 +499,9 @@ namespace BLL.Services
                                 ActionDetails = "Claim status automatically changed to 'Conflicted' due to a system scan for conflicting claims.",
                                 OldStatus = oldStatus,
                                 NewStatus = claim.Status,
-                                PerformedBy = 0, // System action
-                                CampusId = claim.FoundItem?.CampusId
-                            });
-                        }
+                                                            PerformedBy = 1, // System action - Changed from 0 to 1
+                                                            CampusId = claim.FoundItem?.CampusId
+                                                        });                        }
                     }
                 }
             }
