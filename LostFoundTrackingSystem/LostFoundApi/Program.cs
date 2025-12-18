@@ -1,4 +1,14 @@
+using BLL.IServices;
+using BLL.Services;
+using DAL.IRepositories;
+using DAL.Models;
+using DAL.Repositories;
+using LostFoundApi.Hubs;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -47,6 +57,17 @@ builder.Services.AddSwaggerGen(c =>
             },
             Array.Empty<string>()
         }
+    });
+
+    c.OrderActionsBy((apiDesc) =>
+    {
+        var controller = apiDesc.ActionDescriptor.RouteValues["controller"];
+        return controller switch
+        {
+            "Users" => "0",
+            "Auth" => "1",
+            _ => controller
+        };
     });
 });
 
