@@ -81,5 +81,15 @@ namespace DAL.Repositories
             _context.ItemMatches.Update(itemMatch);
             await _context.SaveChangesAsync();
         }
+
+        public async Task<List<ItemMatch>> GetAllByStatusAsync(string status)
+        {
+            return await _context.ItemMatches
+                .Include(m => m.FoundItem)
+                .Include(m => m.LostItem)
+                .Include(m => m.CreatedByNavigation)
+                .Where(m => m.MatchStatus == status)
+                .ToListAsync();
+        }
     }
 }

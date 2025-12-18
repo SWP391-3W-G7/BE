@@ -4,6 +4,7 @@ using DAL.IRepositories;
 using DAL.Models;
 using DAL.Repositories;
 using LostFoundApi.Hubs;
+using LostFoundApi.HostedServices;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
@@ -103,6 +104,7 @@ builder.Services.AddScoped<IMatchingService, MatchingService>();
 
 builder.Services.AddScoped<IMatchHistoryRepository, MatchHistoryRepository>();
 builder.Services.AddHostedService<LostFoundApi.HostedServices.MatchingHostedService>();
+builder.Services.AddHostedService<ConflictingClaimsScannerService>();
 
 builder.Services.AddScoped<IReturnRecordRepository, ReturnRecordRepository>();
 builder.Services.AddScoped<IReturnRecordService, ReturnRecordService>();
@@ -116,6 +118,8 @@ builder.Services.AddScoped<IReportService, ReportService>();
 builder.Services.AddScoped<IEvidenceRepository, EvidenceRepository>();
 
 builder.Services.AddScoped<IAdminService, AdminService>();
+
+builder.Services.AddScoped<IStaffService, StaffService>();
 
 builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
 builder.Services.AddScoped<INotificationService, SignalRNotification>();

@@ -77,5 +77,10 @@ namespace DAL.Repositories
                 .Include(c => c.Evidences).ThenInclude(e => e.Images)
                 .ToListAsync();
         }
+
+        public async Task SaveChangesAsync()
+        {
+            await _context.SaveChangesAsync();
+        }
     }
 }

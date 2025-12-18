@@ -54,7 +54,7 @@ namespace LostFoundApi.Controllers
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
             if (userIdClaim == null) return Unauthorized();
             int currentUserId = int.Parse(userIdClaim.Value);
-            if (result.StudentId != currentUserId && !User.IsInRole("Admin, Staff")) return Forbid();
+            if (result.StudentId != currentUserId && !(User.IsInRole("Admin") || User.IsInRole("Staff"))) return Forbid();
 
             return Ok(result);
         }

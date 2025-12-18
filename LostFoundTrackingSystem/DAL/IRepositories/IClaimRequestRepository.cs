@@ -16,5 +16,6 @@ namespace DAL.IRepositories
         Task DeleteAsync(ClaimRequest request);
         Task<List<ClaimRequest>> GetAllAsync(ClaimStatus? status = null);
         Task<List<ClaimRequest>> GetByFoundItemIdAsync(int foundItemId);
+        Task SaveChangesAsync();
     }
 }

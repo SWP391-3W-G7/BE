@@ -13,5 +13,6 @@ namespace DAL.IRepositories
         Task<IEnumerable<FoundItem>> GetPotentialMatchesAsync(LostItem lostItem);
         Task<ItemMatch> GetMatchByIdAsync(int matchId);
         Task UpdateMatchAsync(ItemMatch itemMatch);
+        Task<List<ItemMatch>> GetAllByStatusAsync(string status);
     }
 }

@@ -67,6 +67,36 @@ namespace BLL.Services
                 CampusId = foundItem.CampusId
             });
 
+            // Check for conflicts
+            var allClaimsForFoundItem = await _repo.GetByFoundItemIdAsync(request.FoundItemId);
+            bool hasMultipleClaims = allClaimsForFoundItem.Count > 1;
+            bool hasConflictedClaims = allClaimsForFoundItem.Any(c => c.Status == ClaimStatus.Conflicted.ToString());
+
+            if (hasMultipleClaims || hasConflictedClaims)
+            {
+                foreach (var claim in allClaimsForFoundItem)
+                {
+                    if (claim.Status == ClaimStatus.Pending.ToString())
+                    {
+                        string oldStatus = claim.Status;
+                        claim.Status = ClaimStatus.Conflicted.ToString();
+                        
+                        await _itemActionLogService.AddLogAsync(new ItemActionLogDto
+                        {
+                            ClaimRequestId = claim.ClaimId,
+                            FoundItemId = claim.FoundItemId,
+                            ActionType = "StatusUpdate",
+                            ActionDetails = $"Claim request '{claim.ClaimId}' status automatically changed to 'Conflicted' due to multiple or existing conflicted claims.",
+                            OldStatus = oldStatus,
+                            NewStatus = claim.Status,
+                            PerformedBy = studentId, // System action
+                            CampusId = foundItem.CampusId
+                        });
+                    }
+                }
+                await _repo.SaveChangesAsync();
+            }
+
             if (request.EvidenceImages != null)
             {
                 foreach (var file in request.EvidenceImages)
@@ -353,6 +383,46 @@ namespace BLL.Services
                 PerformedBy = userId,
                 CampusId = claim.FoundItem.CampusId
             });
+        }
+
+        public async Task ScanForConflictingClaimsAsync()
+        {
+            var allClaims = await _repo.GetAllAsync();
+
+            var claimsByFoundItem = allClaims.GroupBy(c => c.FoundItemId);
+
+            foreach (var group in claimsByFoundItem)
+            {
+                if (!group.Key.HasValue) continue;
+
+                bool hasMultipleClaims = group.Count() > 1;
+                bool hasExistingConflict = group.Any(c => c.Status == ClaimStatus.Conflicted.ToString());
+
+                if (hasMultipleClaims || hasExistingConflict)
+                {
+                    foreach (var claim in group)
+                    {
+                        if (claim.Status == ClaimStatus.Pending.ToString())
+                        {
+                            string oldStatus = claim.Status;
+                            claim.Status = ClaimStatus.Conflicted.ToString();
+                            
+                            await _itemActionLogService.AddLogAsync(new ItemActionLogDto
+                            {
+                                ClaimRequestId = claim.ClaimId,
+                                FoundItemId = claim.FoundItemId,
+                                ActionType = "StatusUpdate",
+                                ActionDetails = "Claim status automatically changed to 'Conflicted' due to a system scan for conflicting claims.",
+                                OldStatus = oldStatus,
+                                NewStatus = claim.Status,
+                                PerformedBy = 0, // System action
+                                CampusId = claim.FoundItem?.CampusId
+                            });
+                        }
+                    }
+                }
+            }
+            await _repo.SaveChangesAsync();
         }
     }
 }
