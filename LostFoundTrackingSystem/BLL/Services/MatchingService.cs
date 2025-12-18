@@ -1,4 +1,4 @@
-using BLL.IServices;
+﻿using BLL.IServices;
 using DAL.IRepositories;
 using DAL.Models;
 using System;
@@ -10,6 +10,7 @@ using BLL.DTOs.MatchDTO;
 using BLL.DTOs.ClaimRequestDTO; // Added
 using System.Collections.Generic;
 using System.Linq;
+using BLL.DTOs.Paging;
 
 namespace BLL.Services
 {
@@ -390,6 +391,31 @@ namespace BLL.Services
             var match = await _matchingRepository.GetMatchByIdAsync(matchId);
             if (match == null) return null;
             return await MapToItemMatchDto(match);
+        }
+        public async Task<PagedResponse<ItemMatchDto>> GetAllMatchesPagingAsync(PagingParameters pagingParameters)
+        {
+            var (items, totalCount) = await _matchingRepository.GetMatchesPagingAsync(null, pagingParameters.PageNumber, pagingParameters.PageSize);
+
+            var dtoList = new List<ItemMatchDto>();
+            foreach (var item in items)
+            {
+                dtoList.Add(await MapToItemMatchDto(item));
+            }
+
+            return new PagedResponse<ItemMatchDto>(dtoList, totalCount, pagingParameters.PageNumber, pagingParameters.PageSize);
+        }
+
+        public async Task<PagedResponse<ItemMatchDto>> GetMyMatchesPagingAsync(int userId, PagingParameters pagingParameters)
+        {
+            var (items, totalCount) = await _matchingRepository.GetMatchesPagingAsync(userId, pagingParameters.PageNumber, pagingParameters.PageSize);
+
+            var dtoList = new List<ItemMatchDto>();
+            foreach (var item in items)
+            {
+                dtoList.Add(await MapToItemMatchDto(item));
+            }
+
+            return new PagedResponse<ItemMatchDto>(dtoList, totalCount, pagingParameters.PageNumber, pagingParameters.PageSize);
         }
     }
 }
