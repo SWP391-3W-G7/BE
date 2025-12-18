@@ -1,4 +1,5 @@
 ﻿using BLL.DTOs.ClaimRequestDTO;
+using BLL.DTOs.Paging;
 using DAL.Models;
 
 namespace BLL.IServices
@@ -6,6 +7,7 @@ namespace BLL.IServices
     public interface IClaimRequestService
     {
         Task<List<ClaimRequestDto>> GetAllAsync(ClaimStatus? status = null);
+        Task<PagedResponse<ClaimRequestDto>> GetAllPagingAsync(ClaimStatus? status, PagingParameters pagingParameters);
         Task<List<ClaimRequestDto>> GetMyClaimsAsync(int studentId);
         Task<ClaimRequestDto?> GetByIdAsync(int id);
         Task<ClaimRequestDto> CreateAsync(CreateClaimRequest request, int studentId);

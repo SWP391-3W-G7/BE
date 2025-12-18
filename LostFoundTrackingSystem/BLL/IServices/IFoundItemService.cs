@@ -1,4 +1,5 @@
 ﻿using BLL.DTOs.FoundItemDTO;
+using BLL.DTOs.Paging;
 using BLL.DTOs.Security;
 
 namespace BLL.IServices
@@ -6,6 +7,7 @@ namespace BLL.IServices
     public interface IFoundItemService
     {
         Task<IEnumerable<FoundItemDto>> GetFoundItemsAsync(FoundItemFilterDto filter);
+        Task<PagedResponse<FoundItemDto>> GetFoundItemsPagingAsync(FoundItemFilterDto filter, PagingParameters pagingParameters);
         Task<FoundItemDto?> GetByIdAsync(int id);
         Task<FoundItemDto> CreateAsync(CreateFoundItemRequest request, int createdBy, string initialStatus);
         Task<FoundItemDto> UpdateAsync(int id, UpdateFoundItemRequest request);
@@ -17,8 +19,8 @@ namespace BLL.IServices
         Task<FoundItemDetailsDto> GetFoundItemDetailsAsync(int foundItemId);
         Task<FoundItemDto?> GetFoundItemDetailsForUserAsync(int foundItemId);
         Task<FoundItemDto> UpdateStatusAsync(int id, UpdateFoundItemStatusRequest request, int staffId);
-                        Task<List<SecurityFoundItemDto>> GetOpenFoundItemsForSecurityOfficerAsync(int securityOfficerId);
-                        Task<IEnumerable<FoundItemDto>> GetByUserIdAsync(int userId);
+        Task<List<SecurityFoundItemDto>> GetOpenFoundItemsForSecurityOfficerAsync(int securityOfficerId);
+        Task<IEnumerable<FoundItemDto>> GetByUserIdAsync(int userId);
         Task<FoundItemDto> UpdateFoundItemAsync(int id, UpdateFoundItemDTO foundItem);
     }
 }

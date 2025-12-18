@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using BLL.DTOs.LostItemDTO;
+using BLL.DTOs.Paging;
 using BLL.IServices;
 using DAL.IRepositories;
 using DAL.Models;
@@ -197,6 +198,15 @@ namespace BLL.Services
             var items = await _repo.GetAllAsync();
 
             return await MapToDtoList(items);
+        }
+
+        public async Task<PagedResponse<LostItemDto>> GetAllPagingAsync(LostItemFilterDto filter, PagingParameters pagingParameters)
+        {
+            var (items, totalCount) = await _repo.GetLostItemsPagingAsync(filter.CampusId, filter.Status, pagingParameters.PageNumber, pagingParameters.PageSize);
+            
+            var dtoList = await MapToDtoList(items);
+
+            return new PagedResponse<LostItemDto>(dtoList, totalCount, pagingParameters.PageNumber, pagingParameters.PageSize);
         }
 
         public async Task<List<LostItemDto>> GetMyLostItemsAsync(int userId)

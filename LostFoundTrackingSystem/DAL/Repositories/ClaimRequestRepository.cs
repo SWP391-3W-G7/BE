@@ -82,6 +82,31 @@ namespace DAL.Repositories
                 .ToListAsync();
         }
 
+        public async Task<(List<ClaimRequest> Items, int TotalCount)> GetAllPagingAsync(ClaimStatus? status, int pageNumber, int pageSize)
+        {
+            var query = _context.ClaimRequests
+                .Include(c => c.FoundItem)
+                .Include(c => c.Student)
+                .Include(c => c.LostItem)
+                .Include(c => c.Evidences).ThenInclude(e => e.Images)
+                .AsQueryable();
+
+            if (status.HasValue)
+            {
+                string statusStr = status.ToString();
+                query = query.Where(c => c.Status == statusStr);
+            }
+
+            int totalCount = await query.CountAsync();
+
+            var items = await query
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return (items, totalCount);
+        }
+
         public async Task SaveChangesAsync()
         {
             await _context.SaveChangesAsync();

@@ -1,6 +1,7 @@
 using BLL.DTOs.ClaimRequestDTO;
 using BLL.DTOs.FoundItemDTO;
 using BLL.DTOs.LostItemDTO;
+using BLL.DTOs.Paging;
 using BLL.DTOs.Security;
 using BLL.IServices;
 using DAL.IRepositories;
@@ -40,6 +41,15 @@ namespace BLL.Services
         {
             var items = await _repo.GetFoundItemsAsync(filter.CampusId, filter.Status);
             return MapToDtoList(items.ToList());
+        }
+
+        public async Task<PagedResponse<FoundItemDto>> GetFoundItemsPagingAsync(FoundItemFilterDto filter, PagingParameters pagingParameters)
+        {
+            var (items, totalCount) = await _repo.GetFoundItemsPagingAsync(filter.CampusId, filter.Status, pagingParameters.PageNumber, pagingParameters.PageSize);
+            
+            var dtoList = MapToDtoList(items.ToList());
+
+            return new PagedResponse<FoundItemDto>(dtoList, totalCount, pagingParameters.PageNumber, pagingParameters.PageSize);
         }
 
         public async Task<FoundItemDto?> GetByIdAsync(int id)
@@ -405,75 +415,74 @@ namespace BLL.Services
 
             return await GetByIdAsync(entity.FoundItemId);
         }
-                public async Task<List<SecurityFoundItemDto>> GetOpenFoundItemsForSecurityOfficerAsync(int securityOfficerId)
+        public async Task<List<SecurityFoundItemDto>> GetOpenFoundItemsForSecurityOfficerAsync(int securityOfficerId)
+        {
+            var items = await _repo.GetByCreatedByAndStatusAsync(securityOfficerId, FoundItemStatus.Open.ToString());
+
+            return items.Select(f => new SecurityFoundItemDto
+            {
+                FoundItemId = f.FoundItemId,
+                Title = f.Title,
+                Description = f.Description,
+                FoundDate = (DateTime)f.FoundDate,
+                FoundLocation = f.FoundLocation,
+                Status = f.Status,
+                CategoryId = f.CategoryId,
+                CategoryName = f.Category?.CategoryName,
+                ImageUrls = f.Images.Select(i => i.ImageUrl).ToList()
+            }).ToList();
+        }
+
+        public async Task<IEnumerable<FoundItemDto>> GetByUserIdAsync(int userId)
+        {
+            var items = await _repo.GetByUserIdAsync(userId);
+            return MapToDtoList(items.ToList());
+        }
+
+        public async Task<FoundItemDto> UpdateFoundItemAsync(int id, UpdateFoundItemDTO foundItem)
+        {
+            var entity = await _repo.GetByIdAsync(id);
+            if (entity == null) throw new Exception("Found item not found");
+
+            if (!string.IsNullOrEmpty(foundItem.ItemName))
+            {
+                entity.Title = foundItem.ItemName;
+            }
+
+            if (!string.IsNullOrEmpty(foundItem.Description))
+            {
+                entity.Description = foundItem.Description;
+            }
+
+            if (foundItem.CategoryId.HasValue)
+            {
+                entity.CategoryId = foundItem.CategoryId.Value;
+            }
+
+            if (!string.IsNullOrEmpty(foundItem.LocationFound))
+            {
+                entity.FoundLocation = foundItem.LocationFound;
+            }
+            
+
+            await _repo.UpdateAsync(entity);
+
+            if (foundItem.Images != null)
+            {
+                foreach (var file in foundItem.Images)
                 {
-                    var items = await _repo.GetByCreatedByAndStatusAsync(securityOfficerId, FoundItemStatus.Open.ToString());
-        
-                    return items.Select(f => new SecurityFoundItemDto
+                    var url = await _imageService.UploadAsync(file);
+
+                    await _imageRepo.AddAsync(new Image
                     {
-                        FoundItemId = f.FoundItemId,
-                        Title = f.Title,
-                        Description = f.Description,
-                        FoundDate = (DateTime)f.FoundDate,
-                        FoundLocation = f.FoundLocation,
-                        Status = f.Status,
-                        CategoryId = f.CategoryId,
-                        CategoryName = f.Category?.CategoryName,
-                        ImageUrls = f.Images.Select(i => i.ImageUrl).ToList()
-                    }).ToList();
+                        FoundItemId = entity.FoundItemId,
+                        ImageUrl = url,
+                        UploadedAt = DateTime.UtcNow,
+                        UploadedBy = entity.CreatedBy
+                    });
                 }
-        
-                        public async Task<IEnumerable<FoundItemDto>> GetByUserIdAsync(int userId)
-                        {
-                            var items = await _repo.GetByUserIdAsync(userId);
-                            return MapToDtoList(items.ToList());
-                        }
-                
-                        public async Task<FoundItemDto> UpdateFoundItemAsync(int id, UpdateFoundItemDTO foundItem)
-                        {
-                            var entity = await _repo.GetByIdAsync(id);
-                            if (entity == null) throw new Exception("Found item not found");
-                
-                            if (!string.IsNullOrEmpty(foundItem.ItemName))
-                            {
-                                entity.Title = foundItem.ItemName;
-                            }
-                
-                            if (!string.IsNullOrEmpty(foundItem.Description))
-                            {
-                                entity.Description = foundItem.Description;
-                            }
-                
-                            if (foundItem.CategoryId.HasValue)
-                            {
-                                entity.CategoryId = foundItem.CategoryId.Value;
-                            }
-                
-                            if (!string.IsNullOrEmpty(foundItem.LocationFound))
-                            {
-                                entity.FoundLocation = foundItem.LocationFound;
-                            }
-                            
-                
-                            await _repo.UpdateAsync(entity);
-                
-                            if (foundItem.Images != null)
-                            {
-                                foreach (var file in foundItem.Images)
-                                {
-                                    var url = await _imageService.UploadAsync(file);
-                
-                                    await _imageRepo.AddAsync(new Image
-                                    {
-                                        FoundItemId = entity.FoundItemId,
-                                        ImageUrl = url,
-                                        UploadedAt = DateTime.UtcNow,
-                                        UploadedBy = entity.CreatedBy
-                                    });
-                                }
-                            }
-                            return await GetByIdAsync(entity.FoundItemId);
-                        }
-                    }
-                }
-                
+            }
+            return await GetByIdAsync(entity.FoundItemId);
+        }
+    }
+}

@@ -13,9 +13,9 @@ namespace DAL.IRepositories
         Task<List<FoundItem>> GetByCampusAsync(int campusId, string status);
         Task<List<FoundItem>> GetByCategoryAsync(int categoryId);
         Task<List<FoundItem>> SearchByTitleAsync(string title);
-                Task<List<FoundItem>> GetByCampusNameAndStatusAsync(string campusName, string status);
-                Task<List<FoundItem>> GetByCreatedByAndStatusAsync(int createdById, string status);
-                Task<IEnumerable<FoundItem>> GetByUserIdAsync(int userId);
-            }
-        }
-        
+        Task<List<FoundItem>> GetByCampusNameAndStatusAsync(string campusName, string status);
+        Task<List<FoundItem>> GetByCreatedByAndStatusAsync(int createdById, string status);
+        Task<IEnumerable<FoundItem>> GetByUserIdAsync(int userId);
+        Task<(IEnumerable<FoundItem> Items, int TotalCount)> GetFoundItemsPagingAsync(int? campusId, string status, int pageNumber, int pageSize);
+    }
+}

@@ -1,4 +1,5 @@
 using BLL.DTOs.ClaimRequestDTO;
+using BLL.DTOs.Paging;
 using BLL.IServices;
 using DAL.IRepositories;
 using DAL.Models;
@@ -152,6 +153,19 @@ namespace BLL.Services
                 dtoList.Add(await MapToDto(item));
             }
             return dtoList;
+        }
+
+        public async Task<PagedResponse<ClaimRequestDto>> GetAllPagingAsync(ClaimStatus? status, PagingParameters pagingParameters)
+        {
+            var (items, totalCount) = await _repo.GetAllPagingAsync(status, pagingParameters.PageNumber, pagingParameters.PageSize);
+            
+            var dtoList = new List<ClaimRequestDto>();
+            foreach (var item in items)
+            {
+                dtoList.Add(await MapToDto(item));
+            }
+
+            return new PagedResponse<ClaimRequestDto>(dtoList, totalCount, pagingParameters.PageNumber, pagingParameters.PageSize);
         }
 
         public async Task<List<ClaimRequestDto>> GetMyClaimsAsync(int studentId)
@@ -451,9 +465,6 @@ namespace BLL.Services
             });
         }
     
-
-        
-
         public async Task ScanForConflictingClaimsAsync()
         {
             var allClaims = await _repo.GetAllAsync();
