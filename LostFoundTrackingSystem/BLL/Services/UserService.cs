@@ -255,20 +255,19 @@ namespace BLL.Services
             var user = await _userRepository.GetUserByEmailAsync(email);
             if (user == null)
             {
-                var newUser = new User
-                {
-                    Email = email,
-                    FullName = fullName,
-                    RoleId = 1, // User
-                    Status = "Active",
-                    CampusId = 1
-                };
-                var addedUser = await _userRepository.AddUserAsync(newUser);
-                user = await _userRepository.GetUserByIdAsync(addedUser.UserId);
-            }
-            return GenerateJwtToken(user);
-        }
-
+                        var newUser = new User
+                        {
+                            Email = email,
+                            FullName = fullName,
+                            RoleId = 1, // User
+                            Status = "Active",
+                            CampusId = null
+                        };
+                        var addedUser = await _userRepository.AddUserAsync(newUser);
+                        user = await _userRepository.GetUserByIdAsync(addedUser.UserId);
+                    }
+                    return GenerateJwtToken(user);
+                }
         public async Task<UserDto> UpdateUserProfileAsync(int userId, UpdateUserProfileDto userProfileDto)
         {
             var user = await _userRepository.GetUserByIdAsync(userId);
@@ -315,27 +314,26 @@ namespace BLL.Services
                 {
                     new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
                     new Claim(ClaimTypes.Email, user.Email),
-                    new Claim(ClaimTypes.Role, user.Role.RoleName),
-                    new Claim("CampusName", user.Campus.CampusName),
-                    new Claim("CampusId", user.CampusId.ToString())
-                }),
-                Expires = DateTime.UtcNow.AddDays(7),
-                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
-                Issuer = _configuration["Jwt:Issuer"],
-                Audience = _configuration["Jwt:Audience"]
-            };
-            var token = tokenHandler.CreateToken(tokenDescriptor);
-            var tokenString = tokenHandler.WriteToken(token);
-
-            return new UserLoginResponseDto
-            {
-                Token = tokenString,
-                Email = user.Email,
-                FullName = user.FullName,
-                RoleName = user.Role?.RoleName,
-                CampusName = user.Campus?.CampusName,
-                CampusId = user.CampusId
-            };
-        }
-    }
+                                new Claim(ClaimTypes.Role, user.Role?.RoleName ?? string.Empty),
+                                new Claim("CampusName", user.Campus?.CampusName ?? string.Empty),
+                                new Claim("CampusId", user.CampusId?.ToString() ?? string.Empty)
+                            }),
+                            Expires = DateTime.UtcNow.AddDays(7),
+                            SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
+                            Issuer = _configuration["Jwt:Issuer"],
+                            Audience = _configuration["Jwt:Audience"]
+                        };
+                        var token = tokenHandler.CreateToken(tokenDescriptor);
+                        var tokenString = tokenHandler.WriteToken(token);
+                    
+                        return new UserLoginResponseDto
+                        {
+                            Token = tokenString,
+                            Email = user.Email,
+                            FullName = user.FullName,
+                            RoleName = user.Role?.RoleName,
+                            CampusName = user.Campus?.CampusName,
+                            CampusId = user.CampusId
+                        };
+                    }    }
 }
