@@ -35,6 +35,10 @@ namespace LostFoundApi.Controllers
                 return BadRequest();
 
             var email = authenticateResult.Principal.FindFirstValue(ClaimTypes.Email);
+            if (string.IsNullOrEmpty(email))
+            {
+                return BadRequest("Email not found in Google account.");
+            }
             var name = authenticateResult.Principal.FindFirstValue(ClaimTypes.Name);
 
             var token = await _userService.LoginWithGoogleAsync(email, name);
