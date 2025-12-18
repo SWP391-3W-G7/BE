@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using DAL.Models;
+using Microsoft.AspNetCore.Http;
 using System.ComponentModel.DataAnnotations;
 
 namespace BLL.DTOs.ClaimRequestDTO
@@ -10,7 +11,7 @@ namespace BLL.DTOs.ClaimRequestDTO
 
         [Required]
         public string EvidenceDescription { get; set; } = null!;
-
+        public ClaimPriority Priority { get; set; }
         public List<IFormFile>? NewImages { get; set; }
     }
 }

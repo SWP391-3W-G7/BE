@@ -34,4 +34,5 @@ public partial class LostItem
 
     public virtual ICollection<ItemMatch> ItemMatches { get; set; } = new List<ItemMatch>();
     public virtual ReturnRecord ReturnRecord { get; set; }
+    public virtual ICollection<ClaimRequest> ClaimRequests { get; set; } = new List<ClaimRequest>();
 }

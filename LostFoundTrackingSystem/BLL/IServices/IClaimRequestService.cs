@@ -13,5 +13,7 @@ namespace BLL.IServices
         Task<ClaimRequestDto> UpdateStatusAsync(int id, ClaimStatus status, int staffId);
         Task ConflictClaimAsync(int claimId, int staffUserId);
         Task AddEvidenceToClaimAsync(int claimId, AddEvidenceRequest request, int userId);
+        Task UpdatePriorityAsync(int id, ClaimPriority priority);
+        Task RequestMoreEvidenceAsync(int claimId, string message, int staffId);
     }
 }
