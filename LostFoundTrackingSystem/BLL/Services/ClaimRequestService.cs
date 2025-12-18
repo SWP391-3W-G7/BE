@@ -356,6 +356,38 @@ namespace BLL.Services
             return await GetByIdAsync(entity.ClaimId);
         }
 
+        public async Task RequestMoreEvidenceAsync(int claimId, string message, int staffId)
+        {
+            var claim = await _repo.GetByIdAsync(claimId);
+            if (claim == null) throw new Exception("Claim request not found.");
+
+            message += $"Your claim request (ID: {claim.FoundItem.Title}) need more evidences.";
+
+            if (claim.StudentId.HasValue)
+            {
+                string studentUserId = claim.StudentId.Value.ToString();
+                try
+                {
+                    await _notifService.SendNotificationAsync(studentUserId, claimId, claim.Status, message);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Failed to send notification: {ex.Message}");
+                }
+            }
+
+            await _itemActionLogService.AddLogAsync(new ItemActionLogDto
+            {
+                ClaimRequestId = claim.ClaimId,
+                FoundItemId = claim.FoundItemId,
+                ActionType = "EvidenceRequested",
+                ActionDetails = $"Staff requested more evidence: {message}",
+                PerformedBy = staffId,
+                CampusId = claim.FoundItem?.CampusId
+            });
+        }
+
+
         public async Task ConflictClaimAsync(int claimId, int staffUserId)
         {
             var entity = await _repo.GetByIdAsync(claimId);
@@ -436,35 +468,7 @@ namespace BLL.Services
             await _repo.UpdateAsync(entity);
         }
 
-        public async Task RequestMoreEvidenceAsync(int claimId, string message, int staffId)
-        {
-            var claim = await _repo.GetByIdAsync(claimId);
-            if (claim == null) throw new Exception("Claim request not found.");
-
-            if (claim.StudentId.HasValue)
-            {
-                string studentUserId = claim.StudentId.Value.ToString();
-                try
-                {
-                    await _notifService.SendNotificationAsync(studentUserId, claimId, claim.Status, message);
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Failed to send notification: {ex.Message}");
-                }
-            }
-
-            await _itemActionLogService.AddLogAsync(new ItemActionLogDto
-            {
-                ClaimRequestId = claim.ClaimId,
-                FoundItemId = claim.FoundItemId,
-                ActionType = "EvidenceRequested",
-                ActionDetails = $"Staff requested more evidence: {message}",
-                PerformedBy = staffId,
-                CampusId = claim.FoundItem?.CampusId
-            });
-        }
-    
+        
         public async Task ScanForConflictingClaimsAsync()
         {
             var allClaims = await _repo.GetAllAsync();
