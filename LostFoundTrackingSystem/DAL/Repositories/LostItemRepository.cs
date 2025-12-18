@@ -98,5 +98,33 @@ namespace DAL.Repositories
                 .Where(l => l.CreatedBy == userId)
                 .ToListAsync();
         }
+
+        public async Task<(List<LostItem> Items, int TotalCount)> GetLostItemsPagingAsync(int? campusId, string status, int pageNumber, int pageSize)
+        {
+            var query = _context.LostItems
+                .Include(l => l.Images)
+                .Include(l => l.Campus)
+                .Include(l => l.Category)
+                .AsQueryable();
+
+            if (campusId.HasValue)
+            {
+                query = query.Where(l => l.CampusId == campusId.Value);
+            }
+
+            if (!string.IsNullOrEmpty(status))
+            {
+                query = query.Where(l => l.Status == status);
+            }
+
+            int totalCount = await query.CountAsync();
+
+            var items = await query
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return (items, totalCount);
+        }
     }
 }

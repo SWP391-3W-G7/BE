@@ -1,4 +1,5 @@
 using BLL.DTOs.FoundItemDTO;
+using BLL.DTOs.Paging;
 using BLL.IServices;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -23,9 +24,9 @@ namespace LostFoundApi.Controllers
         }
 
         [HttpGet("")]
-        public async Task<IActionResult> GetAll([FromQuery] FoundItemFilterDto filter)
+        public async Task<IActionResult> GetAll([FromQuery] FoundItemFilterDto filter, [FromQuery] PagingParameters pagingParameters)
         {
-            var result = await _foundItemService.GetFoundItemsAsync(filter);
+            var result = await _foundItemService.GetFoundItemsPagingAsync(filter, pagingParameters);
             return Ok(result);
         }
 
@@ -140,190 +141,66 @@ namespace LostFoundApi.Controllers
             }
         }
 
-                [HttpGet("{id}/user-details")]
-
-                [Authorize(Roles = "User,Security Officer,Staff,Admin")] // Accessible to all authenticated users
-
-                public async Task<IActionResult> GetFoundItemDetailsForUser(int id)
-
-                {
-
-                    try
-
-                    {
-
-                        var result = await _foundItemService.GetFoundItemDetailsForUserAsync(id);
-
-                        if (result == null) return NotFound();
-
-                        return Ok(result);
-
-                    }
-
-                    catch (Exception ex)
-
-                    {
-
-                        return BadRequest(new { message = ex.Message });
-
-                    }
-
-                }
-
-        
-
-                [HttpGet("my-found-items")]
-
-                        [Authorize]
-
-                        public async Task<IActionResult> GetFoundItemsByUserId()
-
-                        {
-
-                            try
-
-                            {
-
-                                var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
-
-                                var result = await _foundItemService.GetByUserIdAsync(userId);
-
-                                return Ok(result);
-
-                            }
-
-                            catch (Exception ex)
-
-                            {
-
-                                return BadRequest(new { message = ex.Message });
-
-                            }
-
-                        }
-
-                
-
-                                [HttpPut("{id}")]
-
-                
-
-                                [Authorize]
-
-                
-
-                                public async Task<IActionResult> UpdateFoundItem(int id, [FromForm] UpdateFoundItemDTO request)
-
-                
-
-                                {
-
-                
-
-                                    try
-
-                
-
-                                    {
-
-                
-
-                                        var result = await _foundItemService.UpdateFoundItemAsync(id, request);
-
-                
-
-                                        return Ok(result);
-
-                
-
-                                    }
-
-                
-
-                                    catch (Exception ex)
-
-                
-
-                                    {
-
-                
-
-                                        return BadRequest(new { message = ex.Message });
-
-                
-
-                                    }
-
-                
-
-                                }
-
-                
-
-                        
-
-                
-
-                                [HttpDelete("{id}")]
-
-                
-
-                                [Authorize]
-
-                
-
-                                public async Task<IActionResult> DeleteFoundItem(int id)
-
-                
-
-                                {
-
-                
-
-                                    try
-
-                
-
-                                    {
-
-                
-
-                                        await _foundItemService.DeleteAsync(id);
-
-                
-
-                                        return NoContent();
-
-                
-
-                                    }
-
-                
-
-                                    catch (Exception ex)
-
-                
-
-                                    {
-
-                
-
-                                        return BadRequest(new { message = ex.Message });
-
-                
-
-                                    }
-
-                
-
-                                }
-
-                
-
-                            }
-
-                
-
-                        }
-
-        
+        [HttpGet("{id}/user-details")]
+        [Authorize(Roles = "User,Security Officer,Staff,Admin")] // Accessible to all authenticated users
+        public async Task<IActionResult> GetFoundItemDetailsForUser(int id)
+        {
+            try
+            {
+                var result = await _foundItemService.GetFoundItemDetailsForUserAsync(id);
+                if (result == null) return NotFound();
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        [HttpGet("my-found-items")]
+        [Authorize]
+        public async Task<IActionResult> GetFoundItemsByUserId()
+        {
+            try
+            {
+                var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+                var result = await _foundItemService.GetByUserIdAsync(userId);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        [HttpPut("{id}")]
+        [Authorize]
+        public async Task<IActionResult> UpdateFoundItem(int id, [FromForm] UpdateFoundItemDTO request)
+        {
+            try
+            {
+                var result = await _foundItemService.UpdateFoundItemAsync(id, request);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        [HttpDelete("{id}")]
+        [Authorize]
+        public async Task<IActionResult> DeleteFoundItem(int id)
+        {
+            try
+            {
+                await _foundItemService.DeleteAsync(id);
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+    }
+}

@@ -1,4 +1,5 @@
 using BLL.DTOs.ClaimRequestDTO;
+using BLL.DTOs.Paging;
 using BLL.IServices;
 using DAL.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -61,10 +62,11 @@ namespace LostFoundApi.Controllers
 
         [HttpGet]
         [Authorize(Roles = "Staff,Admin")] // 2=Staff, 4=Admin
-        public async Task<IActionResult> GetAll([FromQuery] ClaimStatus? status)
+        public async Task<IActionResult> GetAll([FromQuery] ClaimStatus? status, [FromQuery] PagingParameters pagingParameters)
         {
-            return Ok(await _service.GetAllAsync(status));
+            return Ok(await _service.GetAllPagingAsync(status, pagingParameters));
         }
+
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromForm] UpdateClaimRequest request)
         {

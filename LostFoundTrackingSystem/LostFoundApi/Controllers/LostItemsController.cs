@@ -1,5 +1,6 @@
 ﻿using System.Security.Claims;
 using BLL.DTOs.LostItemDTO; // Added
+using BLL.DTOs.Paging;
 using BLL.IServices;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -18,9 +19,9 @@ namespace LostFoundApi.Controllers
         }
         [HttpGet]
         [AllowAnonymous]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery] LostItemFilterDto filter, [FromQuery] PagingParameters pagingParameters)
         {
-            return Ok(await _service.GetAllAsync());
+            return Ok(await _service.GetAllPagingAsync(filter, pagingParameters));
         }
         [HttpGet("{id}")]
         [AllowAnonymous]

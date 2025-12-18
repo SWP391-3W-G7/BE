@@ -1,10 +1,12 @@
 ﻿using BLL.DTOs.LostItemDTO;
+using BLL.DTOs.Paging;
 
 namespace BLL.IServices
 {
     public interface ILostItemService
     {
         Task<List<LostItemDto>> GetAllAsync();
+        Task<PagedResponse<LostItemDto>> GetAllPagingAsync(LostItemFilterDto filter, PagingParameters pagingParameters);
         Task<LostItemDto?> GetByIdAsync(int id);
         Task<LostItemDto> CreateAsync(CreateLostItemRequest request, int createdBy);
         Task<LostItemDto> UpdateAsync(int id, UpdateLostItemRequest request);

@@ -119,25 +119,52 @@ namespace DAL.Repositories
                 .Where(f => f.Campus != null && f.Campus.CampusName == campusName && f.Status == status)
                 .ToListAsync();
         }
-                public async Task<List<FoundItem>> GetByCreatedByAndStatusAsync(int createdById, string status)
-                {
-                    return await _context.FoundItems
-                        .Include(f => f.Images)
-                        .Include(f => f.Campus)
-                        .Include(f => f.Category)
-                        .Where(f => f.CreatedBy == createdById && f.Status == status)
-                        .ToListAsync();
-                }
-        
-                public async Task<IEnumerable<FoundItem>> GetByUserIdAsync(int userId)
-                {
-                    return await _context.FoundItems
-                        .Include(f => f.Images)
-                        .Include(f => f.Campus)
-                        .Include(f => f.Category)
-                        .Where(f => f.CreatedBy == userId)
-                        .ToListAsync();
-                }
-            }
+        public async Task<List<FoundItem>> GetByCreatedByAndStatusAsync(int createdById, string status)
+        {
+            return await _context.FoundItems
+                .Include(f => f.Images)
+                .Include(f => f.Campus)
+                .Include(f => f.Category)
+                .Where(f => f.CreatedBy == createdById && f.Status == status)
+                .ToListAsync();
         }
-        
+
+        public async Task<IEnumerable<FoundItem>> GetByUserIdAsync(int userId)
+        {
+            return await _context.FoundItems
+                .Include(f => f.Images)
+                .Include(f => f.Campus)
+                .Include(f => f.Category)
+                .Where(f => f.CreatedBy == userId)
+                .ToListAsync();
+        }
+
+        public async Task<(IEnumerable<FoundItem> Items, int TotalCount)> GetFoundItemsPagingAsync(int? campusId, string status, int pageNumber, int pageSize)
+        {
+            var query = _context.FoundItems
+                .Include(f => f.Images)
+                .Include(f => f.Campus)
+                .Include(f => f.Category)
+                .AsQueryable();
+
+            if (campusId.HasValue)
+            {
+                query = query.Where(f => f.CampusId == campusId.Value);
+            }
+
+            if (!string.IsNullOrEmpty(status))
+            {
+                query = query.Where(f => f.Status == status);
+            }
+
+            int totalCount = await query.CountAsync();
+
+            var items = await query
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return (items, totalCount);
+        }
+    }
+}
