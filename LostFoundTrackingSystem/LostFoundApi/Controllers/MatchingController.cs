@@ -3,7 +3,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using BLL.DTOs.MatchDTO; // Added to access ItemMatchDto
+using BLL.DTOs.MatchDTO;
+using BLL.DTOs.Paging; // Added to access ItemMatchDto
 
 namespace LostFoundApi.Controllers
 {
@@ -96,5 +97,36 @@ namespace LostFoundApi.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
+        [HttpGet]
+        [Authorize(Roles = "Staff,Admin")]
+        public async Task<IActionResult> GetAllMatches([FromQuery] PagingParameters pagingParameters)
+        {
+            try
+            {
+                var result = await _matchingService.GetAllMatchesPagingAsync(pagingParameters);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+        //[Authorize]
+        //public async Task<IActionResult> GetMyMatches([FromQuery] PagingParameters pagingParameters)
+        //{
+        //    try
+        //    {
+        //        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+        //        if (userIdClaim == null) return Unauthorized();
+        //        int userId = int.Parse(userIdClaim.Value);
+
+        //        var result = await _matchingService.GetMyMatchesPagingAsync(userId, pagingParameters);
+        //        return Ok(result);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return BadRequest(new { message = ex.Message });
+        //    }
+        //}
     }
 }
