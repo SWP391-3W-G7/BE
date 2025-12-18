@@ -255,15 +255,15 @@ namespace BLL.Services
             var user = await _userRepository.GetUserByEmailAsync(email);
             if (user == null)
             {
-                        var newUser = new User
-                        {
-                            Email = email,
-                            FullName = fullName,
-                            RoleId = 1, // User
-                            Status = "Active",
-                            CampusId = null
-                        };
-                        var addedUser = await _userRepository.AddUserAsync(newUser);
+                                var newUser = new User
+                                {
+                                    Username = email,
+                                    Email = email,
+                                    FullName = fullName,
+                                    RoleId = 1, // User
+                                    Status = "Active",
+                                    CampusId = null
+                                };                        var addedUser = await _userRepository.AddUserAsync(newUser);
                         user = await _userRepository.GetUserByIdAsync(addedUser.UserId);
                     }
                     return GenerateJwtToken(user);
