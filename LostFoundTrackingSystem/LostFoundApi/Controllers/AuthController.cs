@@ -118,7 +118,7 @@ namespace LostFoundApi.Controllers
             }
         }
 
-        private IActionResult ReturnSuccessHtml(BLL.DTOs.UserDTO.UserLoginResponseDto token)
+        private IActionResult ReturnSuccessHtml(BLL.DTOs.UserLoginResponseDto token)
         {
             var html = $@"
 <!DOCTYPE html>
