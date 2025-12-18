@@ -75,8 +75,28 @@ namespace DAL.Repositories
         {
             return await _context.ItemMatches
                 .Include(m => m.LostItem)
+                    .ThenInclude(li => li.Campus)
+                .Include(m => m.LostItem)
+                    .ThenInclude(li => li.Category)
+                .Include(m => m.LostItem)
+                    .ThenInclude(li => li.Images)
                 .Include(m => m.FoundItem)
+                    .ThenInclude(fi => fi.Campus)
+                .Include(m => m.FoundItem)
+                    .ThenInclude(fi => fi.Category)
+                .Include(m => m.FoundItem)
+                    .ThenInclude(fi => fi.Images)
+                .Include(m => m.FoundItem)
+                    .ThenInclude(fi => fi.ClaimRequests)
+                        .ThenInclude(cr => cr.Evidences)
+                            .ThenInclude(e => e.Images)
+                .Include(m => m.FoundItem)
+                    .ThenInclude(fi => fi.ClaimRequests)
+                        .ThenInclude(cr => cr.Student)
                 .Include(m => m.CreatedByNavigation)
+                    .ThenInclude(cbn => cbn.Role)
+                .Include(m => m.CreatedByNavigation)
+                    .ThenInclude(cbn => cbn.Campus)
                 .FirstOrDefaultAsync(m => m.MatchId == matchId);
         }
 

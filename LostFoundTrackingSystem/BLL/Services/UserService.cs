@@ -250,24 +250,52 @@ namespace BLL.Services
             };
         }
 
-        public async Task<UserLoginResponseDto> LoginWithGoogleAsync(string email, string fullName)
+        // Update this method in your UserService class
+
+        public async Task<UserLoginResponseDto> LoginWithGoogleAsync(string email, string fullName, int? campusId = null)
         {
             var user = await _userRepository.GetUserByEmailAsync(email);
+
             if (user == null)
             {
-                                var newUser = new User
-                                {
-                                    Username = email,
-                                    Email = email,
-                                    FullName = fullName,
-                                    RoleId = 1, // User
-                                    Status = "Active",
-                                    CampusId = null
-                                };                        var addedUser = await _userRepository.AddUserAsync(newUser);
-                        user = await _userRepository.GetUserByIdAsync(addedUser.UserId);
-                    }
-                    return GenerateJwtToken(user);
+                // Create new user from Google login with campus
+                var newUser = new User
+                {
+                    Username = email,
+                    Email = email,
+                    FullName = fullName,
+                    RoleId = 1, // User role
+                    Status = "Active",
+                    CampusId = campusId, // Set campus from parameter
+                    PasswordHash = string.Empty // Google users don't have password
+                };
+
+                var addedUser = await _userRepository.AddUserAsync(newUser);
+
+                // CRITICAL: Fetch the user again to ensure navigation properties are loaded
+                user = await _userRepository.GetUserByIdAsync(addedUser.UserId);
+            }
+            else
+            {
+                // If user exists but doesn't have a campus, and campusId is provided, update it
+                if (user.CampusId == null && campusId.HasValue)
+                {
+                    user.CampusId = campusId;
+                    await _userRepository.UpdateAsync(user);
+
+                    // Reload to get the updated Campus navigation property
+                    user = await _userRepository.GetUserByIdAsync(user.UserId);
                 }
+            }
+
+            // Check if account is banned
+            if (user.Status == "Banned")
+            {
+                throw new Exception("Your account has been banned.");
+            }
+
+            return GenerateJwtToken(user);
+        }
         public async Task<UserDto> UpdateUserProfileAsync(int userId, UpdateUserProfileDto userProfileDto)
         {
             var user = await _userRepository.GetUserByIdAsync(userId);

@@ -1,6 +1,7 @@
 using BLL.DTOs;
 using BLL.DTOs.AdminDTO;
 using BLL.DTOs.UserDTO;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace BLL.IServices
@@ -15,9 +16,8 @@ namespace BLL.IServices
         Task<UserDto> UpdateUserByAdminAsync(int userId, AdminUpdateUserDto updateDto);
         Task UpdateUserBanStatusAsync(int userId, bool isBan);
         Task<UserDto> GetByEmailAsync(string email);
-        Task<UserLoginResponseDto> LoginWithGoogleAsync(string email, string fullName);
+        Task<UserLoginResponseDto> LoginWithGoogleAsync(string email, string fullName, int? campusId = null); // Updated signature
         Task<UserDto> UpdateUserProfileAsync(int userId, UpdateUserProfileDto userProfileDto);
         Task ChangePasswordAsync(int userId, ChangePasswordDto changePasswordDto);
     }
 }
-

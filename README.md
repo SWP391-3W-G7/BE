@@ -253,6 +253,9 @@ The API uses JWT (JSON Web Tokens) for authentication. Users must obtain a token
 -   **`GET /api/Matching/lost-item/{lostItemId}`**
     -   **Description:** Retrieves all `ItemMatch` records associated with a specific lost item, including details of the found item, lost item, and related claim requests.
     -   **Authorization:** None (Accessible to all authenticated users).
+-   **`GET /api/Matching/{matchId}`**
+    -   **Description:** Retrieves the details of a specific `ItemMatch` by its ID, including the associated `LostItem` and `FoundItem`.
+    -   **Authorization:** Authenticated users.
 -   **`PUT /api/Matching/{matchId}/confirm`**
     -   **Description:** Confirms a specific `ItemMatch`, marking it as "Approved" and "Resolved". Updates associated Lost and Found item statuses to "Returned".
     -   **Authorization:** `Staff`, `Admin`
@@ -272,6 +275,15 @@ The API uses JWT (JSON Web Tokens) for authentication. Users must obtain a token
     -   **Description:** Updates the status of a specific found item to "Returned".
     -   **Authorization:** `Security Officer`
     -   **Request Body:** None (status is implicitly "Returned" in the endpoint logic).
+
+### StaffController (`/api/staff`)
+
+-   **`GET /api/staff/work-items`**
+    -   **Description:** Retrieves a paginated list of work items for the authenticated staff member, including pending/conflicted claims and matched items, filtered by the staff member's campus.
+    -   **Authorization:** `Staff`
+    -   **Query Parameters:**
+        -   `pageNumber` (integer, optional, default 1): The page number to retrieve.
+        -   `pageSize` (integer, optional, default 10): The number of items per page.
 
 ### ItemActionLogsController (`/api/item-action-logs`)
 
