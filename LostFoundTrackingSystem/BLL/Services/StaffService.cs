@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using BLL.DTOs.LostItemDTO;
 using BLL.DTOs.FoundItemDTO;
 using BLL.DTOs;
+using BLL.DTOs.Paging;
 
 namespace BLL.Services
 {
@@ -28,34 +29,49 @@ namespace BLL.Services
             _claimRequestService = claimRequestService;
         }
 
-        public async Task<StaffWorkItemsDto> GetWorkItemsAsync(int campusId)
+        public async Task<StaffWorkItemsDto> GetWorkItemsAsync(int campusId, PagingParameters pagingParameters)
         {
+            // Claims
             var pendingClaims = await _claimRequestRepository.GetAllAsync(ClaimStatus.Pending);
             var conflictedClaims = await _claimRequestRepository.GetAllAsync(ClaimStatus.Conflicted);
             var allClaims = pendingClaims.Concat(conflictedClaims)
                                          .Where(c => c.FoundItem?.CampusId == campusId)
                                          .ToList();
-
-            var matchedItems = (await _matchingRepository.GetAllByStatusAsync("Matched"))
-                                         .Where(m => m.FoundItem?.CampusId == campusId || m.LostItem?.CampusId == campusId)
-                                         .ToList();
+            var totalClaimsCount = allClaims.Count();
+            var pagedClaims = allClaims
+                .Skip((pagingParameters.PageNumber - 1) * pagingParameters.PageSize)
+                .Take(pagingParameters.PageSize)
+                .ToList();
 
             var claimDtos = new List<ClaimRequestDto>();
-            foreach (var claim in allClaims)
+            foreach (var claim in pagedClaims)
             {
                 claimDtos.Add(await MapToClaimRequestDto(claim));
             }
+            var pagedClaimsResponse = new PagedResponse<ClaimRequestDto>(claimDtos, totalClaimsCount, pagingParameters.PageNumber, pagingParameters.PageSize);
 
+            // Matches
+            var matchedItems = (await _matchingRepository.GetAllByStatusAsync("Matched"))
+                                         .Where(m => m.FoundItem?.CampusId == campusId || m.LostItem?.CampusId == campusId)
+                                         .ToList();
+            var totalMatchesCount = matchedItems.Count();
+            var pagedMatches = matchedItems
+                .Skip((pagingParameters.PageNumber - 1) * pagingParameters.PageSize)
+                .Take(pagingParameters.PageSize)
+                .ToList();
+            
             var matchDtos = new List<ItemMatchDto>();
-            foreach (var match in matchedItems)
+            foreach (var match in pagedMatches)
             {
                 matchDtos.Add(await MapToItemMatchDto(match));
             }
+            var pagedMatchesResponse = new PagedResponse<ItemMatchDto>(matchDtos, totalMatchesCount, pagingParameters.PageNumber, pagingParameters.PageSize);
+
 
             var workItems = new StaffWorkItemsDto
             {
-                PendingAndConflictedClaims = claimDtos,
-                MatchedItems = matchDtos
+                PendingAndConflictedClaims = pagedClaimsResponse,
+                MatchedItems = pagedMatchesResponse
             };
 
             return workItems;

@@ -73,7 +73,11 @@ namespace DAL.Repositories
 
         public async Task<ItemMatch> GetMatchByIdAsync(int matchId)
         {
-            return await _context.ItemMatches.FindAsync(matchId);
+            return await _context.ItemMatches
+                .Include(m => m.LostItem)
+                .Include(m => m.FoundItem)
+                .Include(m => m.CreatedByNavigation)
+                .FirstOrDefaultAsync(m => m.MatchId == matchId);
         }
 
         public async Task UpdateMatchAsync(ItemMatch itemMatch)

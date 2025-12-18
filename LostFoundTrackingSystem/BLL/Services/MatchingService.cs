@@ -384,5 +384,12 @@ namespace BLL.Services
                 } : null
             };
         }
+
+        public async Task<ItemMatchDto> GetMatchDetailsByIdAsync(int matchId)
+        {
+            var match = await _matchingRepository.GetMatchByIdAsync(matchId);
+            if (match == null) return null;
+            return await MapToItemMatchDto(match);
+        }
     }
 }

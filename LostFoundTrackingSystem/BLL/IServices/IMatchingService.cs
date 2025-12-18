@@ -13,5 +13,6 @@ namespace BLL.IServices
         Task ConfirmMatchAsync(int matchId, int staffUserId);
         Task DismissMatchAsync(int matchId, int staffUserId);
         Task ConflictMatchAsync(int matchId, int staffUserId);
+        Task<ItemMatchDto> GetMatchDetailsByIdAsync(int matchId);
     }
 }

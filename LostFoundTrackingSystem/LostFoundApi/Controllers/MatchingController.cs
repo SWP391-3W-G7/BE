@@ -46,6 +46,14 @@ namespace LostFoundApi.Controllers
             return Ok(matches);
         }
 
+        [HttpGet("{matchId}")]
+        public async Task<ActionResult<ItemMatchDto>> GetMatchDetails(int matchId)
+        {
+            var match = await _matchingService.GetMatchDetailsByIdAsync(matchId);
+            if (match == null) return NotFound();
+            return Ok(match);
+        }
+
         [HttpPut("{matchId}/confirm")]
         [Authorize(Roles = "Staff,Admin")]
         public async Task<IActionResult> ConfirmMatch(int matchId)

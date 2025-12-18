@@ -1,3 +1,4 @@
+using BLL.DTOs.Paging;
 using BLL.IServices;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -19,7 +20,7 @@ namespace LostFoundApi.Controllers
         }
 
         [HttpGet("work-items")]
-        public async Task<IActionResult> GetWorkItems()
+        public async Task<IActionResult> GetWorkItems([FromQuery] PagingParameters pagingParameters)
         {
             var campusIdClaim = User.FindFirst("CampusId");
             if (campusIdClaim == null)
@@ -27,7 +28,7 @@ namespace LostFoundApi.Controllers
                 return Unauthorized("User is not associated with a campus.");
             }
             var campusId = int.Parse(campusIdClaim.Value);
-            var workItems = await _staffService.GetWorkItemsAsync(campusId);
+            var workItems = await _staffService.GetWorkItemsAsync(campusId, pagingParameters);
             return Ok(workItems);
         }
     }
