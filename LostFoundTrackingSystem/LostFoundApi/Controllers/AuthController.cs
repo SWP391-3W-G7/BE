@@ -22,7 +22,7 @@ namespace LostFoundApi.Controllers
         [HttpGet("google-login")]
         public IActionResult GoogleLogin()
         {
-            var properties = new AuthenticationProperties { RedirectUri = Url.Action("GoogleLoginCallback") };
+            var properties = new AuthenticationProperties { RedirectUri = "/api/auth/google-login-callback" };
             return Challenge(properties, GoogleDefaults.AuthenticationScheme);
         }
 
