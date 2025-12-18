@@ -19,8 +19,8 @@ namespace LostFoundApi.HostedServices
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            // Run twice a day (every 12 hours)
-            _timer = new Timer(DoWork, null, TimeSpan.Zero, TimeSpan.FromHours(12));
+            // Run every 30 seconds
+            _timer = new Timer(DoWork, null, TimeSpan.Zero, TimeSpan.FromSeconds(30));
             return Task.CompletedTask;
         }
 
