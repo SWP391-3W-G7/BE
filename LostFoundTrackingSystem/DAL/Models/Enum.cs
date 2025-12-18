@@ -18,6 +18,7 @@ namespace DAL.Models
         Claimed = 1,
         Returned = 2,
         Open = 3,
+        Closed = 4,
     }
     public enum ClaimStatus
     {

@@ -201,6 +201,13 @@ The API uses JWT (JSON Web Tokens) for authentication. Users must obtain a token
 -   **`GET /api/found-items/{id}/user-details`**
     -   **Description:** Retrieves details for a specific found item, intended for a general user view.
     -   **Authorization:** `User`, `Security Officer`, `Staff`, `Admin`
+-   **`PUT /api/found-items/{id}`**
+    -   **Description:** Updates a specific found item.
+    -   **Authorization:** Authenticated users.
+    -   **Request Body:** `UpdateFoundItemDTO` (Form data).
+-   **`DELETE /api/found-items/{id}`**
+    -   **Description:** Deletes a specific found item by changing its status to "Closed".
+    -   **Authorization:** Authenticated users.
 
 ### LostItemsController (`/api/lost-items`)
 
@@ -294,6 +301,14 @@ The API uses JWT (JSON Web Tokens) for authentication. Users must obtain a token
     -   **Description:** Authenticates a user and returns a JWT token.
     -   **Authorization:** None (Publicly accessible).
     -   **Request Body:** `UserLoginDto` (includes email, password).
+-   **`PUT /api/Users/profile`**
+    -   **Description:** Updates the profile of the authenticated user.
+    -   **Authorization:** Authenticated users.
+    -   **Request Body:** `UpdateUserProfileDto` (includes full name, email, phone number, campus ID).
+-   **`PUT /api/Users/change-password`**
+    -   **Description:** Changes the password of the authenticated user.
+    -   **Authorization:** Authenticated users.
+    -   **Request Body:** `ChangePasswordDto` (includes old password, new password).
 
 ### NotificationsController (`/api/notifications`)
 

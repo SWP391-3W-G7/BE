@@ -88,7 +88,7 @@ namespace BLL.Services
             };
         }
 
-        public async Task<FoundItemDto> CreateAsync(CreateFoundItemRequest request, int createdBy, string initialStatus = null)
+        public async Task<FoundItemDto> CreateAsync(CreateFoundItemRequest request, int createdBy, string initialStatus)
         {
             var entity = new FoundItem
             {
@@ -170,7 +170,8 @@ namespace BLL.Services
             var entity = await _repo.GetByIdAsync(id);
             if (entity == null) throw new Exception("Found item not found");
 
-            await _repo.DeleteAsync(entity);
+            entity.Status = FoundItemStatus.Closed.ToString();
+            await _repo.UpdateAsync(entity);
         }
 
         public async Task<List<FoundItemDto>> GetByCampusAsync(int campusId)
@@ -422,11 +423,57 @@ namespace BLL.Services
                     }).ToList();
                 }
         
-                public async Task<IEnumerable<FoundItemDto>> GetByUserIdAsync(int userId)
-                {
-                    var items = await _repo.GetByUserIdAsync(userId);
-                    return MapToDtoList(items.ToList());
+                        public async Task<IEnumerable<FoundItemDto>> GetByUserIdAsync(int userId)
+                        {
+                            var items = await _repo.GetByUserIdAsync(userId);
+                            return MapToDtoList(items.ToList());
+                        }
+                
+                        public async Task<FoundItemDto> UpdateFoundItemAsync(int id, UpdateFoundItemDTO foundItem)
+                        {
+                            var entity = await _repo.GetByIdAsync(id);
+                            if (entity == null) throw new Exception("Found item not found");
+                
+                            if (!string.IsNullOrEmpty(foundItem.ItemName))
+                            {
+                                entity.Title = foundItem.ItemName;
+                            }
+                
+                            if (!string.IsNullOrEmpty(foundItem.Description))
+                            {
+                                entity.Description = foundItem.Description;
+                            }
+                
+                            if (foundItem.CategoryId.HasValue)
+                            {
+                                entity.CategoryId = foundItem.CategoryId.Value;
+                            }
+                
+                            if (!string.IsNullOrEmpty(foundItem.LocationFound))
+                            {
+                                entity.FoundLocation = foundItem.LocationFound;
+                            }
+                            
+                
+                            await _repo.UpdateAsync(entity);
+                
+                            if (foundItem.Images != null)
+                            {
+                                foreach (var file in foundItem.Images)
+                                {
+                                    var url = await _imageService.UploadAsync(file);
+                
+                                    await _imageRepo.AddAsync(new Image
+                                    {
+                                        FoundItemId = entity.FoundItemId,
+                                        ImageUrl = url,
+                                        UploadedAt = DateTime.UtcNow,
+                                        UploadedBy = entity.CreatedBy
+                                    });
+                                }
+                            }
+                            return await GetByIdAsync(entity.FoundItemId);
+                        }
+                    }
                 }
-            }
-        }
-        
+                

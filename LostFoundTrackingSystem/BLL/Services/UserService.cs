@@ -1,5 +1,6 @@
 ﻿using BLL.DTOs;
 using BLL.DTOs.AdminDTO;
+using BLL.DTOs.UserDTO;
 using BLL.IServices;
 using DAL.IRepositories;
 using DAL.Models;
@@ -265,6 +266,36 @@ namespace BLL.Services
                 user = await _userRepository.AddUserAsync(newUser);
             }
             return GenerateJwtToken(user);
+        }
+
+        public async Task<UserDto> UpdateUserProfileAsync(int userId, UpdateUserProfileDto userProfileDto)
+        {
+            var user = await _userRepository.GetUserByIdAsync(userId);
+            if (user == null) throw new Exception("User not found.");
+
+            if (!string.IsNullOrEmpty(userProfileDto.FullName)) user.FullName = userProfileDto.FullName;
+            if (!string.IsNullOrEmpty(userProfileDto.Email)) user.Email = userProfileDto.Email;
+            if (!string.IsNullOrEmpty(userProfileDto.PhoneNumber)) user.PhoneNumber = userProfileDto.PhoneNumber;
+            if (userProfileDto.CampusId.HasValue) user.CampusId = userProfileDto.CampusId.Value;
+
+            await _userRepository.UpdateAsync(user);
+
+            return await GetByIdAsync(userId);
+        }
+
+        public async Task ChangePasswordAsync(int userId, ChangePasswordDto changePasswordDto)
+        {
+            var user = await _userRepository.GetUserByIdAsync(userId);
+            if (user == null) throw new Exception("User not found.");
+
+            if (!BCrypt.Net.BCrypt.Verify(changePasswordDto.OldPassword, user.PasswordHash))
+            {
+                throw new Exception("Invalid old password.");
+            }
+
+            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(changePasswordDto.NewPassword);
+
+            await _userRepository.UpdateAsync(user);
         }
 
         private UserLoginResponseDto GenerateJwtToken(User user)

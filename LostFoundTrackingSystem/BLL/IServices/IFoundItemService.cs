@@ -7,7 +7,7 @@ namespace BLL.IServices
     {
         Task<IEnumerable<FoundItemDto>> GetFoundItemsAsync(FoundItemFilterDto filter);
         Task<FoundItemDto?> GetByIdAsync(int id);
-        Task<FoundItemDto> CreateAsync(CreateFoundItemRequest request, int createdBy, string initialStatus = null);
+        Task<FoundItemDto> CreateAsync(CreateFoundItemRequest request, int createdBy, string initialStatus);
         Task<FoundItemDto> UpdateAsync(int id, UpdateFoundItemRequest request);
         Task DeleteAsync(int id);
         Task<List<FoundItemDto>> GetByCampusAsync(int campusId);
@@ -19,6 +19,6 @@ namespace BLL.IServices
         Task<FoundItemDto> UpdateStatusAsync(int id, UpdateFoundItemStatusRequest request, int staffId);
                         Task<List<SecurityFoundItemDto>> GetOpenFoundItemsForSecurityOfficerAsync(int securityOfficerId);
                         Task<IEnumerable<FoundItemDto>> GetByUserIdAsync(int userId);
-                    }
-                }
-                
+        Task<FoundItemDto> UpdateFoundItemAsync(int id, UpdateFoundItemDTO foundItem);
+    }
+}

@@ -174,36 +174,156 @@ namespace LostFoundApi.Controllers
 
                 [HttpGet("my-found-items")]
 
-                [Authorize]
+                        [Authorize]
 
-                public async Task<IActionResult> GetFoundItemsByUserId()
+                        public async Task<IActionResult> GetFoundItemsByUserId()
 
-                {
+                        {
 
-                    try
+                            try
 
-                    {
+                            {
 
-                        var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+                                var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
 
-                        var result = await _foundItemService.GetByUserIdAsync(userId);
+                                var result = await _foundItemService.GetByUserIdAsync(userId);
 
-                        return Ok(result);
+                                return Ok(result);
 
-                    }
+                            }
 
-                    catch (Exception ex)
+                            catch (Exception ex)
 
-                    {
+                            {
 
-                        return BadRequest(new { message = ex.Message });
+                                return BadRequest(new { message = ex.Message });
 
-                    }
+                            }
 
-                }
+                        }
 
-            }
+                
 
-        }
+                                [HttpPut("{id}")]
+
+                
+
+                                [Authorize]
+
+                
+
+                                public async Task<IActionResult> UpdateFoundItem(int id, [FromForm] UpdateFoundItemDTO request)
+
+                
+
+                                {
+
+                
+
+                                    try
+
+                
+
+                                    {
+
+                
+
+                                        var result = await _foundItemService.UpdateFoundItemAsync(id, request);
+
+                
+
+                                        return Ok(result);
+
+                
+
+                                    }
+
+                
+
+                                    catch (Exception ex)
+
+                
+
+                                    {
+
+                
+
+                                        return BadRequest(new { message = ex.Message });
+
+                
+
+                                    }
+
+                
+
+                                }
+
+                
+
+                        
+
+                
+
+                                [HttpDelete("{id}")]
+
+                
+
+                                [Authorize]
+
+                
+
+                                public async Task<IActionResult> DeleteFoundItem(int id)
+
+                
+
+                                {
+
+                
+
+                                    try
+
+                
+
+                                    {
+
+                
+
+                                        await _foundItemService.DeleteAsync(id);
+
+                
+
+                                        return NoContent();
+
+                
+
+                                    }
+
+                
+
+                                    catch (Exception ex)
+
+                
+
+                                    {
+
+                
+
+                                        return BadRequest(new { message = ex.Message });
+
+                
+
+                                    }
+
+                
+
+                                }
+
+                
+
+                            }
+
+                
+
+                        }
 
         
