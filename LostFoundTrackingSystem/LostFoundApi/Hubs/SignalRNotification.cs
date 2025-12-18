@@ -113,6 +113,7 @@ namespace LostFoundApi.Hubs
                 ReadAt = n.ReadAt
             }).ToList();
         }
+
         public async Task MarkAsReadAsync(int notificationId)
         {
             await _notificationRepo.MarkAsReadAsync(notificationId);

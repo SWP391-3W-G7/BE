@@ -9,8 +9,10 @@
 ﻿        public string? Status { get; set; }
 ﻿        public int? FoundItemId { get; set; }
 ﻿        public int? LostItemId { get; set; }
-﻿        public string? FoundItemTitle { get; set; } 
-﻿        public int? StudentId { get; set; }
+﻿        public string? FoundItemTitle { get; set; }
+        public string? LostItemTitle { get; set; }
+        public string Priority { get; set; }
+        public int? StudentId { get; set; }
 ﻿        public string? StudentName { get; set; }
 ﻿
 ﻿        public List<EvidenceDto> Evidences { get; set; } = new();

@@ -28,5 +28,10 @@ namespace DAL.Models
         Returned = 3,
         Conflicted = 4,
     }
-
+    public enum ClaimPriority
+    {
+        Low = 0,
+        Medium = 1,
+        High = 2
+    }
 }

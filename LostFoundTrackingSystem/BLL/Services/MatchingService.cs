@@ -37,9 +37,9 @@ namespace BLL.Services
         public async Task FindAndCreateMatchesAsync(int lostItemId)
         {
             var lostItem = await _lostItemRepository.GetByIdAsync(lostItemId);
+            var foundItem_ = await _foundItemRepository.GetByIdAsync(lostItemId);
             if (lostItem == null)
             {
-                // Or handle this case as you see fit
                 throw new Exception("Lost item not found.");
             }
             int matchCount = 0;
@@ -51,7 +51,6 @@ namespace BLL.Services
                 var existingMatch = await _matchingRepository.GetExistingMatchAsync(lostItem.LostItemId, foundItem.FoundItemId);
                 if (existingMatch != null)
                 {
-                    // Match already exists, skip creating a new one
                     continue;
                 }
 
@@ -65,12 +64,38 @@ namespace BLL.Services
                 };
                 await _matchingRepository.AddMatchAsync(itemMatch);
                 matchCount++;
+
+                // Auto create claim request
+                if (lostItem.CreatedBy.HasValue)
+                {
+                    var claimRequest = new ClaimRequest
+                    {
+                        FoundItemId = foundItem.FoundItemId,
+                        LostItemId = lostItem.LostItemId,
+                        StudentId = lostItem.CreatedBy.Value,
+                        ClaimDate = DateTime.UtcNow,
+                        Status = ClaimStatus.Pending.ToString(),
+                        Priority = (int)ClaimPriority.High
+                    };
+                    await _claimRequestRepository.AddAsync(claimRequest);
+
+                    await _itemActionLogService.AddLogAsync(new ItemActionLogDto
+                    {
+                        FoundItemId = foundItem.FoundItemId,
+                        ClaimRequestId = claimRequest.ClaimId,
+                        ActionType = "Created",
+                        ActionDetails = $"Claim auto-created from match. Priority: High. Status: {claimRequest.Status}.",
+                        NewStatus = claimRequest.Status,
+                        PerformedBy = lostItem.CreatedBy.Value,
+                        CampusId = foundItem.CampusId
+                    });
+                }
             }
             if (matchCount > 0 && lostItem.CreatedBy.HasValue)
             {
                 string userId = lostItem.CreatedBy.Value.ToString();
                 string message = matchCount == 1
-                    ? $"We found a potential match for your lost item '{lostItem.Title}'!"
+                    ? $"We found a potential match for your lost item '{lostItem.Title} with found item '{foundItem_.Title}'!"
                     : $"We found {matchCount} potential matches for your lost item '{lostItem.Title}'!";
 
                 try

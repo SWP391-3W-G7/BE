@@ -16,10 +16,13 @@ public partial class ClaimRequest
     public int? FoundItemId { get; set; }
 
     public int? StudentId { get; set; }
+    public int? LostItemId { get; set; }
+    public int Priority { get; set; }
 
     public virtual ICollection<Evidence> Evidences { get; set; } = new List<Evidence>();
 
     public virtual FoundItem FoundItem { get; set; }
 
     public virtual User Student { get; set; }
+    public virtual LostItem LostItem { get; set; }
 }
