@@ -6,6 +6,7 @@ using DAL.Repositories;
 using LostFoundApi.Hubs;
 using LostFoundApi.HostedServices;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -25,7 +26,12 @@ builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
-    }); builder.Services.AddEndpointsApiExplorer();
+    });
+
+builder.Services.AddEndpointsApiExplorer();
+
+// Add Memory Cache for storing temporary data (campus selection during OAuth)
+builder.Services.AddMemoryCache();
 
 builder.Services.AddSignalR();
 
@@ -130,10 +136,8 @@ builder.Services.AddCors(options =>
     {
         policy.AllowAnyOrigin()
               .AllowAnyMethod()
-              .AllowAnyHeader()
-              //.AllowCredentials() SignalR
-              ;
-
+              .AllowAnyHeader();
+        //.AllowCredentials() // Uncomment for SignalR if needed
     });
 });
 
@@ -143,6 +147,7 @@ if (string.IsNullOrEmpty(jwtKey))
     throw new InvalidOperationException("JWT Key is not configured.");
 }
 
+// Configure Authentication
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -175,11 +180,15 @@ builder.Services.AddAuthentication(options =>
         }
     };
 })
+.AddCookie(CookieAuthenticationDefaults.AuthenticationScheme)
 .AddGoogle(options =>
 {
     options.ClientId = builder.Configuration["Authentication:Google:ClientId"];
     options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
-    options.CallbackPath = "/api/auth/google-login-callback";
+    // Set the callback path - this should match your controller route
+    options.CallbackPath = "/signin-google";
+    // Sign in with the cookie scheme after Google auth
+    options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
 });
 
 builder.WebHost.ConfigureKestrel(serverOptions =>
