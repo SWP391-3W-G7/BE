@@ -504,5 +504,28 @@ namespace BLL.Services
             }
             await _repo.SaveChangesAsync();
         }
+
+        public async Task<PagedResponse<ClaimRequestDto>> GetClaimsByCampusAndStatusPagingAsync(int campusId, ClaimStatus status, PagingParameters pagingParameters)
+        {
+            var (items, totalCount) = await _repo.GetByCampusAndStatusPagingAsync(
+                campusId,
+                status.ToString(),
+                pagingParameters.PageNumber,
+                pagingParameters.PageSize
+            );
+
+            var dtoList = new List<ClaimRequestDto>();
+            foreach (var item in items)
+            {
+                dtoList.Add(await MapToDto(item));
+            }
+
+            return new PagedResponse<ClaimRequestDto>(
+                dtoList,
+                totalCount,
+                pagingParameters.PageNumber,
+                pagingParameters.PageSize
+            );
+        }
     }
 }

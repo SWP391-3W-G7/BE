@@ -185,5 +185,28 @@ namespace LostFoundApi.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
+        [HttpGet("staff/by-status")]
+        [Authorize(Roles = "Staff,Admin,Security Officer")] // Staff hoặc Admin/Security đều xem được
+        public async Task<IActionResult> GetClaimsByStatusForStaff([FromQuery] ClaimStatus status, [FromQuery] PagingParameters pagingParameters)
+        {
+            try
+            {
+                var roleClaim = User.FindFirst(ClaimTypes.Role);
+                if (roleClaim == null) return Unauthorized();
+
+                var campusClaim = User.FindFirst("CampusId");
+                if (campusClaim == null || !int.TryParse(campusClaim.Value, out int userCampusId))
+                {
+                    return BadRequest(new { message = "User does not have a valid Campus assigned." });
+                }
+
+                var result = await _service.GetClaimsByCampusAndStatusPagingAsync(userCampusId, status, pagingParameters);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
     }
 }
