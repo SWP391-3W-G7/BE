@@ -7,8 +7,8 @@ namespace BLL.DTOs.ClaimRequestDTO
     {
         [Required]
         public int FoundItemId { get; set; }
-        public string EvidenceTitle { get; set; } = null!;
-        public string EvidenceDescription { get; set; } = null!;
+        public string? EvidenceTitle { get; set; } = null!;
+        public string? EvidenceDescription { get; set; } = null!;
         public List<IFormFile>? EvidenceImages { get; set; }
         [Required]
         public int CampusId { get; set; }
