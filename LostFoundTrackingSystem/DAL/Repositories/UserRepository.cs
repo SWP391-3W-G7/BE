@@ -38,9 +38,6 @@ namespace DAL.Repositories
         }
         public async Task UpdateAsync(User user)
         {
-            user.Campus = null;
-            user.Role = null;
-
             var entry = _context.Entry(user);
             if (entry.State == EntityState.Detached)
             {

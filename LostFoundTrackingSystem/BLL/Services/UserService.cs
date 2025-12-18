@@ -263,7 +263,8 @@ namespace BLL.Services
                     Status = "Active",
                     CampusId = 1
                 };
-                user = await _userRepository.AddUserAsync(newUser);
+                var addedUser = await _userRepository.AddUserAsync(newUser);
+                user = await _userRepository.GetUserByIdAsync(addedUser.UserId);
             }
             return GenerateJwtToken(user);
         }
