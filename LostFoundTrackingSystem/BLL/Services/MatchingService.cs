@@ -196,17 +196,18 @@ namespace BLL.Services
             }
         }
 
-        public async Task ConfirmMatchAsync(int matchId, int staffUserId)
+        public async Task<MatchOperationResponseDto> ConfirmMatchAsync(int matchId, int staffUserId)
         {
             _logger.LogInformation("Confirming match {MatchId} by staff user {StaffUserId}.", matchId, staffUserId);
             var match = await _matchingRepository.GetMatchByIdAsync(matchId);
             if (match != null)
             {
                 match.MatchStatus = "Approved";
-                match.Status = "Resolved";
+                match.Status = "Approved";
                 await _matchingRepository.UpdateMatchAsync(match);
                 _logger.LogInformation("Match {MatchId} status updated to Approved/Resolved.", matchId);
 
+                LostItemDto? lostItemDto = null;
                 if (match.LostItemId.HasValue)
                 {
                     var lostItem = await _lostItemRepository.GetByIdAsync(match.LostItemId.Value);
@@ -227,9 +228,11 @@ namespace BLL.Services
                             PerformedBy = staffUserId,
                             CampusId = lostItem.CampusId
                         });
+                        lostItemDto = MapToLostItemDto(lostItem);
                     }
                 }
 
+                FoundItemDto? foundItemDto = null;
                 if (match.FoundItemId.HasValue)
                 {
                     var foundItem = await _foundItemRepository.GetByIdAsync(match.FoundItemId.Value);
@@ -250,6 +253,7 @@ namespace BLL.Services
                             PerformedBy = staffUserId,
                             CampusId = foundItem.CampusId
                         });
+                        foundItemDto = MapToFoundItemDto(foundItem);
                     }
                 }
 
@@ -261,14 +265,16 @@ namespace BLL.Services
                     ActionBy = staffUserId
                 });
                 _logger.LogInformation("Match history added for approved match {MatchId}.", matchId);
+                return new MatchOperationResponseDto { IsSuccess = true, Message = $"Match {matchId} confirmed successfully.", MatchId = matchId, LostItem = lostItemDto, FoundItem = foundItemDto };
             }
             else
             {
                 _logger.LogWarning("Match {MatchId} not found during confirmation attempt.", matchId);
+                return new MatchOperationResponseDto { IsSuccess = false, Message = $"Match {matchId} not found.", MatchId = matchId };
             }
         }
 
-        public async Task DismissMatchAsync(int matchId, int staffUserId)
+        public async Task<MatchOperationResponseDto> DismissMatchAsync(int matchId, int staffUserId)
         {
             _logger.LogInformation("Dismissing match {MatchId} by staff user {StaffUserId}.", matchId, staffUserId);
             var match = await _matchingRepository.GetMatchByIdAsync(matchId);
@@ -278,6 +284,26 @@ namespace BLL.Services
                 await _matchingRepository.UpdateMatchAsync(match);
                 _logger.LogInformation("Match {MatchId} status updated to Dismissed.", matchId);
 
+                LostItemDto? lostItemDto = null;
+                if (match.LostItemId.HasValue)
+                {
+                    var lostItem = await _lostItemRepository.GetByIdAsync(match.LostItemId.Value);
+                    if (lostItem != null)
+                    {
+                        lostItemDto = MapToLostItemDto(lostItem);
+                    }
+                }
+
+                FoundItemDto? foundItemDto = null;
+                if (match.FoundItemId.HasValue)
+                {
+                    var foundItem = await _foundItemRepository.GetByIdAsync(match.FoundItemId.Value);
+                    if (foundItem != null)
+                    {
+                        foundItemDto = MapToFoundItemDto(foundItem);
+                    }
+                }
+
                 await _matchHistoryRepository.AddAsync(new MatchHistory
                 {
                     MatchId = matchId,
@@ -286,10 +312,12 @@ namespace BLL.Services
                     ActionBy = staffUserId
                 });
                 _logger.LogInformation("Match history added for dismissed match {MatchId}.", matchId);
+                return new MatchOperationResponseDto { IsSuccess = true, Message = $"Match {matchId} dismissed successfully.", MatchId = matchId, LostItem = lostItemDto, FoundItem = foundItemDto };
             }
             else
             {
                 _logger.LogWarning("Match {MatchId} not found during dismissal attempt.", matchId);
+                return new MatchOperationResponseDto { IsSuccess = false, Message = $"Match {matchId} not found.", MatchId = matchId };
             }
         }
 
@@ -489,6 +517,45 @@ namespace BLL.Services
             }
 
             return new PagedResponse<ItemMatchDto>(dtoList, totalCount, pagingParameters.PageNumber, pagingParameters.PageSize);
+        }
+        private FoundItemDto MapToFoundItemDto(FoundItem foundItem)
+        {
+            return new FoundItemDto
+            {
+                FoundItemId = foundItem.FoundItemId,
+                Title = foundItem.Title,
+                Description = foundItem.Description,
+                FoundDate = foundItem.FoundDate,
+                FoundLocation = foundItem.FoundLocation,
+                Status = foundItem.Status,
+                CampusId = foundItem.CampusId,
+                CampusName = foundItem.Campus?.CampusName,
+                CategoryId = foundItem.CategoryId,
+                CategoryName = foundItem.Category?.CategoryName,
+                CreatedBy = foundItem.CreatedBy,
+                StoredBy = foundItem.StoredBy,
+                ImageUrls = foundItem.Images.Select(i => i.ImageUrl).ToList(),
+                // ClaimRequests and ActionLogs are not mapped here to keep it simple, as they are often fetched separately or not needed for a summary.
+            };
+        }
+
+        private LostItemDto MapToLostItemDto(LostItem lostItem)
+        {
+            return new LostItemDto
+            {
+                LostItemId = lostItem.LostItemId,
+                Title = lostItem.Title,
+                Description = lostItem.Description,
+                LostDate = lostItem.LostDate,
+                LostLocation = lostItem.LostLocation,
+                Status = lostItem.Status,
+                CampusId = lostItem.CampusId,
+                CampusName = lostItem.Campus?.CampusName,
+                CategoryId = lostItem.CategoryId,
+                CategoryName = lostItem.Category?.CategoryName,
+                ImageUrls = lostItem.Images.Select(i => i.ImageUrl).ToList(),
+                // ActionLogs not mapped here to keep it simple.
+            };
         }
     }
 }

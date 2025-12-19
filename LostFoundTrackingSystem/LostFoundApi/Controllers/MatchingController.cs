@@ -63,8 +63,15 @@ namespace LostFoundApi.Controllers
             if (userIdClaim == null) return Unauthorized();
             int staffUserId = int.Parse(userIdClaim.Value);
 
-            await _matchingService.ConfirmMatchAsync(matchId, staffUserId);
-            return Ok();
+            var result = await _matchingService.ConfirmMatchAsync(matchId, staffUserId);
+            if (result.IsSuccess)
+            {
+                return Ok(result);
+            }
+            else
+            {
+                return NotFound(result); // Or BadRequest, depending on specific error handling
+            }
         }
 
         [HttpPut("{matchId}/dismiss")]
@@ -75,8 +82,15 @@ namespace LostFoundApi.Controllers
             if (userIdClaim == null) return Unauthorized();
             int staffUserId = int.Parse(userIdClaim.Value);
 
-            await _matchingService.DismissMatchAsync(matchId, staffUserId);
-            return Ok();
+            var result = await _matchingService.DismissMatchAsync(matchId, staffUserId);
+            if (result.IsSuccess)
+            {
+                return Ok(result);
+            }
+            else
+            {
+                return NotFound(result); // Or BadRequest, depending on specific error handling
+            }
         }
 
         [HttpPut("{matchId}/conflict")]
