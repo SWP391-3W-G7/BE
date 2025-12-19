@@ -257,6 +257,42 @@ namespace BLL.Services
                     }
                 }
 
+                var otherClaims = await _claimRequestRepository.GetByFoundItemIdAsync(match.FoundItemId.Value);
+                foreach (var otherClaim in otherClaims)
+                {
+                    if (otherClaim.Status == ClaimStatus.Pending.ToString() || otherClaim.Status == ClaimStatus.Conflicted.ToString())
+                    {
+                        otherClaim.Status = ClaimStatus.Rejected.ToString();
+                        await _claimRequestRepository.UpdateAsync(otherClaim);
+
+                        await _itemActionLogService.AddLogAsync(new ItemActionLogDto
+                        {
+                            ClaimRequestId = otherClaim.ClaimId,
+                            FoundItemId = otherClaim.FoundItemId,
+                            ActionType = "StatusUpdate",
+                            ActionDetails = $"Claim request '{otherClaim.ClaimId}' for Found Item '{match.FoundItem?.Title}' auto-rejected because a match was confirmed.",
+                            OldStatus = "Pending/Conflicted",
+                            NewStatus = otherClaim.Status,
+                            PerformedBy = staffUserId,
+                            CampusId = match.FoundItem?.CampusId
+                        });
+
+                        if (otherClaim.StudentId.HasValue)
+                        {
+                            string rejectedStudentUserId = otherClaim.StudentId.Value.ToString();
+                            string rejectedMessage = $"Your claim request (ID: {otherClaim.ClaimId}) for item '{match.FoundItem?.Title}' has been rejected because a match was confirmed.";
+                            try
+                            {
+                                await _notificationService.SendNotificationAsync(rejectedStudentUserId, otherClaim.ClaimId, otherClaim.Status, rejectedMessage);
+                            }
+                            catch (Exception ex)
+                            {
+                                _logger.LogError(ex, "Failed to send notification for rejected claim: {ClaimId}", otherClaim.ClaimId);
+                            }
+                        }
+                    }
+                }
+
                 await _matchHistoryRepository.AddAsync(new MatchHistory
                 {
                     MatchId = matchId,
@@ -320,6 +356,121 @@ namespace BLL.Services
                 return new MatchOperationResponseDto { IsSuccess = false, Message = $"Match {matchId} not found.", MatchId = matchId };
             }
         }
+
+        public async Task<MatchOperationResponseDto> ReturnMatchAsync(int matchId, int staffUserId)
+        {
+            _logger.LogInformation("Returning match {MatchId} by staff user {StaffUserId}.", matchId, staffUserId);
+            var match = await _matchingRepository.GetMatchByIdAsync(matchId);
+            if (match != null)
+            {
+                match.MatchStatus = "Returned";
+                match.Status = "Returned";
+                await _matchingRepository.UpdateMatchAsync(match);
+                _logger.LogInformation("Match {MatchId} status updated to Returned.", matchId);
+
+                LostItemDto? lostItemDto = null;
+                if (match.LostItemId.HasValue)
+                {
+                    var lostItem = await _lostItemRepository.GetByIdAsync(match.LostItemId.Value);
+                    if (lostItem != null)
+                    {
+                        string oldStatus = lostItem.Status;
+                        lostItem.Status = LostItemStatus.Returned.ToString();
+                        await _lostItemRepository.UpdateAsync(lostItem);
+                        _logger.LogInformation("Lost item {LostItemId} status updated to Returned.", lostItem.LostItemId);
+
+                        await _itemActionLogService.AddLogAsync(new ItemActionLogDto
+                        {
+                            LostItemId = lostItem.LostItemId,
+                            ActionType = "StatusUpdate",
+                            ActionDetails = $"Lost item '{lostItem.Title}' status changed from '{oldStatus}' to '{lostItem.Status}' due to match return.",
+                            OldStatus = oldStatus,
+                            NewStatus = lostItem.Status,
+                            PerformedBy = staffUserId,
+                            CampusId = lostItem.CampusId
+                        });
+                        lostItemDto = MapToLostItemDto(lostItem);
+                    }
+                }
+
+                FoundItemDto? foundItemDto = null;
+                if (match.FoundItemId.HasValue)
+                {
+                    var foundItem = await _foundItemRepository.GetByIdAsync(match.FoundItemId.Value);
+                    if (foundItem != null)
+                    {
+                        string oldStatus = foundItem.Status;
+                        foundItem.Status = FoundItemStatus.Returned.ToString();
+                        await _foundItemRepository.UpdateAsync(foundItem);
+                        _logger.LogInformation("Found item {FoundItemId} status updated to Returned.", foundItem.FoundItemId);
+
+                        await _itemActionLogService.AddLogAsync(new ItemActionLogDto
+                        {
+                            FoundItemId = foundItem.FoundItemId,
+                            ActionType = "StatusUpdate",
+                            ActionDetails = $"Found item '{foundItem.Title}' status changed from '{oldStatus}' to '{foundItem.Status}' due to match return.",
+                            OldStatus = oldStatus,
+                            NewStatus = foundItem.Status,
+                            PerformedBy = staffUserId,
+                            CampusId = foundItem.CampusId
+                        });
+                        foundItemDto = MapToFoundItemDto(foundItem);
+                    }
+                }
+
+                var otherClaims = await _claimRequestRepository.GetByFoundItemIdAsync(match.FoundItemId.Value);
+                foreach (var otherClaim in otherClaims)
+                {
+                    if (otherClaim.Status == ClaimStatus.Pending.ToString() || otherClaim.Status == ClaimStatus.Conflicted.ToString())
+                    {
+                        otherClaim.Status = ClaimStatus.Rejected.ToString();
+                        await _claimRequestRepository.UpdateAsync(otherClaim);
+
+                        await _itemActionLogService.AddLogAsync(new ItemActionLogDto
+                        {
+                            ClaimRequestId = otherClaim.ClaimId,
+                            FoundItemId = otherClaim.FoundItemId,
+                            ActionType = "StatusUpdate",
+                            ActionDetails = $"Claim request '{otherClaim.ClaimId}' for Found Item '{match.FoundItem?.Title}' auto-rejected because a match was returned.",
+                            OldStatus = "Pending/Conflicted",
+                            NewStatus = otherClaim.Status,
+                            PerformedBy = staffUserId,
+                            CampusId = match.FoundItem?.CampusId
+                        });
+
+                        if (otherClaim.StudentId.HasValue)
+                        {
+                            string rejectedStudentUserId = otherClaim.StudentId.Value.ToString();
+                            string rejectedMessage = $"Your claim request (ID: {otherClaim.ClaimId}) for item '{match.FoundItem?.Title}' has been rejected because a match was returned.";
+                            try
+                            {
+                                await _notificationService.SendNotificationAsync(rejectedStudentUserId, otherClaim.ClaimId, otherClaim.Status, rejectedMessage);
+                            }
+                            catch (Exception ex)
+                            {
+                                _logger.LogError(ex, "Failed to send notification for rejected claim: {ClaimId}", otherClaim.ClaimId);
+                            }
+                        }
+                    }
+                }
+
+                await _matchHistoryRepository.AddAsync(new MatchHistory
+                {
+                    MatchId = matchId,
+                    Action = "Returned",
+                    ActionDate = DateTime.UtcNow,
+                    ActionBy = staffUserId
+                });
+                _logger.LogInformation("Match history added for returned match {MatchId}.", matchId);
+                return new MatchOperationResponseDto { IsSuccess = true, Message = $"Match {matchId} returned successfully.", MatchId = matchId, LostItem = lostItemDto, FoundItem = foundItemDto };
+            }
+            else
+            {
+                _logger.LogWarning("Match {MatchId} not found during return attempt.", matchId);
+                return new MatchOperationResponseDto { IsSuccess = false, Message = $"Match {matchId} not found.", MatchId = matchId };
+            }
+        }
+
 
         public async Task ConflictMatchAsync(int matchId, int staffUserId)
         {

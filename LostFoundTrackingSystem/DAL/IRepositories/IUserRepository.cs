@@ -10,5 +10,6 @@ namespace DAL.IRepositories
         Task<User?> GetUserByIdAsync(int id);
         Task UpdateAsync(User user);
         Task<List<User>> GetUsersByRoleAsync(int? roleId);
+        Task<List<User>> GetUsersByStatusAsync(string status);
     }
 }

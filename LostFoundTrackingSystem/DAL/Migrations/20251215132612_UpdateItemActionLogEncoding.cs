@@ -55,41 +55,11 @@ namespace DAL.Migrations
                 oldClrType: typeof(string),
                 oldType: "text",
                 oldNullable: true);
-
-            migrationBuilder.AddColumn<int>(
-                name: "ClaimRequestId",
-                table: "ItemActionLog",
-                type: "int",
-                nullable: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_ItemActionLog_ClaimRequestId",
-                table: "ItemActionLog",
-                column: "ClaimRequestId");
-
-            migrationBuilder.AddForeignKey(
-                name: "FK_ItemActionLog_ClaimRequest",
-                table: "ItemActionLog",
-                column: "ClaimRequestId",
-                principalTable: "ClaimRequest",
-                principalColumn: "ClaimID");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropForeignKey(
-                name: "FK_ItemActionLog_ClaimRequest",
-                table: "ItemActionLog");
-
-            migrationBuilder.DropIndex(
-                name: "IX_ItemActionLog_ClaimRequestId",
-                table: "ItemActionLog");
-
-            migrationBuilder.DropColumn(
-                name: "ClaimRequestId",
-                table: "ItemActionLog");
-
             migrationBuilder.AlterColumn<string>(
                 name: "OldStatus",
                 table: "ItemActionLog",

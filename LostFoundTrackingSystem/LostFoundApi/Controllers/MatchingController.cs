@@ -111,6 +111,25 @@ namespace LostFoundApi.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
+
+        [HttpPut("{matchId}/return")]
+        [Authorize(Roles = "Staff,Admin")]
+        public async Task<IActionResult> ReturnMatch(int matchId)
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null) return Unauthorized();
+            int staffUserId = int.Parse(userIdClaim.Value);
+
+            var result = await _matchingService.ReturnMatchAsync(matchId, staffUserId);
+            if (result.IsSuccess)
+            {
+                return Ok(result);
+            }
+            else
+            {
+                return NotFound(result);
+            }
+        }
         [HttpGet]
         [Authorize(Roles = "Staff,Admin")]
         public async Task<IActionResult> GetAllMatches([FromQuery] PagingParameters pagingParameters)

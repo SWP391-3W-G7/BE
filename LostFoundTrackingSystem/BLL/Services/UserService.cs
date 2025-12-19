@@ -4,6 +4,7 @@ using BLL.DTOs.UserDTO;
 using BLL.IServices;
 using DAL.IRepositories;
 using DAL.Models;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System;
@@ -18,20 +19,30 @@ namespace BLL.Services
     {
         private readonly IUserRepository _userRepository;
         private readonly IConfiguration _configuration;
+        private readonly IImageService _imageService;
 
-        public UserService(IUserRepository userRepository, IConfiguration configuration)
+        public UserService(IUserRepository userRepository, IConfiguration configuration, IImageService imageService)
         {
             _userRepository = userRepository;
             _configuration = configuration;
+            _imageService = imageService;
         }
 
+        [Obsolete("This method is obsolete. Use RegisterAsync(UserRegisterDto, IFormFile) instead.")]
         public async Task<UserDto> RegisterAsync(UserRegisterDto userRegisterDto)
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task<UserDto> RegisterAsync(UserRegisterDto userRegisterDto, IFormFile studentIdCard)
         {
             var existingUser = await _userRepository.GetUserByEmailAsync(userRegisterDto.Email);
             if (existingUser != null)
             {
                 throw new Exception("User with this email already exists.");
             }
+
+            var studentIdCardUrl = await _imageService.UploadAsync(studentIdCard);
 
             var user = new User
             {
@@ -40,9 +51,10 @@ namespace BLL.Services
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(userRegisterDto.Password),
                 FullName = userRegisterDto.FullName,
                 RoleId = 1, // User
-                Status = "Active",
+                Status = "Pending",
                 CampusId = (int?)userRegisterDto.CampusId,
-                PhoneNumber = userRegisterDto.PhoneNumber
+                PhoneNumber = userRegisterDto.PhoneNumber,
+                StudentIdCardUrl = studentIdCardUrl
             };
 
             var addedUser = await _userRepository.AddUserAsync(user);
@@ -65,7 +77,8 @@ namespace BLL.Services
                 CampusId = newUser.CampusId,
                 PhoneNumber = newUser.PhoneNumber,
                 RoleName = newUser.Role?.RoleName,
-                CampusName = newUser.Campus?.CampusName
+                CampusName = newUser.Campus?.CampusName,
+                StudentIdCardUrl = newUser.StudentIdCardUrl
             };
         }
 
@@ -81,6 +94,16 @@ namespace BLL.Services
             if (user.Status == "Banned")
             {
                 throw new Exception("Your account has been banned.");
+            }
+
+            if (user.Status == "IdCardUploadNeeded")
+            {
+                throw new Exception("Please upload your student ID card to complete registration.");
+            }
+
+            if (user.Status == "Pending")
+            {
+                throw new Exception("Your account is pending approval.");
             }
 
             if (user.RoleId == null)
@@ -114,7 +137,8 @@ namespace BLL.Services
                 CampusId = user.CampusId,
                 PhoneNumber = user.PhoneNumber,
                 RoleName = user.Role?.RoleName,
-                CampusName = user.Campus?.CampusName
+                CampusName = user.Campus?.CampusName,
+                StudentIdCardUrl = user.StudentIdCardUrl
             };
         }
         public async Task<List<UserDto>> GetUsersByRoleAsync(int? roleId)
@@ -138,7 +162,8 @@ namespace BLL.Services
                 CampusId = u.CampusId,
                 PhoneNumber = u.PhoneNumber,
                 RoleName = u.Role?.RoleName,
-                CampusName = u.Campus?.CampusName
+                CampusName = u.Campus?.CampusName,
+                StudentIdCardUrl = u.StudentIdCardUrl
             }).ToList();
         }
         public async Task<UserDto> CreateUserByAdminAsync(AdminCreateUserDto userDto)
@@ -182,7 +207,8 @@ namespace BLL.Services
                 CampusId = newUser.CampusId,
                 PhoneNumber = newUser.PhoneNumber,
                 RoleName = newUser.Role?.RoleName,
-                CampusName = newUser.Campus?.CampusName
+                CampusName = newUser.Campus?.CampusName,
+                StudentIdCardUrl = newUser.StudentIdCardUrl
             };
         }
         // Thêm các hàm này vào Class UserService
@@ -255,7 +281,8 @@ namespace BLL.Services
                 CampusId = user.CampusId,
                 PhoneNumber = user.PhoneNumber,
                 RoleName = user.Role?.RoleName,
-                CampusName = user.Campus?.CampusName
+                CampusName = user.Campus?.CampusName,
+                StudentIdCardUrl = user.StudentIdCardUrl
             };
         }
 
@@ -274,9 +301,10 @@ namespace BLL.Services
                     Email = email,
                     FullName = fullName,
                     RoleId = 1, // User role
-                    Status = "Active",
+                    Status = "IdCardUploadNeeded",
                     CampusId = campusId, // Set campus from parameter
-                    PasswordHash = string.Empty // Google users don't have password
+                    PasswordHash = string.Empty, // Google users don't have password
+                    StudentIdCardUrl = null
                 };
 
                 var addedUser = await _userRepository.AddUserAsync(newUser);
@@ -303,8 +331,19 @@ namespace BLL.Services
                 throw new Exception("Your account has been banned.");
             }
 
+            if (user.Status == "IdCardUploadNeeded")
+            {
+                throw new Exception("Please upload your student ID card to complete registration.");
+            }
+
+            if (user.Status == "Pending")
+            {
+                throw new Exception("Your account is pending approval.");
+            }
+
             return GenerateJwtToken(user);
         }
+
         public async Task<UserDto> UpdateUserProfileAsync(int userId, UpdateUserProfileDto userProfileDto)
         {
             var user = await _userRepository.GetUserByIdAsync(userId);
@@ -332,6 +371,68 @@ namespace BLL.Services
 
             user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(changePasswordDto.NewPassword);
 
+            await _userRepository.UpdateAsync(user);
+        }
+
+        public async Task<List<UserDto>> GetPendingUsersAsync()
+        {
+            var users = await _userRepository.GetUsersByStatusAsync("Pending");
+            return users.Select(u => new UserDto
+            {
+                UserId = u.UserId,
+                Username = u.Username,
+                Email = u.Email,
+                FullName = u.FullName,
+                RoleId = u.RoleId ?? 0,
+                Status = u.Status,
+                CampusId = u.CampusId,
+                PhoneNumber = u.PhoneNumber,
+                RoleName = u.Role?.RoleName,
+                CampusName = u.Campus?.CampusName,
+                StudentIdCardUrl = u.StudentIdCardUrl
+            }).ToList();
+        }
+
+        public async Task ApproveUserAsync(int userId)
+        {
+            var user = await _userRepository.GetUserByIdAsync(userId);
+            if (user == null)
+            {
+                throw new Exception("User not found.");
+            }
+
+            user.Status = "Active";
+            await _userRepository.UpdateAsync(user);
+        }
+
+        public async Task RejectUserAsync(int userId)
+        {
+            var user = await _userRepository.GetUserByIdAsync(userId);
+            if (user == null)
+            {
+                throw new Exception("User not found.");
+            }
+
+            user.Status = "Banned";
+            await _userRepository.UpdateAsync(user);
+        }
+
+        public async Task UploadStudentIdCardAsync(int userId, IFormFile studentIdCard)
+        {
+            var user = await _userRepository.GetUserByIdAsync(userId);
+            if (user == null)
+            {
+                throw new Exception("User not found.");
+            }
+
+            if (user.Status != "IdCardUploadNeeded")
+            {
+                throw new Exception("Student ID card upload is not required for this user or their status is not 'IdCardUploadNeeded'.");
+            }
+
+            var studentIdCardUrl = await _imageService.UploadAsync(studentIdCard);
+            user.StudentIdCardUrl = studentIdCardUrl;
+            user.Status = "Pending"; // Change status to Pending after ID card upload
             await _userRepository.UpdateAsync(user);
         }
 

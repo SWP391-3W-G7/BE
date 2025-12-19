@@ -23,6 +23,7 @@ public partial class User
     public int? RoleId { get; set; }
 
     public int? CampusId { get; set; }
+    public string? StudentIdCardUrl { get; set; }
 
     public virtual Campus Campus { get; set; }
 

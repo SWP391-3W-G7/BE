@@ -21,8 +21,9 @@ namespace BLL.Services
         private readonly INotificationService _notifService;
         private readonly IItemActionLogService _itemActionLogService;
         private readonly ILostItemRepository _lostItemRepo;
+        private readonly IMatchingRepository _matchingRepo;
 
-        public ClaimRequestService(IClaimRequestRepository repo, IFoundItemRepository foundItemRepo, IImageRepository imageRepo, IImageService imageService, IReturnRecordRepository returnRecordRepo, INotificationService notifService, IItemActionLogService itemActionLogService, ILostItemRepository lostItemRepo)
+        public ClaimRequestService(IClaimRequestRepository repo, IFoundItemRepository foundItemRepo, IImageRepository imageRepo, IImageService imageService, IReturnRecordRepository returnRecordRepo, INotificationService notifService, IItemActionLogService itemActionLogService, ILostItemRepository lostItemRepo, IMatchingRepository matchingRepo)
         {
             _repo = repo;
             _foundItemRepo = foundItemRepo;
@@ -32,6 +33,7 @@ namespace BLL.Services
             _notifService = notifService;
             _itemActionLogService = itemActionLogService;
             _lostItemRepo = lostItemRepo;
+            _matchingRepo = matchingRepo;
         }
 
         public async Task<ClaimRequestDto> CreateAsync(CreateClaimRequest request, int studentId)
@@ -314,6 +316,17 @@ namespace BLL.Services
                         }
                     }
                 }
+
+                var matches = await _matchingRepo.GetMatchesForFoundItemAsync(entity.FoundItemId.Value);
+                foreach (var match in matches)
+                {
+                    if (match.Status == "Pending" || match.Status == "Conflicted")
+                    {
+                        match.Status = "Dismissed";
+                        match.MatchStatus = "Dismissed";
+                        await _matchingRepo.UpdateMatchAsync(match);
+                    }
+                }
             }
             
             if (entity.Status.ToString() == ClaimStatus.Returned.ToString())
@@ -326,6 +339,13 @@ namespace BLL.Services
                     ReturnDate = DateTime.UtcNow
                 };
                 await _returnRecordRepo.AddAsync(returnRecord);
+
+                var foundItem = await _foundItemRepo.GetByIdAsync(entity.FoundItemId.Value);
+                if (foundItem != null)
+                {
+                    foundItem.Status = FoundItemStatus.Returned.ToString();
+                    await _foundItemRepo.UpdateAsync(foundItem);
+                }
             }
 
             await _repo.UpdateAsync(entity);
@@ -578,6 +598,17 @@ namespace BLL.Services
                 {
                     string rejectedMsg = $"Your claim for '{entity.FoundItem?.Title}' was rejected because another claim was approved.";
                     await _notifService.SendNotificationAsync(otherClaim.StudentId.Value.ToString(), otherClaim.ClaimId, otherClaim.Status, rejectedMsg);
+                }
+            }
+
+            var matches = await _matchingRepo.GetMatchesForFoundItemAsync(entity.FoundItemId.Value);
+            foreach (var match in matches)
+            {
+                if (match.Status == "Pending" || match.Status == "Conflicted")
+                {
+                    match.Status = "Dismissed";
+                    match.MatchStatus = "Dismissed";
+                    await _matchingRepo.UpdateMatchAsync(match);
                 }
             }
 

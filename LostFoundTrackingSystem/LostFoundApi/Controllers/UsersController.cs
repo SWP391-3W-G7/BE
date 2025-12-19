@@ -2,6 +2,7 @@ using BLL.DTOs;
 using BLL.DTOs.UserDTO;
 using BLL.IServices;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Security.Claims;
@@ -21,11 +22,11 @@ namespace LostFoundApi.Controllers
         }
 
         [HttpPost("register")]
-        public async Task<IActionResult> Register(UserRegisterDto userRegisterDto)
+        public async Task<IActionResult> Register([FromForm] UserRegisterDto userRegisterDto, IFormFile studentIdCard)
         {
             try
             {
-                var user = await _userService.RegisterAsync(userRegisterDto);
+                var user = await _userService.RegisterAsync(userRegisterDto, studentIdCard);
                 return Ok(user);
             }
             catch (Exception ex)
@@ -41,6 +42,22 @@ namespace LostFoundApi.Controllers
             {
                 var loginResponse = await _userService.LoginAsync(userLoginDto);
                 return Ok(loginResponse);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        [HttpGet("profile")]
+        [Authorize]
+        public async Task<IActionResult> GetProfile()
+        {
+            try
+            {
+                var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+                var user = await _userService.GetByIdAsync(userId);
+                return Ok(user);
             }
             catch (Exception ex)
             {
@@ -73,6 +90,22 @@ namespace LostFoundApi.Controllers
                 var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
                 await _userService.ChangePasswordAsync(userId, changePasswordDto);
                 return NoContent();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        [HttpPost("upload-student-id-card")]
+        [Authorize]
+        public async Task<IActionResult> UploadStudentIdCard(IFormFile studentIdCard)
+        {
+            try
+            {
+                var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+                await _userService.UploadStudentIdCardAsync(userId, studentIdCard);
+                return Ok(new { message = "Student ID card uploaded successfully." });
             }
             catch (Exception ex)
             {

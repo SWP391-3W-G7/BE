@@ -33,15 +33,18 @@ namespace DAL.Migrations
 
                     b.Property<string>("Address")
                         .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
+                        .HasColumnType("nvarchar(255)")
+                        .UseCollation("Vietnamese_CI_AS");
 
                     b.Property<string>("CampusName")
                         .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
+                        .HasColumnType("nvarchar(255)")
+                        .UseCollation("Vietnamese_CI_AS");
 
                     b.Property<string>("StorageLocation")
                         .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
+                        .HasColumnType("nvarchar(255)")
+                        .UseCollation("Vietnamese_CI_AS");
 
                     b.HasKey("CampusId")
                         .HasName("PK__Campus__FD598D36CC85AA0D");
@@ -60,7 +63,8 @@ namespace DAL.Migrations
 
                     b.Property<string>("CategoryName")
                         .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
+                        .HasColumnType("nvarchar(255)")
+                        .UseCollation("Vietnamese_CI_AS");
 
                     b.HasKey("CategoryId")
                         .HasName("PK__Category__19093A2BEE731716");
@@ -84,9 +88,17 @@ namespace DAL.Migrations
                         .HasColumnType("int")
                         .HasColumnName("FoundItemID");
 
+                    b.Property<int?>("LostItemId")
+                        .HasColumnType("int")
+                        .HasColumnName("LostItemID");
+
+                    b.Property<int>("Priority")
+                        .HasColumnType("int");
+
                     b.Property<string>("Status")
                         .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
+                        .HasColumnType("nvarchar(255)")
+                        .UseCollation("Vietnamese_CI_AS");
 
                     b.Property<int?>("StudentId")
                         .HasColumnType("int")
@@ -96,6 +108,8 @@ namespace DAL.Migrations
                         .HasName("PK__ClaimReq__EF2E13BBBCB583AD");
 
                     b.HasIndex("FoundItemId");
+
+                    b.HasIndex("LostItemId");
 
                     b.HasIndex("StudentId");
 
@@ -124,7 +138,8 @@ namespace DAL.Migrations
 
                     b.Property<string>("Description")
                         .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
+                        .HasColumnType("nvarchar(255)")
+                        .UseCollation("Vietnamese_CI_AS");
 
                     b.Property<int?>("LostItemId")
                         .HasColumnType("int")
@@ -132,7 +147,8 @@ namespace DAL.Migrations
 
                     b.Property<string>("Title")
                         .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
+                        .HasColumnType("nvarchar(255)")
+                        .UseCollation("Vietnamese_CI_AS");
 
                     b.HasKey("EvidenceId")
                         .HasName("PK__Evidence__FA39D78D0464995F");
@@ -168,25 +184,29 @@ namespace DAL.Migrations
 
                     b.Property<string>("Description")
                         .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
+                        .HasColumnType("nvarchar(255)")
+                        .UseCollation("Vietnamese_CI_AS");
 
                     b.Property<DateTime?>("FoundDate")
                         .HasColumnType("datetime");
 
                     b.Property<string>("FoundLocation")
                         .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
+                        .HasColumnType("nvarchar(255)")
+                        .UseCollation("Vietnamese_CI_AS");
 
                     b.Property<string>("Status")
                         .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
+                        .HasColumnType("nvarchar(255)")
+                        .UseCollation("Vietnamese_CI_AS");
 
                     b.Property<int?>("StoredBy")
                         .HasColumnType("int");
 
                     b.Property<string>("Title")
                         .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
+                        .HasColumnType("nvarchar(255)")
+                        .UseCollation("Vietnamese_CI_AS");
 
                     b.HasKey("FoundItemId")
                         .HasName("PK__FoundIte__DFA62C37CBB854E9");
@@ -222,7 +242,8 @@ namespace DAL.Migrations
                     b.Property<string>("ImageUrl")
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)")
-                        .HasColumnName("ImageURL");
+                        .HasColumnName("ImageURL")
+                        .UseCollation("Vietnamese_CI_AS");
 
                     b.Property<int?>("LostItemId")
                         .HasColumnType("int")
@@ -338,11 +359,13 @@ namespace DAL.Migrations
 
                     b.Property<string>("MatchStatus")
                         .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
+                        .HasColumnType("nvarchar(255)")
+                        .UseCollation("Vietnamese_CI_AS");
 
                     b.Property<string>("Status")
                         .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
+                        .HasColumnType("nvarchar(255)")
+                        .UseCollation("Vietnamese_CI_AS");
 
                     b.HasKey("MatchId")
                         .HasName("PK__ItemMatc__4218C83709C4822E");
@@ -379,22 +402,26 @@ namespace DAL.Migrations
 
                     b.Property<string>("Description")
                         .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
+                        .HasColumnType("nvarchar(255)")
+                        .UseCollation("Vietnamese_CI_AS");
 
                     b.Property<DateTime?>("LostDate")
                         .HasColumnType("datetime");
 
                     b.Property<string>("LostLocation")
                         .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
+                        .HasColumnType("nvarchar(255)")
+                        .UseCollation("Vietnamese_CI_AS");
 
                     b.Property<string>("Status")
                         .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
+                        .HasColumnType("nvarchar(255)")
+                        .UseCollation("Vietnamese_CI_AS");
 
                     b.Property<string>("Title")
                         .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
+                        .HasColumnType("nvarchar(255)")
+                        .UseCollation("Vietnamese_CI_AS");
 
                     b.HasKey("LostItemId")
                         .HasName("PK__LostItem__3B3BF43289AA9C74");
@@ -419,7 +446,8 @@ namespace DAL.Migrations
 
                     b.Property<string>("Action")
                         .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
+                        .HasColumnType("nvarchar(255)")
+                        .UseCollation("Vietnamese_CI_AS");
 
                     b.Property<int?>("ActionBy")
                         .HasColumnType("int");
@@ -478,7 +506,8 @@ namespace DAL.Migrations
 
                     b.Property<string>("Type")
                         .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("nvarchar(50)")
+                        .UseCollation("Vietnamese_CI_AS");
 
                     b.Property<int>("UserId")
                         .HasColumnType("int")
@@ -493,7 +522,7 @@ namespace DAL.Migrations
                     b.HasIndex("UserId")
                         .HasDatabaseName("IX_Notification_UserID");
 
-                    b.ToTable("Notifications", (string)null);
+                    b.ToTable("Notifications");
                 });
 
             modelBuilder.Entity("DAL.Models.ReturnRecord", b =>
@@ -515,7 +544,8 @@ namespace DAL.Migrations
 
                     b.Property<string>("Note")
                         .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
+                        .HasColumnType("nvarchar(255)")
+                        .UseCollation("Vietnamese_CI_AS");
 
                     b.Property<int?>("ReceiverId")
                         .HasColumnType("int")
@@ -557,7 +587,8 @@ namespace DAL.Migrations
 
                     b.Property<string>("RoleName")
                         .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
+                        .HasColumnType("nvarchar(255)")
+                        .UseCollation("Vietnamese_CI_AS");
 
                     b.HasKey("RoleId")
                         .HasName("PK__Role__8AFACE3A4E892C72");
@@ -579,19 +610,23 @@ namespace DAL.Migrations
 
                     b.Property<string>("Email")
                         .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
+                        .HasColumnType("nvarchar(255)")
+                        .UseCollation("Vietnamese_CI_AS");
 
                     b.Property<string>("FullName")
                         .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
+                        .HasColumnType("nvarchar(255)")
+                        .UseCollation("Vietnamese_CI_AS");
 
                     b.Property<string>("PasswordHash")
                         .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
+                        .HasColumnType("nvarchar(255)")
+                        .UseCollation("Vietnamese_CI_AS");
 
                     b.Property<string>("PhoneNumber")
                         .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                        .HasColumnType("nvarchar(20)")
+                        .UseCollation("Vietnamese_CI_AS");
 
                     b.Property<int?>("RoleId")
                         .HasColumnType("int")
@@ -599,11 +634,16 @@ namespace DAL.Migrations
 
                     b.Property<string>("Status")
                         .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
+                        .HasColumnType("nvarchar(255)")
+                        .UseCollation("Vietnamese_CI_AS");
+
+                    b.Property<string>("StudentIdCardUrl")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Username")
                         .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
+                        .HasColumnType("nvarchar(255)")
+                        .UseCollation("Vietnamese_CI_AS");
 
                     b.HasKey("UserId")
                         .HasName("PK__User__1788CCACBDF5688F");
@@ -622,12 +662,19 @@ namespace DAL.Migrations
                         .HasForeignKey("FoundItemId")
                         .HasConstraintName("FK__ClaimRequ__Found__1332DBDC");
 
+                    b.HasOne("DAL.Models.LostItem", "LostItem")
+                        .WithMany("ClaimRequests")
+                        .HasForeignKey("LostItemId")
+                        .HasConstraintName("FK_ClaimRequest_LostItem");
+
                     b.HasOne("DAL.Models.User", "Student")
                         .WithMany("ClaimRequests")
                         .HasForeignKey("StudentId")
                         .HasConstraintName("FK__ClaimRequ__Stude__14270015");
 
                     b.Navigation("FoundItem");
+
+                    b.Navigation("LostItem");
 
                     b.Navigation("Student");
                 });
@@ -931,6 +978,8 @@ namespace DAL.Migrations
 
             modelBuilder.Entity("DAL.Models.LostItem", b =>
                 {
+                    b.Navigation("ClaimRequests");
+
                     b.Navigation("Evidences");
 
                     b.Navigation("Images");

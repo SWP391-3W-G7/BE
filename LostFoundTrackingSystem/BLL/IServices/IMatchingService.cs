@@ -13,6 +13,7 @@ namespace BLL.IServices
         Task FindAndCreateMatchesForAllLostItemsAsync();
         Task<MatchOperationResponseDto> ConfirmMatchAsync(int matchId, int staffUserId);
         Task<MatchOperationResponseDto> DismissMatchAsync(int matchId, int staffUserId);
+        Task<MatchOperationResponseDto> ReturnMatchAsync(int matchId, int staffUserId);
         Task ConflictMatchAsync(int matchId, int staffUserId);
         Task<ItemMatchDto> GetMatchDetailsByIdAsync(int matchId);
         Task<PagedResponse<ItemMatchDto>> GetAllMatchesPagingAsync(PagingParameters pagingParameters);

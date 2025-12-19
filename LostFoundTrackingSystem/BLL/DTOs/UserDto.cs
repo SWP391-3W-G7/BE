@@ -12,5 +12,6 @@ namespace BLL.DTOs
         public string? PhoneNumber { get; set; }
         public string? RoleName { get; set; }
         public string? CampusName { get; set; }
+        public string? StudentIdCardUrl { get; set; }
     }
 }

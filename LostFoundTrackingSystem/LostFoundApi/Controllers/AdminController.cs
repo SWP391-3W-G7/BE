@@ -139,5 +139,50 @@ namespace LostFoundApi.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
+
+        [HttpGet("users/pending")]
+        [Authorize(Roles = "Admin,Staff")]
+        public async Task<IActionResult> GetPendingUsers()
+        {
+            try
+            {
+                var users = await _userService.GetPendingUsersAsync();
+                return Ok(users);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        [HttpPatch("users/{id}/approve")]
+        [Authorize(Roles = "Admin,Staff")]
+        public async Task<IActionResult> ApproveUser(int id)
+        {
+            try
+            {
+                await _userService.ApproveUserAsync(id);
+                return Ok(new { message = "User approved successfully." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        [HttpPatch("users/{id}/reject")]
+        [Authorize(Roles = "Admin,Staff")]
+        public async Task<IActionResult> RejectUser(int id)
+        {
+            try
+            {
+                await _userService.RejectUserAsync(id);
+                return Ok(new { message = "User rejected successfully." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
     }
 }
