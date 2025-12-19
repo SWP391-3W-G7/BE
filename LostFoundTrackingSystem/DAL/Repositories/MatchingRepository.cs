@@ -119,8 +119,16 @@ namespace DAL.Repositories
 
         public async Task UpdateMatchAsync(ItemMatch itemMatch)
         {
-            _context.ItemMatches.Update(itemMatch);
-            await _context.SaveChangesAsync();
+            var existingMatch = await _context.ItemMatches.FindAsync(itemMatch.MatchId);
+            if (existingMatch != null)
+            {
+                existingMatch.MatchStatus = itemMatch.MatchStatus;
+                existingMatch.Status = itemMatch.Status;
+                
+                _context.Entry(existingMatch).State = EntityState.Modified;
+
+                await _context.SaveChangesAsync();
+            }
         }
 
         public async Task<List<ItemMatch>> GetAllByStatusAsync(string status)
