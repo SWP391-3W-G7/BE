@@ -92,7 +92,7 @@ namespace BLL.Services
             {
                 throw new Exception("User does not have a campus.");
             }
-            
+
             return GenerateJwtToken(user);
         }
 
@@ -161,7 +161,7 @@ namespace BLL.Services
                 Email = userDto.Email,
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(userDto.Password),
                 FullName = userDto.FullName,
-                RoleId = userDto.RoleId, 
+                RoleId = userDto.RoleId,
                 Status = "Active",
                 CampusId = userDto.CampusId,
                 PhoneNumber = userDto.PhoneNumber
@@ -206,9 +206,18 @@ namespace BLL.Services
             if (!string.IsNullOrEmpty(updateDto.PhoneNumber)) user.PhoneNumber = updateDto.PhoneNumber;
             if (!string.IsNullOrEmpty(updateDto.Status)) user.Status = updateDto.Status;
 
-            if (updateDto.RoleId.HasValue) user.RoleId = updateDto.RoleId.Value;
-            if (updateDto.CampusId.HasValue) user.CampusId = updateDto.CampusId.Value;
+            if (updateDto.RoleId.HasValue)
+            {
+                user.RoleId = updateDto.RoleId.Value;
 
+                user.Role = null;
+            }
+            if (updateDto.CampusId.HasValue)
+            {
+                user.CampusId = updateDto.CampusId.Value;
+
+                user.Campus = null;
+            }
             await _userRepository.UpdateAsync(user);
 
             return await GetByIdAsync(userId);
@@ -346,22 +355,23 @@ namespace BLL.Services
                                 new Claim("CampusName", user.Campus?.CampusName ?? string.Empty),
                                 new Claim("CampusId", user.CampusId?.ToString() ?? string.Empty)
                             }),
-                            Expires = DateTime.UtcNow.AddDays(7),
-                            SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
-                            Issuer = _configuration["Jwt:Issuer"],
-                            Audience = _configuration["Jwt:Audience"]
-                        };
-                        var token = tokenHandler.CreateToken(tokenDescriptor);
-                        var tokenString = tokenHandler.WriteToken(token);
-                    
-                        return new UserLoginResponseDto
-                        {
-                            Token = tokenString,
-                            Email = user.Email,
-                            FullName = user.FullName,
-                            RoleName = user.Role?.RoleName,
-                            CampusName = user.Campus?.CampusName,
-                            CampusId = user.CampusId
-                        };
-                    }    }
+                Expires = DateTime.UtcNow.AddDays(7),
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
+                Issuer = _configuration["Jwt:Issuer"],
+                Audience = _configuration["Jwt:Audience"]
+            };
+            var token = tokenHandler.CreateToken(tokenDescriptor);
+            var tokenString = tokenHandler.WriteToken(token);
+
+            return new UserLoginResponseDto
+            {
+                Token = tokenString,
+                Email = user.Email,
+                FullName = user.FullName,
+                RoleName = user.Role?.RoleName,
+                CampusName = user.Campus?.CampusName,
+                CampusId = user.CampusId
+            };
+        }
+    }
 }
