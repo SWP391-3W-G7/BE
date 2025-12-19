@@ -56,7 +56,7 @@ namespace DAL.Repositories
                 .Include(f => f.Images) // Include images for more detailed matching later if needed
                 .Where(f => f.CategoryId == lostItem.CategoryId &&
                              f.CampusId == lostItem.CampusId &&
-                             (f.Status == FoundItemStatus.Stored.ToString() || f.Status == FoundItemStatus.Open.ToString()));
+                             (f.Status == FoundItemStatus.Stored.ToString()));
 
             // Build dynamic text matching conditions with OR logic
             var titleDescriptionPredicate = PredicateBuilder.False<FoundItem>();
