@@ -209,7 +209,7 @@ namespace LostFoundApi.Controllers
             }
         }
         [HttpPut("{id}/approve")]
-        /[Authorize(Roles = "Staff, Admin")] 
+        [Authorize(Roles = "Staff, Admin")] 
         public async Task<IActionResult> ApproveClaim(int id, [FromBody] ApproveClaimRequestDto request)
         {
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
