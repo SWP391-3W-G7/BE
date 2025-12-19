@@ -9,5 +9,6 @@ namespace BLL.DTOs
         public string CampusName { get; set; }
 
         public int? CampusId { get; set; }
+        public required string Status { get; set; }
     }
 }

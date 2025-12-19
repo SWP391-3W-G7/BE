@@ -105,11 +105,11 @@ namespace LostFoundApi.Controllers
                     _logger.LogWarning("CampusId not found in cache for state {StateId}", stateId);
                 }
 
-                var token = await _userService.LoginWithGoogleAsync(email, name, campusId);
+                var tokenResponse = await _userService.LoginWithGoogleAsync(email, name, campusId);
 
                 _logger.LogInformation("GoogleLoginCallback completed successfully for user {Email}.", email);
 
-                return ReturnSuccessHtml(token);
+                return ReturnSuccessHtml(tokenResponse);
             }
             catch (Exception ex)
             {
@@ -165,7 +165,8 @@ namespace LostFoundApi.Controllers
                 fullName: '{token.FullName?.Replace("'", "\\'")}',
                 roleName: '{token.RoleName}',
                 campusName: '{token.CampusName?.Replace("'", "\\'")}',
-                campusId: {token.CampusId?.ToString() ?? "null"}
+                campusId: {token.CampusId?.ToString() ?? "null"},
+                status: '{token.Status}'
             }}
         }}, '*');
         setTimeout(() => window.close(), 2000);

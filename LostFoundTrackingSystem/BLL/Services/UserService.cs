@@ -471,7 +471,8 @@ namespace BLL.Services
                 FullName = user.FullName,
                 RoleName = user.Role?.RoleName,
                 CampusName = user.Campus?.CampusName,
-                CampusId = user.CampusId
+                CampusId = user.CampusId,
+                Status = user.Status
             };
         }
     }
