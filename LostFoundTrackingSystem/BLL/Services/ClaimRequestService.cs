@@ -530,5 +530,94 @@ namespace BLL.Services
                 pagingParameters.PageSize
             );
         }
+        public async Task<ClaimRequestDto> ApproveClaimAsync(int id, ApproveClaimRequestDto request, int staffId)
+        {
+            var entity = await _repo.GetByIdAsync(id);
+            if (entity == null) throw new Exception("Claim request not found");
+
+            // 1. Validate Status
+            if (entity.Status != ClaimStatus.Pending.ToString() && entity.Status != ClaimStatus.Conflicted.ToString())
+                throw new Exception($"Cannot approve a claim that is in '{entity.Status}' status.");
+
+            // 2. Validate Time (Ensure pickup is in the future)
+            if (request.PickupTime <= DateTime.UtcNow)
+                throw new Exception("Pickup time must be in the future.");
+
+            string oldStatus = entity.Status;
+
+            // 3. Update Status
+            entity.Status = ClaimStatus.Approved.ToString();
+
+            // 4. Auto-reject other claims for the same item (Logic copied from UpdateStatusAsync)
+            var otherClaims = (await _repo.GetByFoundItemIdAsync(entity.FoundItemId.Value))
+                                .Where(c => c.ClaimId != entity.ClaimId &&
+                                           (c.Status == ClaimStatus.Pending.ToString() || c.Status == ClaimStatus.Conflicted.ToString()))
+                                .ToList();
+
+            foreach (var otherClaim in otherClaims)
+            {
+                string otherClaimOldStatus = otherClaim.Status;
+                otherClaim.Status = ClaimStatus.Rejected.ToString();
+                await _repo.UpdateAsync(otherClaim);
+
+                // Log rejection
+                await _itemActionLogService.AddLogAsync(new ItemActionLogDto
+                {
+                    ClaimRequestId = otherClaim.ClaimId,
+                    FoundItemId = otherClaim.FoundItemId,
+                    ActionType = "AutoRejected",
+                    ActionDetails = $"Automatically rejected because claim #{entity.ClaimId} was approved.",
+                    OldStatus = otherClaimOldStatus,
+                    NewStatus = otherClaim.Status,
+                    PerformedBy = staffId, // System action triggered by staff
+                    CampusId = entity.FoundItem?.CampusId
+                });
+
+                // Notify rejected student
+                if (otherClaim.StudentId.HasValue)
+                {
+                    string rejectedMsg = $"Your claim for '{entity.FoundItem?.Title}' was rejected because another claim was approved.";
+                    await _notifService.SendNotificationAsync(otherClaim.StudentId.Value.ToString(), otherClaim.ClaimId, otherClaim.Status, rejectedMsg);
+                }
+            }
+
+            // 5. Save the approved entity
+            await _repo.UpdateAsync(entity);
+
+            // 6. Log the Approval with Pickup Details (This serves as the record since we aren't changing DB schema)
+            string logDetails = $"Claim Approved. Pickup Location: {request.PickupLocation}. " +
+                                $"Time: {request.PickupTime:g}. " + // 'g' is general date/time pattern (short time)
+                                $"Note: {request.AdminNote ?? "None"}";
+
+            await _itemActionLogService.AddLogAsync(new ItemActionLogDto
+            {
+                ClaimRequestId = entity.ClaimId,
+                FoundItemId = entity.FoundItemId,
+                ActionType = "Approved",
+                ActionDetails = logDetails,
+                OldStatus = oldStatus,
+                NewStatus = entity.Status,
+                PerformedBy = staffId,
+                CampusId = entity.FoundItem.CampusId
+            });
+
+            // 7. Notify the Student with Pickup Instructions
+            string studentUserId = entity.StudentId.ToString();
+            string notificationMessage = $"CONGRATS! Your claim for '{entity.FoundItem?.Title}' is APPROVED. " +
+                                         $"Please pick it up at: {request.PickupLocation} " +
+                                         $"on {request.PickupTime:dd/MM/yyyy HH:mm}. " +
+                                         (string.IsNullOrEmpty(request.AdminNote) ? "" : $"Note: {request.AdminNote}");
+
+            try
+            {
+                await _notifService.SendNotificationAsync(studentUserId, entity.ClaimId, entity.Status, notificationMessage);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Failed to send pickup notification: {ex.Message}");
+            }
+
+            return await GetByIdAsync(entity.ClaimId);
+        }
     }
 }
