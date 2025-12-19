@@ -19,5 +19,6 @@ namespace BLL.IServices
         Task RequestMoreEvidenceAsync(int claimId, string message, int staffId);
         Task ScanForConflictingClaimsAsync();
         Task<PagedResponse<ClaimRequestDto>> GetClaimsByCampusAndStatusPagingAsync(int campusId, ClaimStatus status, PagingParameters pagingParameters);
+        Task<ClaimRequestDto> ApproveClaimAsync(int id, ApproveClaimRequestDto request, int staffId);
     }
 }

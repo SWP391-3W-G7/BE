@@ -208,5 +208,23 @@ namespace LostFoundApi.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
+        [HttpPut("{id}/approve")]
+        /[Authorize(Roles = "Staff, Admin")] 
+        public async Task<IActionResult> ApproveClaim(int id, [FromBody] ApproveClaimRequestDto request)
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null) return Unauthorized();
+            int staffId = int.Parse(userIdClaim.Value);
+
+            try
+            {
+                var result = await _service.ApproveClaimAsync(id, request, staffId);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
     }
 }
