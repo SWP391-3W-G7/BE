@@ -484,5 +484,39 @@ namespace BLL.Services
             }
             return await GetByIdAsync(entity.FoundItemId);
         }
+        public async Task<int> GetUnreturnedCountAsync(int? campusId)
+        {
+            return await _repo.CountUnreturnedItemsAsync(campusId);
+        }
+        public async Task<List<int>> GetMonthlyStatsAsync(int? campusId, int year)
+        {
+            var rawData = await _repo.GetFoundItemCountsByMonthAsync(campusId, year);
+
+            var monthlyCounts = new int[12];
+
+            foreach (var item in rawData)
+            {
+                if (item.Key >= 1 && item.Key <= 12)
+                {
+                    monthlyCounts[item.Key - 1] = item.Value;
+                }
+            }
+
+            return monthlyCounts.ToList();
+        }
+        public async Task<TopUserDto?> GetTopContributorAsync(int? campusId)
+        {
+            var (user, count) = await _repo.GetTopContributorAsync(campusId);
+
+            if (user == null) return null;
+
+            return new TopUserDto
+            {
+                UserId = user.UserId,
+                FullName = user.FullName,
+                Email = user.Email,
+                TotalFoundItems = count
+            };
+        }
     }
 }

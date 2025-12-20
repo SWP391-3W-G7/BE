@@ -1,6 +1,7 @@
 ﻿using BLL.DTOs;
 using BLL.DTOs.AdminDTO;
 using BLL.IServices;
+using BLL.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -14,11 +15,15 @@ namespace LostFoundApi.Controllers
     {
         private readonly IAdminService _service;
         private readonly IUserService _userService;
+        private readonly IFoundItemService _foundItemService;
+        private readonly ILostItemService _lostItemService;
 
-        public AdminController(IAdminService service, IUserService userService)
+        public AdminController(IAdminService service, IUserService userService, IFoundItemService foundItemService, ILostItemService lostItemService)
         {
             _service = service;
             _userService = userService;
+            _foundItemService = foundItemService;
+            _lostItemService = lostItemService;
         }
 
         private bool IsAdmin()
@@ -178,6 +183,116 @@ namespace LostFoundApi.Controllers
             {
                 await _userService.RejectUserAsync(id);
                 return Ok(new { message = "User rejected successfully." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+        [HttpGet("dashboard/unreturned-items-count")]
+        public async Task<IActionResult> GetTotalUnreturnedItems()
+        {
+            if (!IsAdmin()) return Forbid();
+
+            try
+            {
+                var count = await _foundItemService.GetUnreturnedCountAsync(null);
+
+                return Ok(new
+                {
+                    scope = "All Campuses",
+                    count = count
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+        [HttpGet("dashboard/found-items-monthly")]
+        public async Task<IActionResult> GetMonthlyFoundItems([FromQuery] int? year)
+        {
+            if (!IsAdmin()) return Forbid();
+
+            try
+            {
+                int targetYear = year ?? DateTime.Now.Year;
+
+                var stats = await _foundItemService.GetMonthlyStatsAsync(null, targetYear);
+
+                return Ok(new
+                {
+                    year = targetYear,
+                    scope = "All Campuses",
+                    data = stats 
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+        [HttpGet("dashboard/top-contributor")]
+        public async Task<IActionResult> GetTopContributorSystemWide()
+        {
+            if (!IsAdmin()) return Forbid();
+            try
+            {
+                var result = await _foundItemService.GetTopContributorAsync(null);
+
+                if (result == null) return Ok(new { message = "No data available yet." });
+
+                return Ok(new { scope = "All Campuses", data = result });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+        [HttpGet("dashboard/campus-most-lost-items")]
+        public async Task<IActionResult> GetCampusWithMostLostItems()
+        {
+            if (!IsAdmin()) return Forbid();
+
+            try
+            {
+                var result = await _lostItemService.GetCampusWithMostLostItemsAsync();
+
+                if (result == null)
+                {
+                    return Ok(new { message = "No lost items recorded yet." });
+                }
+
+                return Ok(new
+                {
+                    message = "Campus with the highest number of lost items found.",
+                    data = result
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+        [HttpGet("dashboard/user-most-lost-items")]
+        public async Task<IActionResult> GetUserWithMostLostItems()
+        {
+            if (!IsAdmin()) return Forbid();
+
+            try
+            {
+                var result = await _lostItemService.GetTopLostItemUserAsync(null);
+
+                if (result == null)
+                {
+                    return Ok(new { message = "No lost items data available." });
+                }
+
+                return Ok(new
+                {
+                    scope = "All Campuses",
+                    data = result
+                });
             }
             catch (Exception ex)
             {

@@ -166,5 +166,68 @@ namespace DAL.Repositories
 
             return (items, totalCount);
         }
+        public async Task<int> CountUnreturnedItemsAsync(int? campusId)
+        {
+            var query = _context.FoundItems.AsQueryable();
+
+            query = query.Where(x => x.Status != "Returned" && x.Status != "Closed");
+
+            if (campusId.HasValue)
+            {
+                query = query.Where(x => x.CampusId == campusId.Value);
+            }
+
+            return await query.CountAsync(); 
+        }
+        public async Task<List<KeyValuePair<int, int>>> GetFoundItemCountsByMonthAsync(int? campusId, int year)
+        {
+            var query = _context.FoundItems.AsQueryable();
+
+            query = query.Where(x => x.FoundDate.HasValue && x.FoundDate.Value.Year == year);
+
+            if (campusId.HasValue)
+            {
+                query = query.Where(x => x.CampusId == campusId.Value);
+            }
+
+            var result = await query
+                .GroupBy(x => x.FoundDate.Value.Month)
+                .Select(g => new KeyValuePair<int, int>(g.Key, g.Count()))
+                .ToListAsync();
+
+            return result;
+        }
+        public async Task<(User? User, int Count)> GetTopContributorAsync(int? campusId)
+        {
+            var query = _context.FoundItems.AsQueryable();
+
+            if (campusId.HasValue)
+            {
+                query = query.Where(x => x.CampusId == campusId.Value);
+            }
+
+            query = query.Where(x => x.CreatedBy.HasValue);
+
+            var topStat = await query
+                .GroupBy(x => x.CreatedBy)
+                .Select(g => new
+                {
+                    UserId = g.Key,
+                    Count = g.Count()
+                })
+                .OrderByDescending(x => x.Count)
+                .FirstOrDefaultAsync();
+
+            if (topStat == null || topStat.UserId == null)
+            {
+                return (null, 0);
+            }
+
+            var user = await _context.Users
+                .Include(u => u.Role)
+                .FirstOrDefaultAsync(u => u.UserId == topStat.UserId);
+
+            return (user, topStat.Count);
+        }
     }
 }

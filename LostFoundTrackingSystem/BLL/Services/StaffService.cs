@@ -20,13 +20,19 @@ namespace BLL.Services
         private readonly IMatchingRepository _matchingRepository;
         private readonly IItemActionLogService _itemActionLogService;
         private readonly IClaimRequestService _claimRequestService;
+        private readonly IFoundItemRepository _foundItemRepo;
+        private readonly INotificationService _notifService;
+        private readonly IUserRepository _userRepo;
 
-        public StaffService(IClaimRequestRepository claimRequestRepository, IMatchingRepository matchingRepository, IItemActionLogService itemActionLogService, IClaimRequestService claimRequestService)
+        public StaffService(IClaimRequestRepository claimRequestRepository, IMatchingRepository matchingRepository, IItemActionLogService itemActionLogService, IClaimRequestService claimRequestService, IFoundItemRepository foundItemRepo, INotificationService notifService, IUserRepository userRepo)
         {
             _claimRequestRepository = claimRequestRepository;
             _matchingRepository = matchingRepository;
             _itemActionLogService = itemActionLogService;
             _claimRequestService = claimRequestService;
+            _foundItemRepo = foundItemRepo;
+            _notifService = notifService;
+            _userRepo = userRepo;
         }
 
         public async Task<StaffWorkItemsDto> GetWorkItemsAsync(int campusId, PagingParameters pagingParameters)
@@ -163,6 +169,41 @@ namespace BLL.Services
                     ImageUrls = match.LostItem.Images.Select(i => i.ImageUrl).ToList()
                 } : null
             };
+        }
+        public async Task RequestItemDropOffAsync(int foundItemId, RequestDropOffDto request, int staffId)
+        {
+            var item = await _foundItemRepo.GetByIdAsync(foundItemId);
+            if (item == null) throw new Exception("Found item not found.");
+
+            if (item.Status != "Open")
+                throw new Exception($"Cannot request drop-off for item with status '{item.Status}'. Item must be 'Open'.");
+
+            if (item.CreatedBy == null)
+                throw new Exception("This item has no associated finder (CreatedBy is null).");
+
+            string studentId = item.CreatedBy.Value.ToString();
+            string message = $"ACTION REQUIRED: Please bring the found item '{item.Title}' to {request.StorageLocation}. " +
+                             $"{(string.IsNullOrEmpty(request.Note) ? "" : $"Note: {request.Note}")}";
+
+            try
+            {
+                await _notifService.SendNotificationAsync(studentId, item.FoundItemId, "DropOffRequested", message);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Notification failed: {ex.Message}");
+            }
+
+            await _itemActionLogService.AddLogAsync(new ItemActionLogDto
+            {
+                FoundItemId = item.FoundItemId,
+                ActionType = "DropOffRequested",
+                ActionDetails = $"Staff requested student to bring item to: {request.StorageLocation}. Note: {request.Note ?? "None"}",
+                OldStatus = item.Status,
+                NewStatus = item.Status, 
+                PerformedBy = staffId,
+                CampusId = item.CampusId
+            });
         }
     }
 }

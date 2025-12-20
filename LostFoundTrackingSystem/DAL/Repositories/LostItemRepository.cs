@@ -126,5 +126,59 @@ namespace DAL.Repositories
 
             return (items, totalCount);
         }
+        public async Task<(Campus? Campus, int Count)> GetCampusWithMostLostItemsAsync()
+        {
+            var topStat = await _context.LostItems
+                .Where(x => x.CampusId.HasValue) 
+                .GroupBy(x => x.CampusId)
+                .Select(g => new
+                {
+                    CampusId = g.Key,
+                    Count = g.Count()
+                })
+                .OrderByDescending(x => x.Count)
+                .FirstOrDefaultAsync();
+
+            if (topStat == null || topStat.CampusId == null)
+            {
+                return (null, 0);
+            }
+
+            var campus = await _context.Campuses
+                .FirstOrDefaultAsync(c => c.CampusId == topStat.CampusId);
+
+            return (campus, topStat.Count);
+        }
+        public async Task<(User? User, int Count)> GetTopLostItemUserAsync(int? campusId)
+        {
+            var query = _context.LostItems.AsQueryable();
+
+            if (campusId.HasValue)
+            {
+                query = query.Where(x => x.CampusId == campusId.Value);
+            }
+
+            query = query.Where(x => x.CreatedBy.HasValue);
+
+            var topStat = await query
+                .GroupBy(x => x.CreatedBy)
+                .Select(g => new
+                {
+                    UserId = g.Key,
+                    Count = g.Count()
+                })
+                .OrderByDescending(x => x.Count)
+                .FirstOrDefaultAsync();
+
+            if (topStat == null || topStat.UserId == null)
+            {
+                return (null, 0);
+            }
+
+            var user = await _context.Users
+                .FirstOrDefaultAsync(u => u.UserId == topStat.UserId);
+
+            return (user, topStat.Count);
+        }
     }
 }
