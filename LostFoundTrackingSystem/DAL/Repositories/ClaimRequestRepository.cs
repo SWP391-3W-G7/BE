@@ -130,5 +130,25 @@ namespace DAL.Repositories
         {
             await _context.SaveChangesAsync();
         }
+        public async Task<Dictionary<string, int>> GetClaimStatusStatisticsAsync(int? campusId)
+        {
+            var query = _context.ClaimRequests.AsQueryable();
+
+            if (campusId.HasValue)
+            {
+                query = query.Where(x => x.FoundItem.CampusId == campusId.Value);
+            }
+
+            var result = await query
+                .GroupBy(x => x.Status)
+                .Select(g => new
+                {
+                    Status = g.Key,
+                    Count = g.Count()
+                })
+                .ToDictionaryAsync(x => x.Status, x => x.Count);
+
+            return result;
+        }
     }
 }

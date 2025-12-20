@@ -518,5 +518,24 @@ namespace BLL.Services
                 TotalFoundItems = count
             };
         }
+        public async Task<FoundItemStatisticDto> GetFoundItemStatisticsAsync(int? campusId)
+        {
+            var rawData = await _repo.GetFoundStatusStatisticsAsync(campusId);
+
+            var dto = new FoundItemStatisticDto();
+
+            int GetCount(FoundItemStatus status) =>
+                rawData.ContainsKey(status.ToString()) ? rawData[status.ToString()] : 0;
+
+            dto.TotalStored = GetCount(FoundItemStatus.Stored);
+            dto.TotalClaimed = GetCount(FoundItemStatus.Claimed);
+            dto.TotalReturned = GetCount(FoundItemStatus.Returned);
+            dto.TotalOpen = GetCount(FoundItemStatus.Open);
+            dto.TotalClosed = GetCount(FoundItemStatus.Closed);
+
+            dto.TotalItems = dto.TotalStored + dto.TotalClaimed + dto.TotalReturned + dto.TotalOpen + dto.TotalClosed;
+
+            return dto;
+        }
     }
 }

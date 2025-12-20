@@ -8,9 +8,9 @@ using BLL.DTOs.Paging;
 using BLL.IServices;
 using DAL.IRepositories;
 using DAL.Models;
-using BLL.DTOs; 
+using BLL.DTOs;
 
-namespace BLL.Services 
+namespace BLL.Services
 {
     public class LostItemService : ILostItemService
     {
@@ -32,7 +32,7 @@ namespace BLL.Services
             _returnRecordRepo = returnRecordRepo;
             _itemActionLogService = itemActionLogService;
         }
-        
+
         public async Task<LostItemDto?> GetByIdAsync(int id)
         {
             var item = await _repo.GetByIdAsync(id);
@@ -131,8 +131,10 @@ namespace BLL.Services
                     PerformedBy = entity.CreatedBy, // Assuming the creator is the one updating, or pass a specific updater ID
                     CampusId = entity.CampusId
                 });
-            } else {
-                 await _itemActionLogService.AddLogAsync(new ItemActionLogDto
+            }
+            else
+            {
+                await _itemActionLogService.AddLogAsync(new ItemActionLogDto
                 {
                     LostItemId = entity.LostItemId,
                     ActionType = "Updated",
@@ -203,7 +205,7 @@ namespace BLL.Services
         public async Task<PagedResponse<LostItemDto>> GetAllPagingAsync(LostItemFilterDto filter, PagingParameters pagingParameters)
         {
             var (items, totalCount) = await _repo.GetLostItemsPagingAsync(filter.CampusId, filter.Status, pagingParameters.PageNumber, pagingParameters.PageSize);
-            
+
             var dtoList = await MapToDtoList(items);
 
             return new PagedResponse<LostItemDto>(dtoList, totalCount, pagingParameters.PageNumber, pagingParameters.PageSize);
@@ -306,6 +308,24 @@ namespace BLL.Services
                 Email = user.Email,
                 TotalLostItems = count
             };
+        }
+        public async Task<LostItemStatisticDto> GetLostItemStatisticsAsync(int? campusId)
+        {
+            var rawData = await _repo.GetStatusStatisticsAsync(campusId);
+
+            var dto = new LostItemStatisticDto();
+
+            string lostKey = LostItemStatus.Lost.ToString();
+            string matchedKey = LostItemStatus.Matched.ToString();
+            string returnedKey = LostItemStatus.Returned.ToString();
+
+            dto.TotalLost = rawData.ContainsKey(lostKey) ? rawData[lostKey] : 0;
+            dto.TotalMatched = rawData.ContainsKey(matchedKey) ? rawData[matchedKey] : 0;
+            dto.TotalReturned = rawData.ContainsKey(returnedKey) ? rawData[returnedKey] : 0;
+
+            dto.TotalItems = dto.TotalLost + dto.TotalMatched + dto.TotalReturned;
+
+            return dto;
         }
     }
 }

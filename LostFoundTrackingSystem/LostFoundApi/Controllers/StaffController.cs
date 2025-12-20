@@ -17,12 +17,14 @@ namespace LostFoundApi.Controllers
         private readonly IStaffService _staffService;
         private readonly IFoundItemService _foundItemService;
         private readonly ILostItemService _lostItemService;
+        private readonly IClaimRequestService _claimService;
 
-        public StaffController(IStaffService staffService, IFoundItemService foundItemService, ILostItemService lostItemService)
+        public StaffController(IStaffService staffService, IFoundItemService foundItemService, ILostItemService lostItemService, IClaimRequestService claimService)
         {
             _staffService = staffService;
             _foundItemService = foundItemService;
             _lostItemService = lostItemService;
+            _claimService = claimService;
         }
 
         [HttpGet("work-items")]
@@ -54,6 +56,7 @@ namespace LostFoundApi.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
+        //lay so luong do vat chua tra ve tren campus cua staff dang nhap
         [HttpGet("dashboard/unreturned-items-count")]
         public async Task<IActionResult> GetMyCampusUnreturnedItems()
         {
@@ -79,6 +82,7 @@ namespace LostFoundApi.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
+        //lay thong ke do vat tim thay theo thang tren campus cua staff dang nhap
         [HttpGet("dashboard/found-items-monthly")]
         public async Task<IActionResult> GetMyCampusMonthlyFoundItems([FromQuery] int? year)
         {
@@ -104,6 +108,7 @@ namespace LostFoundApi.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
+        //lay thong tin nguoi tim duoc nhieu do vat nhat tren campus cua staff dang nhap
         [HttpGet("dashboard/top-contributor")]
         public async Task<IActionResult> GetTopContributorMyCampus()
         {
@@ -124,6 +129,7 @@ namespace LostFoundApi.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
+        //lay thong tin nguoi mat nhieu do vat nhat tren campus cua staff dang nhap
         [HttpGet("dashboard/user-most-lost-items")]
         public async Task<IActionResult> GetMyCampusUserWithMostLostItems()
         {
@@ -140,6 +146,72 @@ namespace LostFoundApi.Controllers
                     return Ok(new { message = "No lost items data available for this campus." });
                 }
 
+                return Ok(new
+                {
+                    scope = $"Campus ID {campusId}",
+                    data = result
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+        //lay thong ke trang thai do vat mat tren campus cua staff dang nhap
+        [HttpGet("dashboard/lost-items-status-stats")]
+        public async Task<IActionResult> GetMyCampusLostItemsStats()
+        {
+            var campusIdClaim = User.FindFirst("CampusId");
+            if (campusIdClaim == null) return Unauthorized("Staff has no CampusId");
+            int campusId = int.Parse(campusIdClaim.Value);
+
+            try
+            {
+                var result = await _lostItemService.GetLostItemStatisticsAsync(campusId);
+                return Ok(new
+                {
+                    scope = $"Campus ID {campusId}",
+                    data = result
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+        //lay thong ke trang thai do vat tim thay tren campus cua staff dang nhap
+        [HttpGet("dashboard/found-items-status-stats")]
+        public async Task<IActionResult> GetMyCampusFoundItemsStats()
+        {
+            var campusIdClaim = User.FindFirst("CampusId");
+            if (campusIdClaim == null) return Unauthorized("Staff has no CampusId");
+            int campusId = int.Parse(campusIdClaim.Value);
+
+            try
+            {
+                var result = await _foundItemService.GetFoundItemStatisticsAsync(campusId);
+                return Ok(new
+                {
+                    scope = $"Campus ID {campusId}",
+                    data = result
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+        //lay thong ke trang thai yeu cau nhan do vat tren campus cua staff dang nhap
+        [HttpGet("dashboard/claim-status-stats")]
+        public async Task<IActionResult> GetMyCampusClaimStats()
+        {
+            var campusIdClaim = User.FindFirst("CampusId");
+            if (campusIdClaim == null) return Unauthorized("Staff has no CampusId");
+            int campusId = int.Parse(campusIdClaim.Value);
+
+            try
+            {
+                var result = await _claimService.GetClaimStatisticsAsync(campusId);
                 return Ok(new
                 {
                     scope = $"Campus ID {campusId}",

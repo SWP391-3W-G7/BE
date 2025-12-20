@@ -650,5 +650,25 @@ namespace BLL.Services
 
             return await GetByIdAsync(entity.ClaimId);
         }
+        public async Task<ClaimStatisticDto> GetClaimStatisticsAsync(int? campusId)
+        {
+            var rawData = await _repo.GetClaimStatusStatisticsAsync(campusId);
+
+            var dto = new ClaimStatisticDto();
+
+            int GetCount(ClaimStatus status) =>
+                rawData.ContainsKey(status.ToString()) ? rawData[status.ToString()] : 0;
+
+            dto.TotalPending = GetCount(ClaimStatus.Pending);
+            dto.TotalApproved = GetCount(ClaimStatus.Approved);
+            dto.TotalRejected = GetCount(ClaimStatus.Rejected);
+            dto.TotalReturned = GetCount(ClaimStatus.Returned);
+            dto.TotalConflicted = GetCount(ClaimStatus.Conflicted);
+
+            dto.TotalClaims = dto.TotalPending + dto.TotalApproved + dto.TotalRejected +
+                              dto.TotalReturned + dto.TotalConflicted;
+
+            return dto;
+        }
     }
 }

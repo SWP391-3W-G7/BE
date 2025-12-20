@@ -180,5 +180,25 @@ namespace DAL.Repositories
 
             return (user, topStat.Count);
         }
+        public async Task<Dictionary<string, int>> GetStatusStatisticsAsync(int? campusId)
+        {
+            var query = _context.LostItems.AsQueryable();
+
+            if (campusId.HasValue)
+            {
+                query = query.Where(x => x.CampusId == campusId.Value);
+            }
+
+            var result = await query
+                .GroupBy(x => x.Status)
+                .Select(g => new
+                {
+                    Status = g.Key,
+                    Count = g.Count()
+                })
+                .ToDictionaryAsync(x => x.Status, x => x.Count);
+
+            return result;
+        }
     }
 }

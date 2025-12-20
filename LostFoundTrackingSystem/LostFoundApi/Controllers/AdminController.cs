@@ -17,13 +17,15 @@ namespace LostFoundApi.Controllers
         private readonly IUserService _userService;
         private readonly IFoundItemService _foundItemService;
         private readonly ILostItemService _lostItemService;
+        private readonly IClaimRequestService _claimService;
 
-        public AdminController(IAdminService service, IUserService userService, IFoundItemService foundItemService, ILostItemService lostItemService)
+        public AdminController(IAdminService service, IUserService userService, IFoundItemService foundItemService, ILostItemService lostItemService, IClaimRequestService claimService)
         {
             _service = service;
             _userService = userService;
             _foundItemService = foundItemService;
             _lostItemService = lostItemService;
+            _claimService = claimService;
         }
 
         private bool IsAdmin()
@@ -189,6 +191,7 @@ namespace LostFoundApi.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
+        //lay so luong do vat chua duoc tra tren he thong   
         [HttpGet("dashboard/unreturned-items-count")]
         public async Task<IActionResult> GetTotalUnreturnedItems()
         {
@@ -209,6 +212,7 @@ namespace LostFoundApi.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
+        //Lay thong ke do vat duoc tim thay theo thang trong nam
         [HttpGet("dashboard/found-items-monthly")]
         public async Task<IActionResult> GetMonthlyFoundItems([FromQuery] int? year)
         {
@@ -232,6 +236,7 @@ namespace LostFoundApi.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
+        //Lay thong ke nguoi dung tim duoc nhieu do vat nhat
         [HttpGet("dashboard/top-contributor")]
         public async Task<IActionResult> GetTopContributorSystemWide()
         {
@@ -249,6 +254,7 @@ namespace LostFoundApi.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
+        //Lay thong ke campus co so luong do vat bi mat nhieu nhat
         [HttpGet("dashboard/campus-most-lost-items")]
         public async Task<IActionResult> GetCampusWithMostLostItems()
         {
@@ -274,6 +280,7 @@ namespace LostFoundApi.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
+        //Lay thong ke nguoi dung bi mat do vat nhieu nhat
         [HttpGet("dashboard/user-most-lost-items")]
         public async Task<IActionResult> GetUserWithMostLostItems()
         {
@@ -288,6 +295,67 @@ namespace LostFoundApi.Controllers
                     return Ok(new { message = "No lost items data available." });
                 }
 
+                return Ok(new
+                {
+                    scope = "All Campuses",
+                    data = result
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+        //Lay thong ke trang thai do vat bi mat tren toan he thong
+        [HttpGet("dashboard/lost-items-status-stats")]
+        public async Task<IActionResult> GetLostItemsStatsSystemWide()
+        {
+            if (!IsAdmin()) return Forbid();
+
+            try
+            {
+                var result = await _lostItemService.GetLostItemStatisticsAsync(null);
+                return Ok(new
+                {
+                    scope = "All Campuses",
+                    data = result
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+        //Lay thong ke trang thai do vat duoc tim thay tren toan he thong
+        [HttpGet("dashboard/found-items-status-stats")]
+        public async Task<IActionResult> GetFoundItemsStatsSystemWide()
+        {
+            if (!IsAdmin()) return Forbid();
+
+            try
+            {
+                // Null = Toàn bộ hệ thống
+                var result = await _foundItemService.GetFoundItemStatisticsAsync(null);
+                return Ok(new
+                {
+                    scope = "All Campuses",
+                    data = result
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+        //Lay thong ke trang thai yeu cau nhan do vat tren toan he thong
+        [HttpGet("dashboard/claim-status-stats")]
+        public async Task<IActionResult> GetClaimStatsSystemWide()
+        {
+            if (!IsAdmin()) return Forbid();
+
+            try
+            {
+                var result = await _claimService.GetClaimStatisticsAsync(null);
                 return Ok(new
                 {
                     scope = "All Campuses",
