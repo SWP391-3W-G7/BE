@@ -40,8 +40,11 @@
 ﻿
 ﻿            user.CampusId = request.CampusId;
 ﻿            user.RoleId = request.RoleId;
-﻿
-﻿            await _userRepo.UpdateAsync(user);
+
+            user.Campus = null;
+            user.Role = null;
+
+            await _userRepo.UpdateAsync(user);
 ﻿        }
 ﻿    }
 ﻿}

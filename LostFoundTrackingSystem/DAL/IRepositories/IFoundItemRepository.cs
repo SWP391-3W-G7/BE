@@ -17,5 +17,8 @@ namespace DAL.IRepositories
         Task<List<FoundItem>> GetByCreatedByAndStatusAsync(int createdById, string status);
         Task<IEnumerable<FoundItem>> GetByUserIdAsync(int userId);
         Task<(IEnumerable<FoundItem> Items, int TotalCount)> GetFoundItemsPagingAsync(int? campusId, string status, int pageNumber, int pageSize);
+        Task<int> CountUnreturnedItemsAsync(int? campusId);
+        Task<List<KeyValuePair<int, int>>> GetFoundItemCountsByMonthAsync(int? campusId, int year);
+        Task<(User? User, int Count)> GetTopContributorAsync(int? campusId);
     }
 }

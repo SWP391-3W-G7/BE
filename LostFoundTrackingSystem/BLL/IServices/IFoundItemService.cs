@@ -22,5 +22,8 @@ namespace BLL.IServices
         Task<List<SecurityFoundItemDto>> GetOpenFoundItemsForSecurityOfficerAsync(int securityOfficerId);
         Task<IEnumerable<FoundItemDto>> GetByUserIdAsync(int userId);
         Task<FoundItemDto> UpdateFoundItemAsync(int id, UpdateFoundItemDTO foundItem);
+        Task<int> GetUnreturnedCountAsync(int? campusId);
+        Task<List<int>> GetMonthlyStatsAsync(int? campusId, int year);
+        Task<TopUserDto?> GetTopContributorAsync(int? campusId);
     }
 }

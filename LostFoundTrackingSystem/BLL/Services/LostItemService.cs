@@ -280,5 +280,32 @@ namespace BLL.Services
 
             return await GetByIdAsync(entity.LostItemId);
         }
+        public async Task<TopCampusStatDto?> GetCampusWithMostLostItemsAsync()
+        {
+            var (campus, count) = await _repo.GetCampusWithMostLostItemsAsync();
+
+            if (campus == null) return null;
+
+            return new TopCampusStatDto
+            {
+                CampusId = campus.CampusId,
+                CampusName = campus.CampusName,
+                TotalLostItems = count
+            };
+        }
+        public async Task<TopUserLostItemDto?> GetTopLostItemUserAsync(int? campusId)
+        {
+            var (user, count) = await _repo.GetTopLostItemUserAsync(campusId);
+
+            if (user == null) return null;
+
+            return new TopUserLostItemDto
+            {
+                UserId = user.UserId,
+                FullName = user.FullName,
+                Email = user.Email,
+                TotalLostItems = count
+            };
+        }
     }
 }
