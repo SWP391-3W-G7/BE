@@ -21,5 +21,6 @@ namespace DAL.IRepositories
         Task<(List<LostItem> Items, int TotalCount)> GetLostItemsPagingAsync(int? campusId, string status, int pageNumber, int pageSize);
         Task<(Campus? Campus, int Count)> GetCampusWithMostLostItemsAsync();
         Task<(User? User, int Count)> GetTopLostItemUserAsync(int? campusId);
+        Task<Dictionary<string, int>> GetStatusStatisticsAsync(int? campusId);
     }
 }

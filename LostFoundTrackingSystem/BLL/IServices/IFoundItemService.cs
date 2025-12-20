@@ -25,5 +25,6 @@ namespace BLL.IServices
         Task<int> GetUnreturnedCountAsync(int? campusId);
         Task<List<int>> GetMonthlyStatsAsync(int? campusId, int year);
         Task<TopUserDto?> GetTopContributorAsync(int? campusId);
+        Task<FoundItemStatisticDto> GetFoundItemStatisticsAsync(int? campusId);
     }
 }

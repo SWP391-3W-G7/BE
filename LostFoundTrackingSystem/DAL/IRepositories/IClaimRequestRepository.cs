@@ -19,5 +19,6 @@ namespace DAL.IRepositories
         Task<(List<ClaimRequest> Items, int TotalCount)> GetAllPagingAsync(ClaimStatus? status, int pageNumber, int pageSize);
         Task SaveChangesAsync();
         Task<(List<ClaimRequest> Items, int TotalCount)> GetByCampusAndStatusPagingAsync(int campusId, string status, int pageNumber, int pageSize);
+        Task<Dictionary<string, int>> GetClaimStatusStatisticsAsync(int? campusId);
     }
 }

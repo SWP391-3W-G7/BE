@@ -20,5 +20,6 @@ namespace DAL.IRepositories
         Task<int> CountUnreturnedItemsAsync(int? campusId);
         Task<List<KeyValuePair<int, int>>> GetFoundItemCountsByMonthAsync(int? campusId, int year);
         Task<(User? User, int Count)> GetTopContributorAsync(int? campusId);
+        Task<Dictionary<string, int>> GetFoundStatusStatisticsAsync(int? campusId);
     }
 }
