@@ -422,6 +422,11 @@ namespace BLL.Services
 
             user.Status = "Banned";
             await _userRepository.UpdateAsync(user);
+
+            // Send rejection email
+            var subject = "Your Account has been Rejected";
+            var body = $"<p>Dear {user.FullName},</p><p>We regret to inform you that your account on the Lost and Found system has been rejected. If you believe this is a mistake, please contact support.</p><p>Best regards,<br>The System Admin</p>";
+            await _emailService.SendEmailAsync(user.Email, subject, body);
         }
 
         public async Task UploadStudentIdCardAsync(int userId, IFormFile studentIdCard)
