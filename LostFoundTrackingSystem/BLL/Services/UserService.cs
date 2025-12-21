@@ -20,12 +20,14 @@ namespace BLL.Services
         private readonly IUserRepository _userRepository;
         private readonly IConfiguration _configuration;
         private readonly IImageService _imageService;
+        private readonly IEmailService _emailService;
 
-        public UserService(IUserRepository userRepository, IConfiguration configuration, IImageService imageService)
+        public UserService(IUserRepository userRepository, IConfiguration configuration, IImageService imageService, IEmailService emailService)
         {
             _userRepository = userRepository;
             _configuration = configuration;
             _imageService = imageService;
+            _emailService = emailService;
         }
 
         [Obsolete("This method is obsolete. Use RegisterAsync(UserRegisterDto, IFormFile) instead.")]
@@ -403,6 +405,11 @@ namespace BLL.Services
 
             user.Status = "Active";
             await _userRepository.UpdateAsync(user);
+
+            // Send approval email
+            var subject = "Your Account has been Approved";
+            var body = $"<p>Dear {user.FullName},</p><p>Your account on the Lost and Found system has been approved. You can now log in and use the system.</p><p>Best regards,<br>The System Admin</p>";
+            await _emailService.SendEmailAsync(user.Email, subject, body);
         }
 
         public async Task RejectUserAsync(int userId)

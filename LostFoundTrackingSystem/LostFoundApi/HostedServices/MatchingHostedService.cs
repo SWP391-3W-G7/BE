@@ -20,7 +20,7 @@ namespace LostFoundApi.HostedServices
         public Task StartAsync(CancellationToken cancellationToken)
         {
             // Run every 30 seconds
-            _timer = new Timer(DoWork, null, TimeSpan.Zero, TimeSpan.FromSeconds(30));
+            _timer = new Timer(DoWork, null, TimeSpan.Zero, TimeSpan.FromHours(6));
             return Task.CompletedTask;
         }
 
