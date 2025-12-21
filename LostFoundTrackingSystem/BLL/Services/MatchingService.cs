@@ -683,9 +683,11 @@ namespace BLL.Services
 
         public async Task<IEnumerable<ItemMatchDto>> GetPendingMatchesAsync()
         {
-            var matches = await _matchingRepository.GetAllByStatusAsync("Pending");
+            var allMatched = await _matchingRepository.GetAllByStatusAsync("Matched");
+            var pendingMatches = allMatched.Where(m => m.Status == "Pending");
+
             var dtoList = new List<ItemMatchDto>();
-            foreach (var match in matches)
+            foreach (var match in pendingMatches)
             {
                 dtoList.Add(await MapToItemMatchDto(match));
             }
