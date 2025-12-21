@@ -450,9 +450,9 @@ namespace BLL.Services
                 throw new Exception("User not found.");
             }
 
-            if (user.Status != "IdCardUploadNeeded")
+            if (!string.IsNullOrEmpty(user.StudentIdCardUrl))
             {
-                throw new Exception("Student ID card upload is not required for this user or their status is not 'IdCardUploadNeeded'.");
+                throw new Exception("Student ID card has already been uploaded for this user.");
             }
 
             var studentIdCardUrl = await _imageService.UploadAsync(studentIdCard);
