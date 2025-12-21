@@ -327,7 +327,7 @@ namespace BLL.Services
                     Email = email,
                     FullName = fullName,
                     RoleId = 1, // User role
-                    Status = "IdCardUploadNeeded",
+                    Status = "Pending",
                     CampusId = campusId, // Set campus from parameter
                     PasswordHash = string.Empty, // Google users don't have password
                     StudentIdCardUrl = null
@@ -354,11 +354,6 @@ namespace BLL.Services
             if (user.Status == "Banned")
             {
                 throw new Exception("Your account has been banned.");
-            }
-
-            if (user.Status == "Pending")
-            {
-                throw new Exception("Your account is pending approval.");
             }
 
             return GenerateJwtToken(user);
