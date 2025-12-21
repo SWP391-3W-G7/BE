@@ -33,9 +33,13 @@ namespace BLL.Services
 
         public async Task<UserLoginResponseDto> LoginWithGoogleMobileAsync(GoogleTokenRequestDto request)
         {
+            var clientIds = _configuration["Authentication:Google:ClientId"].Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+                                                                            .Select(id => id.Trim())
+                                                                            .ToList();
+
             var validationSettings = new GoogleJsonWebSignature.ValidationSettings
             {
-                Audience = new[] { _configuration["Authentication:Google:ClientId"] }
+                Audience = clientIds
             };
 
             try

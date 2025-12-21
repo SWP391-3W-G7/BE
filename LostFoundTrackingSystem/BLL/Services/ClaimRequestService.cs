@@ -709,5 +709,37 @@ namespace BLL.Services
 
             return dto;
         }
+
+        public async Task<PagedResponse<ClaimRequestWithNewestEvidenceDto>> GetAllClaimsWithNewestEvidenceAsync(PagingParameters pagingParameters)
+        {
+            var (items, totalCount) = await _repo.GetAllPagingAsync(null, pagingParameters.PageNumber, pagingParameters.PageSize);
+
+            var dtoList = new List<ClaimRequestWithNewestEvidenceDto>();
+            foreach (var item in items)
+            {
+                var newestEvidence = item.Evidences.OrderByDescending(e => e.CreatedAt).FirstOrDefault();
+
+                dtoList.Add(new ClaimRequestWithNewestEvidenceDto
+                {
+                    ClaimId = item.ClaimId,
+                    ClaimDate = item.ClaimDate,
+                    Status = item.Status,
+                    FoundItemId = item.FoundItemId,
+                    FoundItemTitle = item.FoundItem?.Title,
+                    StudentId = item.StudentId,
+                    StudentName = item.Student?.FullName,
+                    NewestEvidence = newestEvidence != null ? new EvidenceDto
+                    {
+                        EvidenceId = newestEvidence.EvidenceId,
+                        Title = newestEvidence.Title,
+                        Description = newestEvidence.Description,
+                        CreatedAt = newestEvidence.CreatedAt,
+                        ImageUrls = newestEvidence.Images.Select(i => i.ImageUrl).ToList()
+                    } : null
+                });
+            }
+
+            return new PagedResponse<ClaimRequestWithNewestEvidenceDto>(dtoList, totalCount, pagingParameters.PageNumber, pagingParameters.PageSize);
+        }
     }
 }
