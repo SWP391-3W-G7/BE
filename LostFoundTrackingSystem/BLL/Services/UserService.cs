@@ -33,7 +33,7 @@ namespace BLL.Services
 
         public async Task<UserLoginResponseDto> LoginWithGoogleMobileAsync(GoogleTokenRequestDto request)
         {
-            var clientIds = _configuration["Authentication:Google:ClientId"].Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+            var clientIds = _configuration["Authentication:Google:ValidClientIds"].Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
                                                                             .Select(id => id.Trim())
                                                                             .ToList();
 

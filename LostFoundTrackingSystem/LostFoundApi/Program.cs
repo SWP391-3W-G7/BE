@@ -187,7 +187,7 @@ builder.Services.AddAuthentication(options =>
 .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme)
 .AddGoogle(options =>
 {
-    options.ClientId = builder.Configuration["Authentication:Google:ClientId"];
+    options.ClientId = builder.Configuration["Authentication:Google:WebClientId"];
     options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
     // Set the callback path - this should match your controller route
     options.CallbackPath = "/signin-google";
