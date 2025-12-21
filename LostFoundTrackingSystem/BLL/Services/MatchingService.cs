@@ -669,6 +669,18 @@ namespace BLL.Services
 
             return new PagedResponse<ItemMatchDto>(dtoList, totalCount, pagingParameters.PageNumber, pagingParameters.PageSize);
         }
+
+        public async Task<IEnumerable<ItemMatchDto>> GetApprovedMatchesAsync()
+        {
+            var matches = await _matchingRepository.GetAllByStatusAsync("Approved");
+            var dtoList = new List<ItemMatchDto>();
+            foreach (var match in matches)
+            {
+                dtoList.Add(await MapToItemMatchDto(match));
+            }
+            return dtoList;
+        }
+
         private FoundItemDto MapToFoundItemDto(FoundItem foundItem)
         {
             return new FoundItemDto
