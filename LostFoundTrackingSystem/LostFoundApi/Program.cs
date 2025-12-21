@@ -85,6 +85,7 @@ builder.Services.AddDbContext<LostFoundTrackingSystemContext>(options =>
 
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IUserActivityService, UserActivityService>();
 
 builder.Services.AddScoped<IClaimRequestRepository, ClaimRequestRepository>();
