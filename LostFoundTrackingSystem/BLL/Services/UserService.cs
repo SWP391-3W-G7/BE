@@ -351,15 +351,9 @@ namespace BLL.Services
                 }
             }
 
-            // Check if account is banned
             if (user.Status == "Banned")
             {
                 throw new Exception("Your account has been banned.");
-            }
-
-            if (user.Status == "IdCardUploadNeeded")
-            {
-                throw new Exception("Please upload your student ID card to complete registration.");
             }
 
             if (user.Status == "Pending")
