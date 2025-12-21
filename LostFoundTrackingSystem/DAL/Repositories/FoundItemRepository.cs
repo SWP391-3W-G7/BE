@@ -206,6 +206,9 @@ namespace DAL.Repositories
                 query = query.Where(x => x.CampusId == campusId.Value);
             }
 
+            string returnedStatus = FoundItemStatus.Returned.ToString();
+            query = query.Where(x => x.Status != returnedStatus);
+
             query = query.Where(x => x.CreatedBy.HasValue);
 
             var topStat = await query

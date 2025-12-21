@@ -9,9 +9,6 @@ namespace BLL.DTOs.StaffDTO
 {
     public class RequestDropOffDto
     {
-        [Required(ErrorMessage = "Storage Location is required")]
-        public string StorageLocation { get; set; } = null!;
-
         public string? Note { get; set; }
     }
 }

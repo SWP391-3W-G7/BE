@@ -23,8 +23,9 @@ namespace BLL.Services
         private readonly IFoundItemRepository _foundItemRepo;
         private readonly INotificationService _notifService;
         private readonly IUserRepository _userRepo;
+        private readonly ICampusRepository _campusRepo;
 
-        public StaffService(IClaimRequestRepository claimRequestRepository, IMatchingRepository matchingRepository, IItemActionLogService itemActionLogService, IClaimRequestService claimRequestService, IFoundItemRepository foundItemRepo, INotificationService notifService, IUserRepository userRepo)
+        public StaffService(IClaimRequestRepository claimRequestRepository, IMatchingRepository matchingRepository, IItemActionLogService itemActionLogService, IClaimRequestService claimRequestService, IFoundItemRepository foundItemRepo, INotificationService notifService, IUserRepository userRepo, ICampusRepository campusRepo)
         {
             _claimRequestRepository = claimRequestRepository;
             _matchingRepository = matchingRepository;
@@ -33,6 +34,7 @@ namespace BLL.Services
             _foundItemRepo = foundItemRepo;
             _notifService = notifService;
             _userRepo = userRepo;
+            _campusRepo = campusRepo;
         }
 
         public async Task<StaffWorkItemsDto> GetWorkItemsAsync(int campusId, PagingParameters pagingParameters)
@@ -181,8 +183,16 @@ namespace BLL.Services
             if (item.CreatedBy == null)
                 throw new Exception("This item has no associated finder (CreatedBy is null).");
 
+            var campus = await _campusRepo.GetByIdAsync(item.CampusId.Value);
+            if (campus == null)
+                throw new Exception("Campus not found for the item.");
+
+            string storageLocation = campus.StorageLocation;
+            if (string.IsNullOrEmpty(storageLocation))
+                storageLocation = "the Campus Security Office";
+
             string studentId = item.CreatedBy.Value.ToString();
-            string message = $"ACTION REQUIRED: Please bring the found item '{item.Title}' to {request.StorageLocation}. " +
+            string message = $"ACTION REQUIRED: Please bring the found item '{item.Title}' to {storageLocation} from 9 am to 5 pm on working days." +
                              $"{(string.IsNullOrEmpty(request.Note) ? "" : $"Note: {request.Note}")}";
 
             try
@@ -198,7 +208,7 @@ namespace BLL.Services
             {
                 FoundItemId = item.FoundItemId,
                 ActionType = "DropOffRequested",
-                ActionDetails = $"Staff requested student to bring item to: {request.StorageLocation}. Note: {request.Note ?? "None"}",
+                ActionDetails = $"Staff requested student to bring item to: {storageLocation}. Note: {request.Note ?? "None"}",
                 OldStatus = item.Status,
                 NewStatus = item.Status, 
                 PerformedBy = staffId,
