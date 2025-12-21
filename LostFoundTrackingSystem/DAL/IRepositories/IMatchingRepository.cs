@@ -15,5 +15,6 @@ namespace DAL.IRepositories
         Task UpdateMatchAsync(ItemMatch itemMatch);
         Task<List<ItemMatch>> GetAllByStatusAsync(string status);
         Task<(IEnumerable<ItemMatch> Items, int TotalCount)> GetMatchesPagingAsync(int? userId, int pageNumber, int pageSize);
+        Task<(IEnumerable<ItemMatch> Items, int TotalCount)> GetMatchesByStatusPagingAsync(string status, int pageNumber, int pageSize);
     }
 }

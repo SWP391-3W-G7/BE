@@ -140,6 +140,33 @@ namespace DAL.Repositories
                 .Where(m => m.MatchStatus == status)
                 .ToListAsync();
         }
+
+        public async Task<(IEnumerable<ItemMatch> Items, int TotalCount)> GetMatchesByStatusPagingAsync(string status, int pageNumber, int pageSize)
+        {
+            var query = _context.ItemMatches
+                .Include(m => m.CreatedByNavigation).ThenInclude(u => u.Role)
+                .Include(m => m.CreatedByNavigation).ThenInclude(u => u.Campus)
+                .Include(m => m.FoundItem).ThenInclude(f => f.Images)
+                .Include(m => m.FoundItem).ThenInclude(f => f.Campus)
+                .Include(m => m.FoundItem).ThenInclude(f => f.Category)
+                .Include(m => m.LostItem).ThenInclude(l => l.Images)
+                .Include(m => m.LostItem).ThenInclude(l => l.Campus)
+                .Include(m => m.LostItem).ThenInclude(l => l.Category)
+                .Where(m => m.Status == status)
+                .AsQueryable();
+
+            query = query.OrderByDescending(m => m.CreatedAt);
+
+            int totalCount = await query.CountAsync();
+
+            var items = await query
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return (items, totalCount);
+        }
+
         public async Task<(IEnumerable<ItemMatch> Items, int TotalCount)> GetMatchesPagingAsync(int? userId, int pageNumber, int pageSize)
         {
             var query = _context.ItemMatches

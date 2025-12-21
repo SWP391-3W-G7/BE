@@ -670,28 +670,26 @@ namespace BLL.Services
             return new PagedResponse<ItemMatchDto>(dtoList, totalCount, pagingParameters.PageNumber, pagingParameters.PageSize);
         }
 
-        public async Task<IEnumerable<ItemMatchDto>> GetApprovedMatchesAsync()
+        public async Task<PagedResponse<ItemMatchDto>> GetApprovedMatchesAsync(PagingParameters pagingParameters)
         {
-            var matches = await _matchingRepository.GetAllByStatusAsync("Approved");
+            var (items, totalCount) = await _matchingRepository.GetMatchesByStatusPagingAsync("Approved", pagingParameters.PageNumber, pagingParameters.PageSize);
             var dtoList = new List<ItemMatchDto>();
-            foreach (var match in matches)
+            foreach (var item in items)
             {
-                dtoList.Add(await MapToItemMatchDto(match));
+                dtoList.Add(await MapToItemMatchDto(item));
             }
-            return dtoList;
+            return new PagedResponse<ItemMatchDto>(dtoList, totalCount, pagingParameters.PageNumber, pagingParameters.PageSize);
         }
 
-        public async Task<IEnumerable<ItemMatchDto>> GetPendingMatchesAsync()
+        public async Task<PagedResponse<ItemMatchDto>> GetPendingMatchesAsync(PagingParameters pagingParameters)
         {
-            var allMatched = await _matchingRepository.GetAllByStatusAsync("Matched");
-            var pendingMatches = allMatched.Where(m => m.Status == "Pending");
-
+            var (items, totalCount) = await _matchingRepository.GetMatchesByStatusPagingAsync("Pending", pagingParameters.PageNumber, pagingParameters.PageSize);
             var dtoList = new List<ItemMatchDto>();
-            foreach (var match in pendingMatches)
+            foreach (var item in items)
             {
-                dtoList.Add(await MapToItemMatchDto(match));
+                dtoList.Add(await MapToItemMatchDto(item));
             }
-            return dtoList;
+            return new PagedResponse<ItemMatchDto>(dtoList, totalCount, pagingParameters.PageNumber, pagingParameters.PageSize);
         }
 
         private FoundItemDto MapToFoundItemDto(FoundItem foundItem)
