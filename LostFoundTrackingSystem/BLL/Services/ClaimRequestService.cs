@@ -1,4 +1,4 @@
-using BLL.DTOs.ClaimRequestDTO;
+﻿using BLL.DTOs.ClaimRequestDTO;
 using BLL.DTOs.Paging;
 using BLL.IServices;
 using DAL.IRepositories;
@@ -277,7 +277,6 @@ namespace BLL.Services
             string oldStatus = entity.Status;
             entity.Status = status.ToString();
 
-            // If the current claim is approved, reject all other pending/conflicted claims for the same found item
             if (status == ClaimStatus.Approved)
             {
                 var otherClaims = (await _repo.GetByFoundItemIdAsync(entity.FoundItemId.Value))
@@ -328,11 +327,28 @@ namespace BLL.Services
                     }
                 }
             }
-            
+
             if (entity.Status.ToString() == ClaimStatus.Returned.ToString())
             {
+
+                var existingRecord = await _returnRecordRepo.GetByFoundItemIdAsync(entity.FoundItemId.Value);
+
+                if (existingRecord != null)
+                {
+                    throw new Exception($"Cannot create return record. A return record already exists for Found Item ID: {entity.FoundItemId}.");
+                }
+                if (entity.LostItemId.HasValue)
+                {
+                    var existingLostRecord = await _returnRecordRepo.GetByLostItemIdAsync(entity.LostItemId.Value);
+                    if (existingLostRecord != null)
+                    {
+                        throw new Exception($"Cannot process return. Lost Item (ID: {entity.LostItemId}) has already been returned.");
+                    }
+                }
+
                 var returnRecord = new ReturnRecord
                 {
+                    LostItemId = entity.LostItemId,
                     FoundItemId = entity.FoundItemId,
                     ReceiverId = entity.StudentId,
                     StaffUserId = staffId,
@@ -340,11 +356,34 @@ namespace BLL.Services
                 };
                 await _returnRecordRepo.AddAsync(returnRecord);
 
-                var foundItem = await _foundItemRepo.GetByIdAsync(entity.FoundItemId.Value);
-                if (foundItem != null)
+                if(entity.FoundItem != null)
                 {
-                    foundItem.Status = FoundItemStatus.Returned.ToString();
-                    await _foundItemRepo.UpdateAsync(foundItem);
+                    entity.FoundItem.Status = FoundItemStatus.Returned.ToString();
+                }
+                else
+                {
+                    var foundItem = await _foundItemRepo.GetByIdAsync(entity.FoundItemId.Value);
+                    if (foundItem != null)
+                    {
+                        foundItem.Status = FoundItemStatus.Returned.ToString();
+                        await _foundItemRepo.UpdateAsync(foundItem);
+                    }
+                }
+                if (entity.LostItemId.HasValue)
+                {
+                    if (entity.LostItem != null)
+                    {
+                        entity.LostItem.Status = LostItemStatus.Returned.ToString();
+                    }
+                    else
+                    {
+                        var lostItem = await _lostItemRepo.GetByIdAsync(entity.LostItemId.Value);
+                        if (lostItem != null)
+                        {
+                            lostItem.Status = LostItemStatus.Returned.ToString();
+                            await _lostItemRepo.UpdateAsync(lostItem);
+                        }
+                    }
                 }
             }
 
