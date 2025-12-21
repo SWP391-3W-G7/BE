@@ -19,6 +19,9 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {
     options.ForwardedHeaders =
         ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    // The following lines are added to trust headers from the proxy.
+    options.KnownProxies.Clear();
+    options.KnownNetworks.Clear();
 });
 
 // Add services to the container.
