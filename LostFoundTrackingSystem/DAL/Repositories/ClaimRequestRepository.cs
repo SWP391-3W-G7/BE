@@ -62,7 +62,7 @@ namespace DAL.Repositories
 
         public async Task UpdateAsync(ClaimRequest request)
         {
-            _context.ClaimRequests.Update(request);
+            _context.Entry(request).State = EntityState.Modified;
             await _context.SaveChangesAsync();
         }
         public async Task DeleteAsync(ClaimRequest request)

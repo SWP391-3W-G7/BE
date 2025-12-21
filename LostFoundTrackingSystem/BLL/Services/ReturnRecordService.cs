@@ -67,7 +67,16 @@ namespace BLL.Services
                 Note = request.Note
             };
 
-            await _repo.AddAsync(returnRecord);
+            try
+            {
+                await _repo.AddAsync(returnRecord);
+            }
+            catch (Microsoft.EntityFrameworkCore.DbUpdateException ex) when (ex.InnerException is Microsoft.Data.SqlClient.SqlException sqlEx && sqlEx.Number == 2627)
+            {
+                // This handles the race condition where another request created the record
+                // between the initial check and this save operation.
+                throw new Exception("This item has already been marked as returned, possibly by another user's concurrent action.");
+            }
 
             await _foundItemService.UpdateStatusAsync(foundItem.FoundItemId, new UpdateFoundItemStatusRequest { Status = FoundItemStatus.Returned.ToString() }, userId);
 
