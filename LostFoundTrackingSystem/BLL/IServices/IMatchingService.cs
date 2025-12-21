@@ -19,5 +19,6 @@ namespace BLL.IServices
         Task<PagedResponse<ItemMatchDto>> GetAllMatchesPagingAsync(PagingParameters pagingParameters);
         Task<PagedResponse<ItemMatchDto>> GetMyMatchesPagingAsync(int userId, PagingParameters pagingParameters);
         Task<IEnumerable<ItemMatchDto>> GetApprovedMatchesAsync();
+        Task<IEnumerable<ItemMatchDto>> GetPendingMatchesAsync();
     }
 }

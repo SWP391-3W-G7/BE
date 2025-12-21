@@ -55,6 +55,14 @@ namespace LostFoundApi.Controllers
             return Ok(matches);
         }
 
+        [HttpGet("pending")]
+        [Authorize(Roles = "Staff,Admin")]
+        public async Task<ActionResult<IEnumerable<ItemMatchDto>>> GetPendingMatches()
+        {
+            var matches = await _matchingService.GetPendingMatchesAsync();
+            return Ok(matches);
+        }
+
         [HttpGet("{matchId}")]
         public async Task<ActionResult<ItemMatchDto>> GetMatchDetails(int matchId)
         {
