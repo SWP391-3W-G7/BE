@@ -1,4 +1,5 @@
-﻿using BLL.IServices;
+﻿using BLL.DTOs.UserDTO;
+using BLL.IServices;
 using DAL.Models;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Google;
@@ -24,6 +25,22 @@ namespace LostFoundApi.Controllers
             _userService = userService;
             _logger = logger;
             _cache = cache;
+        }
+
+        [HttpPost("google-mobile-login")]
+        public async Task<IActionResult> GoogleMobileLogin([FromBody] GoogleTokenRequestDto request)
+        {
+            _logger.LogInformation("GoogleMobileLogin initiated.");
+            try
+            {
+                var tokenResponse = await _userService.LoginWithGoogleMobileAsync(request);
+                return Ok(tokenResponse);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred during GoogleMobileLogin.");
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         [HttpGet("google-login")]

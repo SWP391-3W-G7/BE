@@ -18,6 +18,7 @@ namespace BLL.IServices
         Task UpdateUserBanStatusAsync(int userId, bool isBan);
         Task<UserDto> GetByEmailAsync(string email);
         Task<UserLoginResponseDto> LoginWithGoogleAsync(string email, string fullName, int? campusId = null); // Updated signature
+        Task<UserLoginResponseDto> LoginWithGoogleMobileAsync(GoogleTokenRequestDto request);
         Task<UserDto> UpdateUserProfileAsync(int userId, UpdateUserProfileDto userProfileDto);
         Task ChangePasswordAsync(int userId, ChangePasswordDto changePasswordDto);
         Task<List<UserDto>> GetPendingUsersAsync();

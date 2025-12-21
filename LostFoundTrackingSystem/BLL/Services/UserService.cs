@@ -4,6 +4,7 @@ using BLL.DTOs.UserDTO;
 using BLL.IServices;
 using DAL.IRepositories;
 using DAL.Models;
+using Google.Apis.Auth;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
@@ -28,6 +29,25 @@ namespace BLL.Services
             _configuration = configuration;
             _imageService = imageService;
             _emailService = emailService;
+        }
+
+        public async Task<UserLoginResponseDto> LoginWithGoogleMobileAsync(GoogleTokenRequestDto request)
+        {
+            var validationSettings = new GoogleJsonWebSignature.ValidationSettings
+            {
+                Audience = new[] { _configuration["Authentication:Google:ClientId"] }
+            };
+
+            try
+            {
+                var payload = await GoogleJsonWebSignature.ValidateAsync(request.IdToken, validationSettings);
+                return await LoginWithGoogleAsync(payload.Email, payload.Name, request.CampusId);
+            }
+            catch (InvalidJwtException ex)
+            {
+                // Token is invalid
+                throw new Exception("Invalid Google token.", ex);
+            }
         }
 
         [Obsolete("This method is obsolete. Use RegisterAsync(UserRegisterDto, IFormFile) instead.")]
