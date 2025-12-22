@@ -60,6 +60,14 @@ namespace LostFoundApi.Controllers
             return Ok(result);
         }
 
+        [HttpGet("with-newest-evidence")]
+        [Authorize(Roles = "Staff,Admin")]
+        public async Task<IActionResult> GetAllWithNewestEvidence([FromQuery] PagingParameters pagingParameters)
+        {
+            var result = await _service.GetAllClaimsWithNewestEvidenceAsync(pagingParameters);
+            return Ok(result);
+        }
+
         [HttpGet]
         [Authorize(Roles = "Staff,Admin")] // 2=Staff, 4=Admin
         public async Task<IActionResult> GetAll([FromQuery] ClaimStatus? status, [FromQuery] PagingParameters pagingParameters)

@@ -47,6 +47,22 @@ namespace LostFoundApi.Controllers
             return Ok(matches);
         }
 
+        [HttpGet("approved")]
+        [Authorize(Roles = "Staff,Admin")]
+        public async Task<ActionResult<PagedResponse<ItemMatchDto>>> GetApprovedMatches([FromQuery] PagingParameters pagingParameters)
+        {
+            var matches = await _matchingService.GetApprovedMatchesAsync(pagingParameters);
+            return Ok(matches);
+        }
+
+        [HttpGet("pending")]
+        [Authorize(Roles = "Staff,Admin")]
+        public async Task<ActionResult<PagedResponse<ItemMatchDto>>> GetPendingMatches([FromQuery] PagingParameters pagingParameters)
+        {
+            var matches = await _matchingService.GetPendingMatchesAsync(pagingParameters);
+            return Ok(matches);
+        }
+
         [HttpGet("{matchId}")]
         public async Task<ActionResult<ItemMatchDto>> GetMatchDetails(int matchId)
         {

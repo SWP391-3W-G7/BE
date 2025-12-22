@@ -669,6 +669,29 @@ namespace BLL.Services
 
             return new PagedResponse<ItemMatchDto>(dtoList, totalCount, pagingParameters.PageNumber, pagingParameters.PageSize);
         }
+
+        public async Task<PagedResponse<ItemMatchDto>> GetApprovedMatchesAsync(PagingParameters pagingParameters)
+        {
+            var (items, totalCount) = await _matchingRepository.GetMatchesByStatusPagingAsync("Approved", pagingParameters.PageNumber, pagingParameters.PageSize);
+            var dtoList = new List<ItemMatchDto>();
+            foreach (var item in items)
+            {
+                dtoList.Add(await MapToItemMatchDto(item));
+            }
+            return new PagedResponse<ItemMatchDto>(dtoList, totalCount, pagingParameters.PageNumber, pagingParameters.PageSize);
+        }
+
+        public async Task<PagedResponse<ItemMatchDto>> GetPendingMatchesAsync(PagingParameters pagingParameters)
+        {
+            var (items, totalCount) = await _matchingRepository.GetMatchesByStatusPagingAsync("Pending", pagingParameters.PageNumber, pagingParameters.PageSize);
+            var dtoList = new List<ItemMatchDto>();
+            foreach (var item in items)
+            {
+                dtoList.Add(await MapToItemMatchDto(item));
+            }
+            return new PagedResponse<ItemMatchDto>(dtoList, totalCount, pagingParameters.PageNumber, pagingParameters.PageSize);
+        }
+
         private FoundItemDto MapToFoundItemDto(FoundItem foundItem)
         {
             return new FoundItemDto

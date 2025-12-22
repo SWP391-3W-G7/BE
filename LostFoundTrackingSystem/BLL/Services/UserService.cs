@@ -33,9 +33,13 @@ namespace BLL.Services
 
         public async Task<UserLoginResponseDto> LoginWithGoogleMobileAsync(GoogleTokenRequestDto request)
         {
+            var clientIds = _configuration["Authentication:Google:ValidClientIds"].Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+                                                                            .Select(id => id.Trim())
+                                                                            .ToList();
+
             var validationSettings = new GoogleJsonWebSignature.ValidationSettings
             {
-                Audience = new[] { _configuration["Authentication:Google:ClientId"] }
+                Audience = clientIds
             };
 
             try
@@ -323,7 +327,7 @@ namespace BLL.Services
                     Email = email,
                     FullName = fullName,
                     RoleId = 1, // User role
-                    Status = "IdCardUploadNeeded",
+                    Status = "Pending",
                     CampusId = campusId, // Set campus from parameter
                     PasswordHash = string.Empty, // Google users don't have password
                     StudentIdCardUrl = null
@@ -347,20 +351,9 @@ namespace BLL.Services
                 }
             }
 
-            // Check if account is banned
             if (user.Status == "Banned")
             {
                 throw new Exception("Your account has been banned.");
-            }
-
-            if (user.Status == "IdCardUploadNeeded")
-            {
-                throw new Exception("Please upload your student ID card to complete registration.");
-            }
-
-            if (user.Status == "Pending")
-            {
-                throw new Exception("Your account is pending approval.");
             }
 
             return GenerateJwtToken(user);
@@ -457,9 +450,9 @@ namespace BLL.Services
                 throw new Exception("User not found.");
             }
 
-            if (user.Status != "IdCardUploadNeeded")
+            if (!string.IsNullOrEmpty(user.StudentIdCardUrl))
             {
-                throw new Exception("Student ID card upload is not required for this user or their status is not 'IdCardUploadNeeded'.");
+                throw new Exception("Student ID card has already been uploaded for this user.");
             }
 
             var studentIdCardUrl = await _imageService.UploadAsync(studentIdCard);
