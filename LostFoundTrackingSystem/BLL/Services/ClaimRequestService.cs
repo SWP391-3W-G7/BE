@@ -99,32 +99,60 @@ namespace BLL.Services
 
             // Check for conflicts
             var allClaimsForFoundItem = await _repo.GetByFoundItemIdAsync(request.FoundItemId);
-            bool hasMultipleClaims = allClaimsForFoundItem.Count > 1;
-            bool hasConflictedClaims = allClaimsForFoundItem.Any(c => c.Status == ClaimStatus.Conflicted.ToString());
 
-            if (hasMultipleClaims || hasConflictedClaims)
+            var otherClaims = allClaimsForFoundItem.Where(c => c.ClaimId != claimEntity.ClaimId).ToList();
+
+            bool hasOtherClaims = otherClaims.Count > 0;
+            bool hasExistingConflict = otherClaims.Any(c => c.Status == ClaimStatus.Conflicted.ToString());
+
+            //bool hasMultipleClaims = allClaimsForFoundItem.Count > 1;
+            //bool hasConflictedClaims = allClaimsForFoundItem.Any(c => c.Status == ClaimStatus.Conflicted.ToString());
+
+
+            if (hasOtherClaims || hasExistingConflict)
             {
-                foreach (var claim in allClaimsForFoundItem)
+                if (claimEntity.Status == ClaimStatus.Pending.ToString())
+                {
+                    string oldStatus = claimEntity.Status;
+                    claimEntity.Status = ClaimStatus.Conflicted.ToString();
+
+                    await _repo.UpdateAsync(claimEntity);
+
+                    await _itemActionLogService.AddLogAsync(new ItemActionLogDto
+                    {
+                        ClaimRequestId = claimEntity.ClaimId,
+                        FoundItemId = claimEntity.FoundItemId,
+                        ActionType = "StatusUpdate",
+                        ActionDetails = $"Claim request '{claimEntity.ClaimId}' automatically marked as 'Conflicted' upon creation.",
+                        OldStatus = oldStatus,
+                        NewStatus = claimEntity.Status,
+                        PerformedBy = studentId, // System
+                        CampusId = foundItem.CampusId
+                    });
+                }
+
+                foreach (var claim in otherClaims)
                 {
                     if (claim.Status == ClaimStatus.Pending.ToString())
                     {
                         string oldStatus = claim.Status;
                         claim.Status = ClaimStatus.Conflicted.ToString();
-                        
+
+                        await _repo.UpdateAsync(claim);
+
                         await _itemActionLogService.AddLogAsync(new ItemActionLogDto
                         {
                             ClaimRequestId = claim.ClaimId,
                             FoundItemId = claim.FoundItemId,
                             ActionType = "StatusUpdate",
-                            ActionDetails = $"Claim request '{claim.ClaimId}' status automatically changed to 'Conflicted' due to multiple or existing conflicted claims.",
+                            ActionDetails = $"Claim request '{claim.ClaimId}' status automatically changed to 'Conflicted' due to new incoming claim.",
                             OldStatus = oldStatus,
                             NewStatus = claim.Status,
-                            PerformedBy = studentId, // System action
+                            PerformedBy = studentId, // System
                             CampusId = foundItem.CampusId
                         });
                     }
                 }
-                await _repo.SaveChangesAsync();
             }
 
             if (request.EvidenceImages != null)
