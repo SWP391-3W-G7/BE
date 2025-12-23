@@ -23,7 +23,7 @@ namespace LostFoundApi.HostedServices
         public Task StartAsync(CancellationToken cancellationToken)
         {
             _logger.LogInformation("Conflicting Claims Scanner Service is starting.");
-            _timer = new Timer(DoWork, null, TimeSpan.Zero, TimeSpan.FromHours(1)); // Run once an hour
+            _timer = new Timer(DoWork, null, TimeSpan.Zero, TimeSpan.FromSeconds(60)); // Run once an hour
             return Task.CompletedTask;
         }
 
