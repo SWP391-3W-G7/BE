@@ -127,11 +127,6 @@ namespace BLL.Services
                 throw new Exception("Please upload your student ID card to complete registration.");
             }
 
-            if (user.Status == "Pending")
-            {
-                throw new Exception("Your account is pending approval.");
-            }
-
             if (user.RoleId == null)
             {
                 throw new Exception("User does not have a role.");
@@ -408,7 +403,7 @@ namespace BLL.Services
             }).ToList();
         }
 
-        public async Task ApproveUserAsync(int userId)
+        public async Task<UserLoginResponseDto> ApproveUserAsync(int userId)
         {
             var user = await _userRepository.GetUserByIdAsync(userId);
             if (user == null)
@@ -423,6 +418,8 @@ namespace BLL.Services
             var subject = "Your Account has been Approved";
             var body = $"<p>Dear {user.FullName},</p><p>Your account on the Lost and Found system has been approved. You can now log in and use the system.</p><p>Best regards,<br>The System Admin</p>";
             await _emailService.SendEmailAsync(user.Email, subject, body);
+
+            return GenerateJwtToken(user);
         }
 
         public async Task RejectUserAsync(int userId)
@@ -479,7 +476,8 @@ namespace BLL.Services
                     new Claim(ClaimTypes.Email, user.Email),
                                 new Claim(ClaimTypes.Role, user.Role?.RoleName ?? string.Empty),
                                 new Claim("CampusName", user.Campus?.CampusName ?? string.Empty),
-                                new Claim("CampusId", user.CampusId?.ToString() ?? string.Empty)
+                                new Claim("CampusId", user.CampusId?.ToString() ?? string.Empty),
+                                new Claim("Status", user.Status)
                             }),
                 Expires = DateTime.UtcNow.AddDays(7),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),

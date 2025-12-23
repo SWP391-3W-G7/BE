@@ -168,8 +168,8 @@ namespace LostFoundApi.Controllers
         {
             try
             {
-                await _userService.ApproveUserAsync(id);
-                return Ok(new { message = "User approved successfully." });
+                var loginResponse = await _userService.ApproveUserAsync(id);
+                return Ok(loginResponse);
             }
             catch (Exception ex)
             {

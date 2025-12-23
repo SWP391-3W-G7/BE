@@ -22,7 +22,7 @@ namespace BLL.IServices
         Task<UserDto> UpdateUserProfileAsync(int userId, UpdateUserProfileDto userProfileDto);
         Task ChangePasswordAsync(int userId, ChangePasswordDto changePasswordDto);
         Task<List<UserDto>> GetPendingUsersAsync();
-        Task ApproveUserAsync(int userId);
+        Task<UserLoginResponseDto> ApproveUserAsync(int userId);
         Task RejectUserAsync(int userId);
         Task UploadStudentIdCardAsync(int userId, IFormFile studentIdCard);
     }

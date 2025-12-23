@@ -40,8 +40,12 @@ namespace BLL.Services
         {
             var foundItem = await _foundItemRepo.GetByIdAsync(request.FoundItemId);
             if (foundItem == null) throw new Exception("Found item not found.");
-            
-            var lostItem = await _lostItemRepo.GetByIdAsync(request.LostItemId.Value);
+
+            LostItem lostItem = null;
+            if (request.LostItemId.HasValue)
+            {
+                lostItem = await _lostItemRepo.GetByIdAsync(request.LostItemId.Value);
+            }
 
             bool hasEvidence = !string.IsNullOrEmpty(request.EvidenceTitle) ||
                        !string.IsNullOrEmpty(request.EvidenceDescription) ||
@@ -52,9 +56,9 @@ namespace BLL.Services
             {
                 priority = ClaimPriority.High;
             }
-            else if (request.LostItemId.HasValue && hasEvidence)
+            else if (request.LostItemId.HasValue)
             {
-                priority = ClaimPriority.Medium; 
+                priority = ClaimPriority.Medium;
             }
             else
             {
