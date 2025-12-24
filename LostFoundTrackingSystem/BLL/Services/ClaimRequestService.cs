@@ -90,6 +90,12 @@ namespace BLL.Services
 
             await _repo.AddAsync(claimEntity);
 
+            if (foundItem.Status != FoundItemStatus.Claimed.ToString())
+            {
+                foundItem.Status = FoundItemStatus.Claimed.ToString();
+                await _foundItemRepo.UpdateAsync(foundItem);
+            }
+
             await _itemActionLogService.AddLogAsync(new ItemActionLogDto
             {
                 FoundItemId = foundItem.FoundItemId,

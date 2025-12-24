@@ -207,7 +207,8 @@ namespace DAL.Repositories
             }
 
             string returnedStatus = FoundItemStatus.Returned.ToString();
-            query = query.Where(x => x.Status != returnedStatus);
+            string closedStatus = FoundItemStatus.Closed.ToString();
+            query = query.Where(x => x.Status == returnedStatus || x.Status == closedStatus);
 
             query = query.Where(x => x.CreatedBy.HasValue);
 
