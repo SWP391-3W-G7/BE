@@ -50,6 +50,7 @@ namespace LostFoundApi.Controllers
             return Ok(updatedItem);
         }
         [HttpDelete("{id}")]
+        [Authorize(Roles = "User,Staff")]
         public async Task<IActionResult> Delete(int id)
         {
             await _service.DeleteAsync(id);
