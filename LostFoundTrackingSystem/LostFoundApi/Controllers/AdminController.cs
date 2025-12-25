@@ -342,7 +342,7 @@ namespace LostFoundApi.Controllers
                 var result = await _foundItemService.GetFoundItemStatisticsAsync(campusId);
                 return Ok(new
                 {
-                    scope = "All Campuses",
+                    scope = campusId.HasValue ? $"Campus ID {campusId}" : "All Campuses",
                     data = result
                 });
             }
