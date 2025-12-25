@@ -250,7 +250,7 @@ namespace BLL.Services
                     CreatedAt = e.CreatedAt,
                     ImageUrls = e.Images.Select(i => i.ImageUrl).ToList()
                 }).ToList(),
-                ActionLogs = actionLogs
+                ActionLogs = null
             };
         }
         public async Task<ClaimRequestDto> UpdateAsync(int id, UpdateClaimRequest request, int userId)
