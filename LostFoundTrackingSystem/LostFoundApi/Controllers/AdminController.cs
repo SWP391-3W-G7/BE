@@ -193,17 +193,17 @@ namespace LostFoundApi.Controllers
         }
         //lay so luong do vat chua duoc tra tren he thong   
         [HttpGet("dashboard/unreturned-items-count")]
-        public async Task<IActionResult> GetTotalUnreturnedItems()
+        public async Task<IActionResult> GetTotalUnreturnedItems([FromQuery] int? campusId)
         {
             if (!IsAdmin()) return Forbid();
 
             try
             {
-                var count = await _foundItemService.GetUnreturnedCountAsync(null);
+                var count = await _foundItemService.GetUnreturnedCountAsync(campusId);
 
                 return Ok(new
                 {
-                    scope = "All Campuses",
+                    scope = campusId.HasValue ? $"Campus ID {campusId}" : "All Campuses",
                     count = count
                 });
             }
@@ -214,7 +214,7 @@ namespace LostFoundApi.Controllers
         }
         //Lay thong ke do vat duoc tim thay theo thang trong nam
         [HttpGet("dashboard/found-items-monthly")]
-        public async Task<IActionResult> GetMonthlyFoundItems([FromQuery] int? year)
+        public async Task<IActionResult> GetMonthlyFoundItems([FromQuery] int? year, [FromQuery] int? campusId)
         {
             if (!IsAdmin()) return Forbid();
 
@@ -227,7 +227,7 @@ namespace LostFoundApi.Controllers
                 return Ok(new
                 {
                     year = targetYear,
-                    scope = "All Campuses",
+                    scope = campusId.HasValue ? $"Campus ID {campusId}" : "All Campuses",
                     data = stats 
                 });
             }
@@ -238,16 +238,20 @@ namespace LostFoundApi.Controllers
         }
         //Lay thong ke nguoi dung tim duoc nhieu do vat nhat
         [HttpGet("dashboard/top-contributor")]
-        public async Task<IActionResult> GetTopContributorSystemWide()
+        public async Task<IActionResult> GetTopContributor([FromQuery] int? campusId)
         {
             if (!IsAdmin()) return Forbid();
             try
             {
-                var result = await _foundItemService.GetTopContributorAsync(null);
+                var result = await _foundItemService.GetTopContributorAsync(campusId);
 
                 if (result == null) return Ok(new { message = "No data available yet." });
 
-                return Ok(new { scope = "All Campuses", data = result });
+                return Ok(new
+                {
+                    scope = campusId.HasValue ? $"Campus ID {campusId}" : "All Campuses",
+                    data = result
+                });
             }
             catch (Exception ex)
             {
@@ -282,7 +286,7 @@ namespace LostFoundApi.Controllers
         }
         //Lay thong ke nguoi dung bi mat do vat nhieu nhat
         [HttpGet("dashboard/user-most-lost-items")]
-        public async Task<IActionResult> GetUserWithMostLostItems()
+        public async Task<IActionResult> GetUserWithMostLostItems([FromQuery] int? campusId)
         {
             if (!IsAdmin()) return Forbid();
 
@@ -297,7 +301,7 @@ namespace LostFoundApi.Controllers
 
                 return Ok(new
                 {
-                    scope = "All Campuses",
+                    scope = campusId.HasValue ? $"Campus ID {campusId}" : "All Campuses",
                     data = result
                 });
             }
@@ -308,16 +312,16 @@ namespace LostFoundApi.Controllers
         }
         //Lay thong ke trang thai do vat bi mat tren toan he thong
         [HttpGet("dashboard/lost-items-status-stats")]
-        public async Task<IActionResult> GetLostItemsStatsSystemWide()
+        public async Task<IActionResult> GetLostItemsStatsSystemWide([FromQuery] int? campusId)
         {
             if (!IsAdmin()) return Forbid();
 
             try
             {
-                var result = await _lostItemService.GetLostItemStatisticsAsync(null);
+                var result = await _lostItemService.GetLostItemStatisticsAsync(campusId);
                 return Ok(new
                 {
-                    scope = "All Campuses",
+                    scope = campusId.HasValue ? $"Campus ID {campusId}" : "All Campuses",
                     data = result
                 });
             }
@@ -328,14 +332,14 @@ namespace LostFoundApi.Controllers
         }
         //Lay thong ke trang thai do vat duoc tim thay tren toan he thong
         [HttpGet("dashboard/found-items-status-stats")]
-        public async Task<IActionResult> GetFoundItemsStatsSystemWide()
+        public async Task<IActionResult> GetFoundItemsStats([FromQuery] int? campusId)
         {
             if (!IsAdmin()) return Forbid();
 
             try
             {
                 // Null = Toàn bộ hệ thống
-                var result = await _foundItemService.GetFoundItemStatisticsAsync(null);
+                var result = await _foundItemService.GetFoundItemStatisticsAsync(campusId);
                 return Ok(new
                 {
                     scope = "All Campuses",
@@ -349,16 +353,16 @@ namespace LostFoundApi.Controllers
         }
         //Lay thong ke trang thai yeu cau nhan do vat tren toan he thong
         [HttpGet("dashboard/claim-status-stats")]
-        public async Task<IActionResult> GetClaimStatsSystemWide()
+        public async Task<IActionResult> GetClaimStats([FromQuery] int? campusId)
         {
             if (!IsAdmin()) return Forbid();
 
             try
             {
-                var result = await _claimService.GetClaimStatisticsAsync(null);
+                var result = await _claimService.GetClaimStatisticsAsync(campusId);
                 return Ok(new
                 {
-                    scope = "All Campuses",
+                    scope = campusId.HasValue ? $"Campus ID {campusId}" : "All Campuses",
                     data = result
                 });
             }
