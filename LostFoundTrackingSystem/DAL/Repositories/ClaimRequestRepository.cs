@@ -50,7 +50,9 @@ namespace DAL.Repositories
                 .Include(c => c.FoundItem)
                 .Include(c => c.LostItem)
                 .Include(c => c.Evidences).ThenInclude(e => e.Images)
+                .Include(c => c.Student)
                 .Where(c => c.StudentId == studentId)
+                .AsNoTracking()
                 .ToListAsync();
         }
 
