@@ -60,7 +60,8 @@ namespace BLL.Services
             throw new NotImplementedException();
         }
 
-        public async Task<UserDto> RegisterAsync(UserRegisterDto userRegisterDto, IFormFile studentIdCard)
+        // Sửa tham số thành IFormFile? studentIdCard (có dấu chấm hỏi)
+        public async Task<UserDto> RegisterAsync(UserRegisterDto userRegisterDto, IFormFile? studentIdCard)
         {
             var existingUser = await _userRepository.GetUserByEmailAsync(userRegisterDto.Email);
             if (existingUser != null)
@@ -68,7 +69,15 @@ namespace BLL.Services
                 throw new Exception("User with this email already exists.");
             }
 
-            var studentIdCardUrl = await _imageService.UploadAsync(studentIdCard);
+            // --- SỬA ĐỔI TẠI ĐÂY ---
+            string? studentIdCardUrl = null;
+
+            // Chỉ upload nếu người dùng có gửi ảnh
+            if (studentIdCard != null && studentIdCard.Length > 0)
+            {
+                studentIdCardUrl = await _imageService.UploadAsync(studentIdCard);
+            }
+            // -----------------------
 
             var user = new User
             {
@@ -80,12 +89,11 @@ namespace BLL.Services
                 Status = "Pending",
                 CampusId = (int?)userRegisterDto.CampusId,
                 PhoneNumber = userRegisterDto.PhoneNumber,
-                StudentIdCardUrl = studentIdCardUrl
+                StudentIdCardUrl = studentIdCardUrl // Giá trị này có thể là null
             };
 
             var addedUser = await _userRepository.AddUserAsync(user);
             var newUser = await _userRepository.GetUserByIdAsync(addedUser.UserId);
-
 
             if (newUser.RoleId == null)
             {

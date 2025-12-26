@@ -22,10 +22,11 @@ namespace LostFoundApi.Controllers
         }
 
         [HttpPost("register")]
-        public async Task<IActionResult> Register([FromForm] UserRegisterDto userRegisterDto, IFormFile studentIdCard)
+        public async Task<IActionResult> Register([FromForm] UserRegisterDto userRegisterDto, IFormFile? studentIdCard)
         {
             try
             {
+
                 var user = await _userService.RegisterAsync(userRegisterDto, studentIdCard);
                 return Ok(user);
             }
